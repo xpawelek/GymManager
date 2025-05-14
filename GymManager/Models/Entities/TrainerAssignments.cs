@@ -1,7 +1,7 @@
 ﻿namespace GymManager.Models.Entities;
 using System.ComponentModel.DataAnnotations;
 
-public class TrainerAssigment
+public class TrainerAssignments
 {
     //przypisanie trenera do klienta, jesli klient go wybral, umozliwienie kontatku z trenerem klientowi
     //id trainer member, cooperation start, cooperation finish (can be null)

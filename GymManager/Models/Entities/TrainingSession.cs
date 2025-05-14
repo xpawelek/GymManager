@@ -31,7 +31,6 @@ public class TrainingSession
     
     public int? MemberId {get; set;}
     public Member? Member { get; set; }
-    public int? WorkoutNoteId { get; set; }
-    public WorkoutNote? WorkoutNote { get; set; }
+    public WorkoutNote? WorkoutNote { get; set; } 
     
 }

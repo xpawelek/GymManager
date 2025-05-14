@@ -30,7 +30,8 @@ public class WorkoutNote
     
     [Required]
     public Trainer Trainer { get; set; }
+    
+    public int TrainingSessionId { get; set; }  
 
-    public int? TrainingSessionId { get; set; }
-    public TrainingSession? TrainingSession { get; set; }
+    public TrainingSession TrainingSession { get; set; } = null!; 
 }

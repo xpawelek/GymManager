@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using Microsoft.EntityFrameworkCore;
 
 namespace GymManager.Models.Entities;
 
@@ -17,6 +18,7 @@ public class MembershipType
     public string Description { get; set; }
     
     [Required]
+    [Precision(10, 2)]
     public decimal Price { get; set; }
     
     [Required]
