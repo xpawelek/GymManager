@@ -1,6 +1,16 @@
-﻿namespace GymManager.Models.DTOs.Member;
+﻿using System.ComponentModel.DataAnnotations;
 
-public class CreateMessageDto
+namespace GymManager.Models.DTOs.Member;
+
+public class CreateMemberDto
 {
+    [Required]
+    [StringLength(1000)]
+    public string MessageContent { get; set; }
     
+    [Required]
+    public DateTime Date { get; set; }
+
+    [Required]
+    public int TrainerId { get; set; }
 }

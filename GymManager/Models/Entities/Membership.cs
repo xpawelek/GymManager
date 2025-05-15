@@ -13,8 +13,8 @@ public class Membership
 
     [Required] public Member Member { get; set; }  // -> dto get: chcemy
     
-    [Required]
-    public int MembershipTypeId { get; set; }  // -> dto get: nie chcemy
+        [Required]
+        public int MembershipTypeId { get; set; }  // -> dto get: nie chcemy
     
     [Required]
     public MembershipType MembershipType { get; set; }  // -> dto get: chcemy

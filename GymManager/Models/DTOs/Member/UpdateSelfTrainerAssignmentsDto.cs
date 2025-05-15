@@ -2,5 +2,5 @@
 
 public class UpdateSelfTrainerAssignmentsDto
 {
-    
+    public int? TrainerId { get; set; }
 }

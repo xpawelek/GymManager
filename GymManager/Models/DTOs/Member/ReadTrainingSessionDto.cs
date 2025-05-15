@@ -1,4 +1,4 @@
-﻿namespace GymManager.Models.DTOs.Admin;
+﻿namespace GymManager.Models.DTOs.Member;
 
 public class ReadTrainingSessionDto
 {

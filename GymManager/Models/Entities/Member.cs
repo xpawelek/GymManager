@@ -23,7 +23,7 @@ public class Member
     public string Email { get; set; } = String.Empty;  // -> dto get: chcemy
     
     [Required]
-    public DateTime DateOfBirth { get; set; } //  // -> dto get: raczej nie chcemy
+    public DateTime DateOfBirth { get; set; } // -> dto get: raczej nie chcemy
     
     [Required]
     [StringLength(10)]

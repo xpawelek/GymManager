@@ -10,6 +10,7 @@ public class Equipment
     
     public int Id { get; set; } // -> dto get: nie chcemy wyswietlac
     
+    [Range(0, int.MaxValue)]
     public int Quantity { get; set; } // -> dto get: chcemy
 
     [Required] [StringLength(50)] public string Name { get; set; } = String.Empty;  // -> dto get: chcemy
