@@ -1,0 +1,6 @@
+﻿namespace GymManager.Models.DTOs.Admin;
+
+public class ReadEquipmentDto
+{
+    
+}
