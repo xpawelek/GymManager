@@ -2,7 +2,7 @@
 
 namespace GymManager.Models.DTOs.Member;
 
-public class CreateMemberDto
+public class CreateMessageDto
 {
     [Required]
     [StringLength(1000)]

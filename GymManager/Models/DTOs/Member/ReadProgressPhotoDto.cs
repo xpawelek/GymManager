@@ -1,6 +1,6 @@
 ﻿namespace GymManager.Models.DTOs.Member;
 
-public class ReadSelfProgressPhotoDto
+public class ReadProgressPhotoDto
 {
     public int Id { get; set; }
     public int MemberId { get; set; }

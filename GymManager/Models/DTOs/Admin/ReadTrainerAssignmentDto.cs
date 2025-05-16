@@ -1,6 +1,6 @@
 ﻿namespace GymManager.Models.DTOs.Admin;
 
-public class ReadTrainerAssignmentsDto
+public class ReadTrainerAssignmentDto
 {
     public int Id { get; set; }
     public int TrainerId { get; set; }

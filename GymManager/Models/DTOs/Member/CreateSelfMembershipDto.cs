@@ -5,5 +5,5 @@ namespace GymManager.Models.DTOs.Member;
 public class CreateSelfMembershipDto
 {
     [Required]
-    public int MembershipTypeId { get; set; }  // -> dto get: nie chcemy
+    public int MembershipTypeId { get; set; }  
 }

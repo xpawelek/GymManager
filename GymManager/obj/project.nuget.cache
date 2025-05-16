@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "xWN5kI79EHbt82nE2LdyuQc6UhyD2zRBLfwNki+8un4tXrAOyceGlPk762YvcBinZRup6njF04Cs78cBvs98Dg==",
+  "dgSpecHash": "zys80Xqe8ed6HsqOs8qIdGCMJ9J0JkSSOj6ScVkRF2fHfvETgJECVeJH8syzpQXqNewEpXzgCsYSndmYlAKEhQ==",
   "success": true,
   "projectFilePath": "C:\\Users\\pault\\RiderProjects\\GymManager\\GymManager\\GymManager.csproj",
   "expectedPackageFiles": [
@@ -46,6 +46,7 @@
     "C:\\Users\\pault\\.nuget\\packages\\microsoft.sqlserver.server\\1.0.0\\microsoft.sqlserver.server.1.0.0.nupkg.sha512",
     "C:\\Users\\pault\\.nuget\\packages\\microsoft.win32.systemevents\\6.0.0\\microsoft.win32.systemevents.6.0.0.nupkg.sha512",
     "C:\\Users\\pault\\.nuget\\packages\\mono.texttemplating\\2.2.1\\mono.texttemplating.2.2.1.nupkg.sha512",
+    "C:\\Users\\pault\\.nuget\\packages\\riok.mapperly\\4.2.1\\riok.mapperly.4.2.1.nupkg.sha512",
     "C:\\Users\\pault\\.nuget\\packages\\system.codedom\\4.4.0\\system.codedom.4.4.0.nupkg.sha512",
     "C:\\Users\\pault\\.nuget\\packages\\system.collections.immutable\\6.0.0\\system.collections.immutable.6.0.0.nupkg.sha512",
     "C:\\Users\\pault\\.nuget\\packages\\system.composition\\6.0.0\\system.composition.6.0.0.nupkg.sha512",

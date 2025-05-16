@@ -17,10 +17,7 @@
         <PrivateAssets>all</PrivateAssets>
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       </PackageReference>
-    </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="Models\Mappers\" />
+      <PackageReference Include="Riok.Mapperly" Version="4.2.1" />
     </ItemGroup>
 
 </Project>

@@ -2,7 +2,7 @@
 
 namespace GymManager.Models.DTOs.Admin;
 
-public class CreateTrainerAssignmentsDto
+public class CreateTrainerAssignmentDto
 {
     [Required]
     public int TrainerId { get; set; }
