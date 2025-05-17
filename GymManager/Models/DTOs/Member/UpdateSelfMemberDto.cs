@@ -5,17 +5,17 @@ namespace GymManager.Models.DTOs.Member;
 public class UpdateSelfMemberDto
 {
     [StringLength(50)]
-    public string? FirstName { get; set; } = String.Empty; 
+    public string? FirstName { get; set; } 
     
     [StringLength(50)]
-    public string? LastName { get; set; } = String.Empty; 
+    public string? LastName { get; set; }
     
     [EmailAddress]
-    public string? Email { get; set; } = String.Empty; 
+    public string? Email { get; set; }
     
     public DateTime? DateOfBirth { get; set; } 
     
     [StringLength(15)]
     [Phone]
-    public string? PhoneNumber { get; set; } = String.Empty; 
+    public string? PhoneNumber { get; set; } 
 }

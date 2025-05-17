@@ -1,4 +1,10 @@
 using GymManager.Data;
+using GymManager.Models.Mappers.Admin;
+using GymManager.Models.Mappers.Member;
+using GymManager.Models.Mappers.Trainer;
+using GymManager.Services.Admin;
+using GymManager.Services.Member;
+using GymManager.Services.Trainer;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -7,6 +13,17 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<GymDbContext>(options => 
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+builder.Services.AddScoped<AdminEquipmentService>();
+builder.Services.AddScoped<MemberEquipmentService>();
+builder.Services.AddScoped<TrainerEquipmentService>();
+
+builder.Services.AddScoped<AdminEquipmentMapper>();
+builder.Services.AddScoped<MemberEquipmentMapper>();
+builder.Services.AddScoped<TrainerEquipmentMapper>();
+
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddControllers();
 
 var app = builder.Build();
 
