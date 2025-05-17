@@ -1,4 +1,6 @@
 ﻿using GymManager.Models.DTOs.Admin;
+using GymManager.Models.DTOs.Member;
+using GymManager.Models.Entities;
 using Riok.Mapperly.Abstractions;
 
 namespace GymManager.Models.Mappers.Admin;
@@ -6,6 +8,17 @@ namespace GymManager.Models.Mappers.Admin;
 [Mapper]
 public partial class AdminMembershipMapper
 {
+    // POST: Create
+    [MapperIgnoreTarget(nameof(Membership.Id))]
+    [MapperIgnoreTarget(nameof(Membership.Member))]
+    [MapperIgnoreTarget(nameof(Membership.MembershipType))]
+    public partial Membership ToEntity(CreateMembershipDto dto);
+
+    // PUT/PATCH: Update
+    [MapperIgnoreTarget(nameof(Membership.Id))]
+    [MapperIgnoreTarget(nameof(Membership.Member))]
+    [MapperIgnoreTarget(nameof(Membership.MembershipType))]
+    public partial void UpdateEntity(UpdateMembershipDto dto, Membership membership);
     // GET ONE
     [MapperIgnoreSource(nameof(Entities.Membership.MemberId))]
     [MapperIgnoreSource(nameof(Entities.Membership.MembershipTypeId))]
