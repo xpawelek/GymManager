@@ -17,7 +17,6 @@ public class GymDbContext : DbContext
     public DbSet<Trainer> Trainers { get; set; }
     public DbSet<TrainerAssignments> TrainerAssignments { get; set; }
     public DbSet<TrainingSession> TrainingSessions { get; set; }
-    public DbSet<WeeklySchedule> WeeklySchedules { get; set; }
     public DbSet<WorkoutNote> WorkoutNotes { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

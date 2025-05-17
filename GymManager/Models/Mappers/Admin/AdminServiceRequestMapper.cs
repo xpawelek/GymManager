@@ -15,7 +15,7 @@ public partial class AdminServiceRequestMapper
     // GET ONE
     public partial ReadServiceRequestDto ToReadDto(ServiceRequest serviceRequest);
     //GET ALL
-    public partial List<ReadServiceRequestDto> ToReadDtoList(List<ReadServiceRequestDto> serviceRequests);
+    public partial List<ReadServiceRequestDto> ToReadDtoList(List<ServiceRequest> serviceRequests);
     //PUT 
     [MapperIgnoreTarget(nameof(ServiceRequest.Id))]
     [MapperIgnoreTarget(nameof(ServiceRequest.ImagePath))]

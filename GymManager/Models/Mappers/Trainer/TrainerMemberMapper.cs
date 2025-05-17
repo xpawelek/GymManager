@@ -1,6 +1,13 @@
-﻿namespace GymManager.Models.Mappers.Trainer;
+﻿using Riok.Mapperly.Abstractions;
+using GymManager.Models.DTOs.Trainer;
 
-public class TrainerMemberMapper
+namespace GymManager.Models.Mappers.Trainer;
+
+[Mapper]
+public partial class TrainerMemberMapper
 {
-    
+    // GET ONE
+    public partial ReadMemberDto ToReadDto(Entities.Member member);
+    //GET ALL
+    public partial List<ReadMemberDto> ToReadDtoList(List<Entities.Member> members);
 }
