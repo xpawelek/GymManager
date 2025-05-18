@@ -17,10 +17,26 @@ builder.Services.AddDbContext<GymDbContext>(options =>
 builder.Services.AddScoped<AdminEquipmentService>();
 builder.Services.AddScoped<MemberEquipmentService>();
 builder.Services.AddScoped<TrainerEquipmentService>();
+builder.Services.AddScoped<AdminMemberService>();
+builder.Services.AddScoped<MemberSelfService>();
+builder.Services.AddScoped<TrainerMemberService>();
+builder.Services.AddScoped<AdminMembershipTypeService>();
+builder.Services.AddScoped<MemberMembershipTypeService>();
+builder.Services.AddScoped<TrainerMembershipTypeService>();
+builder.Services.AddScoped<AdminMembershipService>();
+builder.Services.AddScoped<MemberSelfMembershipService>();
 
 builder.Services.AddScoped<AdminEquipmentMapper>();
 builder.Services.AddScoped<MemberEquipmentMapper>();
 builder.Services.AddScoped<TrainerEquipmentMapper>();
+builder.Services.AddScoped<AdminMemberMapper>();
+builder.Services.AddScoped<MemberSelfMapper>();
+builder.Services.AddScoped<TrainerMemberMapper>();
+builder.Services.AddScoped<AdminMembershipTypeMapper>();
+builder.Services.AddScoped<MemberMembershipTypeMapper>();
+builder.Services.AddScoped<TrainerMembershipTypeMapper>();
+builder.Services.AddScoped<AdminMembershipMapper>();
+builder.Services.AddScoped<MemberSelfMembershipMapper>();
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddControllers();
