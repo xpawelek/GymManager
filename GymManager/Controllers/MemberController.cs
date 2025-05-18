@@ -27,7 +27,7 @@ namespace GymManager.Controllers
             _trainerService = trainerService;
         }
 
-        private string GetUserRole() => "Admin";
+        private string GetUserRole() => "Member";
 
         private int? GetUserId() =>
             int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : null;
@@ -89,12 +89,23 @@ namespace GymManager.Controllers
                         var success = await _adminService.PatchAsync(id, dto);
                         return success ? NoContent() : NotFound();
                     }
+                default:
+                    return Forbid();
+            }
+        }
+        
+        // PATCH /api/members/{id}
+        [HttpPatch("self/{id}")]
+        public async Task<IActionResult> Patch(int id, [FromBody] UpdateSelfMemberDto dto)
+        {
+            switch (GetUserRole())
+            { 
                 case "Member":
                     if (GetUserId() != id) return Forbid();
-                    {
-                        var success = await _memberSelfService.UpdateOwnAsync(dto);
-                        return success ? NoContent() : NotFound();
-                    }
+                {
+                    var success = await _memberSelfService.UpdateOwnAsync(dto);
+                    return success ? NoContent() : NotFound();
+                }
                 default:
                     return Forbid();
             }
