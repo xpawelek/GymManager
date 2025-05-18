@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using GymManager.Models.Identity;
 
 namespace GymManager.Models.Entities;
 
@@ -33,4 +34,7 @@ public class Member
     [StringLength(15)]
     [Phone]
     public string PhoneNumber { get; set; } = String.Empty;  // -> dto get: chcemy
+    
+    public string UserId { get; set; } = null!;
+    public ApplicationUser User { get; set; } = null!;
 }
