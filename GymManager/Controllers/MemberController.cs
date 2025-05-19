@@ -82,23 +82,18 @@ namespace GymManager.Controllers
         [HttpPatch("{id}")]
         public async Task<IActionResult> Patch(int id, [FromBody] UpdateMemberDto dto)
         {
-            switch (GetUserRole())
+            if (GetUserRole() == "Admin")
             {
-                case "Admin":
-                    {
-                        var success = await _adminService.PatchAsync(id, dto);
-                        return success ? NoContent() : NotFound();
-                    }
-                case "Member":
-                    if (GetUserId() != id) return Forbid();
-                    {
-                        var success = await _memberSelfService.UpdateOwnAsync(dto);
-                        return success ? NoContent() : NotFound();
-                    }
-                default:
-                    return Forbid();
+                var success = await _adminService.PatchAsync(id, dto);
+                return success ? NoContent() : NotFound();
             }
-        }
+            if (GetUserRole() == "Member" && GetUserId() == id)
+            {
+                var success = await _memberSelfService.UpdateOwnAsync(dto);
+                return success ? NoContent() : NotFound();
+            }
+            return Forbid();
+        }   
 
         // DELETE /api/members/{id}
         [HttpDelete("{id}")]
