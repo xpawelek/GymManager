@@ -3,11 +3,13 @@ using GymManager.Models.DTOs.Member;
 using GymManager.Models.Entities;
 using Riok.Mapperly.Abstractions;
 
-namespace GymManager.Models.Mappers.Admin;
+namespace GymManager.Models.Mappers.Receptionist;
 
 [Mapper]
-public partial class AdminMembershipMapper
+public partial class ReceptionistMembershipMapper
 {
+    //rola receptionist - nowy czlonek kupuje czlonkostwo, ktos przyszedl na recepcje i chce aby sprawdzono my
+    // na ile ma jeszcze karnet, ktos chce zeby mu zmodyfikowano subskrypcje etc
     // POST: Create
     [MapperIgnoreTarget(nameof(Membership.Id))]
     [MapperIgnoreTarget(nameof(Membership.Member))]
