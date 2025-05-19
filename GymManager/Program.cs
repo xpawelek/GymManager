@@ -72,12 +72,12 @@ builder.Services.AddAuthentication(options =>
     {
         OnAuthenticationFailed = context =>
         {
-            Console.WriteLine("❌ JWT authentication failed: " + context.Exception.Message);
+            Console.WriteLine("JWT authentication failed: " + context.Exception.Message);
             return Task.CompletedTask;
         },
         OnTokenValidated = context =>
         {
-            Console.WriteLine("✅ JWT token validated successfully.");
+            Console.WriteLine("JWT token validated successfully.");
             return Task.CompletedTask;
         }
     };

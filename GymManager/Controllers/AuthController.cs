@@ -22,7 +22,7 @@ public class AuthController : ControllerBase
     private readonly SignInManager<ApplicationUser> _signInManager;
     private readonly GymDbContext _dbContext;
     private readonly JwtTokenGenerator _jwtTokenGenerator;
-    
+
     public AuthController(UserManager<ApplicationUser> userManager,
         SignInManager<ApplicationUser> signInManager,
         GymDbContext dbContext,
@@ -36,7 +36,7 @@ public class AuthController : ControllerBase
     }
 
 
-
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [Authorize(Roles = RoleConstants.Admin)]
     [HttpPost("admin/register-trainer")]
     public async Task<IActionResult> RegisterTrainer([FromBody] RegisterTrainerDto dto)
@@ -48,13 +48,13 @@ public class AuthController : ControllerBase
             UserName = dto.Email,
             EmailConfirmed = true
         };
-        
+
         var result = await _userManager.CreateAsync(user, dto.Password);
         if (!result.Succeeded)
         {
             return BadRequest(new String[] { "some errors" });
         }
-        
+
         await _userManager.AddToRoleAsync(user, RoleConstants.Trainer);
 
         var trainer = new Trainer
@@ -67,13 +67,14 @@ public class AuthController : ControllerBase
             Description = dto.Description,
             PhotoPath = dto.PhotoPath
         };
-    
+
         _dbContext.Trainers.Add(trainer);
         await _dbContext.SaveChangesAsync();
-        
+
         return Ok("Trainer registered successfully");
     }
-    
+
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [Authorize(Roles = RoleConstants.Admin)]
     [HttpPost("admin/register-receptionist")]
     public async Task<IActionResult> RegisterReceptionist([FromBody] RegisterReceptionistDto dto)
@@ -85,20 +86,37 @@ public class AuthController : ControllerBase
             UserName = dto.Email,
             EmailConfirmed = true
         };
-        
+
         var result = await _userManager.CreateAsync(user, dto.Password);
         if (!result.Succeeded)
         {
             return BadRequest(new String[] { "some errors" });
         }
-        
+
         await _userManager.AddToRoleAsync(user, RoleConstants.Receptionist);
-        
+
         return Ok("Trainer registered successfully");
     }
 
     private async Task<IActionResult> RegisterMemberInternal(RegisterMemberDto dto)
     {
+        if (User.Identity?.IsAuthenticated == true ||
+            User.IsInRole(RoleConstants.Member))
+        {
+            return Forbid("Logged-in members cannot create new accounts.");
+        }
+
+        var authHeader = Request.Headers["Authorization"].FirstOrDefault();
+        string? token = null;
+
+        if (!string.IsNullOrEmpty(authHeader) && authHeader.StartsWith("Bearer "))
+        {
+            token = authHeader.Substring("Bearer ".Length);
+        }
+        
+        var email = User.FindFirstValue(ClaimTypes.Email);
+       // Console.WriteLine("Executing user roles: " + string.Join(", ", executingUserRoles));
+        
         if (await _userManager.FindByEmailAsync(dto.Email) is not null)
             return BadRequest("Email is already taken.");
 
@@ -114,7 +132,9 @@ public class AuthController : ControllerBase
             return BadRequest(result.Errors.Select(e => e.Description));
 
         await _userManager.AddToRoleAsync(user, RoleConstants.Member);
-
+        await _dbContext.SaveChangesAsync();
+        
+        
         var member = new Member
         {
             UserId = user.Id,
@@ -127,7 +147,7 @@ public class AuthController : ControllerBase
         _dbContext.Members.Add(member);
         await _dbContext.SaveChangesAsync();
 
-        return Ok("Member registered successfully.");
+        return Ok($"Member registered successfully. email: {token ?? "not found"}");
     }
     
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
@@ -135,6 +155,7 @@ public class AuthController : ControllerBase
     [HttpPost("admin/register-member")]
     public Task<IActionResult> RegisterMemberByAdmin([FromBody] RegisterMemberDto dto) => RegisterMemberInternal(dto);
 
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [Authorize(Roles = RoleConstants.Receptionist)]
     [HttpPost("receptionist/register-member")]
     public Task<IActionResult> RegisterMemberByReceptionist([FromBody] RegisterMemberDto dto) =>
@@ -187,11 +208,27 @@ public class AuthController : ControllerBase
             System.Console.WriteLine(user.Id);
         }
         var roles = await _userManager.GetRolesAsync(user);
+        
+        Console.WriteLine("IsAuthenticated: " + User.Identity?.IsAuthenticated);
+        Console.WriteLine("Claims:");
+        foreach (var c in User.Claims)
+        {
+            Console.WriteLine($" - {c.Type}: {c.Value}");
+        }
+        
+        var authHeader = Request.Headers["Authorization"].FirstOrDefault();
+        string? token = null;
+
+        if (!string.IsNullOrEmpty(authHeader) && authHeader.StartsWith("Bearer "))
+        {
+            token = authHeader.Substring("Bearer ".Length);
+        }
 
         return Ok(new
         {
             Email = user?.Email,
-            Roles = roles
+            Roles = roles,
+            Token = token
         });
     }
 }

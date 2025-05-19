@@ -1,3 +1,13 @@
 ﻿json - hide token in future
 
 member1@gmail.com - Member123!
+member2@gmail.com - Member123!
+
+{
+    "firstname" : "x",
+    "lastname" : "x",
+    "dateofbirth" : "2000-01-01T00:00:00",
+    "phonenumber" : "111222333",
+    "email" : "member3@gmail.com",
+    "password" : "Member123!"
+}
