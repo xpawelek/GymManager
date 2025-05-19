@@ -1,10 +1,12 @@
-﻿using GymManager.Data;
+﻿using System.Security.Claims;
+using GymManager.Data;
 using GymManager.Models.DTOs.Auth;
 using GymManager.Models.DTOs.Member;
 using GymManager.Models.DTOs.Receptionist;
 using GymManager.Models.DTOs.Trainer;
 using GymManager.Models.Entities;
 using GymManager.Models.Identity;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
@@ -128,6 +130,7 @@ public class AuthController : ControllerBase
         return Ok("Member registered successfully.");
     }
     
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [Authorize(Roles = RoleConstants.Admin)]
     [HttpPost("admin/register-member")]
     public Task<IActionResult> RegisterMemberByAdmin([FromBody] RegisterMemberDto dto) => RegisterMemberInternal(dto);
@@ -160,14 +163,23 @@ public class AuthController : ControllerBase
         var roles = await _userManager.GetRolesAsync(user);
         var token = _jwtTokenGenerator.generateToken(user, roles);
 
-        return Ok($"Logged in successfully, token: {token}");
+        return Ok(new
+        {
+            Token = token,
+            UserId = user.Id,
+            Email = user.Email,
+            Roles = roles
+        });
     }
     
-    [Authorize]
+    
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [HttpGet("me")]
     public async Task<IActionResult> GetCurrentUser()
     {
-        var user = await _userManager.GetUserAsync(User);
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        
+        var user = await _userManager.FindByIdAsync(userId);
         if (user == null)
             return Unauthorized("User not found");
         else

@@ -1,1 +1,3 @@
 ﻿json - hide token in future
+
+member1@gmail.com - Member123!

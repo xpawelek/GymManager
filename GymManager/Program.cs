@@ -67,6 +67,20 @@ builder.Services.AddAuthentication(options =>
         ValidAudience = jwtSetting.GetValue<string>("Audience"),
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey!)),
     };
+    
+    options.Events = new JwtBearerEvents
+    {
+        OnAuthenticationFailed = context =>
+        {
+            Console.WriteLine("❌ JWT authentication failed: " + context.Exception.Message);
+            return Task.CompletedTask;
+        },
+        OnTokenValidated = context =>
+        {
+            Console.WriteLine("✅ JWT token validated successfully.");
+            return Task.CompletedTask;
+        }
+    };
 });
 
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
@@ -95,9 +109,9 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
-app.UseAuthorization();
-app.MapControllers(); 
-app.UseAuthentication();
+app.UseAuthentication(); 
+app.UseAuthorization();  
+app.MapControllers();  
 
 app.MapControllerRoute(
     name: "default",
