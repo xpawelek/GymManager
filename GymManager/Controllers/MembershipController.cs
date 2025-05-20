@@ -73,7 +73,7 @@ namespace GymManager.Controllers
                     {
                         var dto = JsonSerializer
                             .Deserialize<MemberCreateDto>(raw.ToString()!)!;
-                        var r = await _member.CreateAsync(dto);
+                        var r = await _member.CreateSelfMembership(dto);
                         return CreatedAtAction(nameof(GetAll), null, r);
                     }
                 default:

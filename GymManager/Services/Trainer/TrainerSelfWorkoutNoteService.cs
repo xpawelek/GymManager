@@ -45,8 +45,13 @@ namespace GymManager.Services.Trainer
 
         public async Task<ReadSelfWorkoutNoteDto> CreateAsync(CreateSelfWorkoutNote dto)
         {
-            dto.TrainerId = GetCurrentTrainerId();
+            var userId = _httpContext.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var trainer = await _context.Trainers.FirstOrDefaultAsync(t => t.UserId == userId);
+            if (trainer == null)
+                throw new ApplicationException("Trainer not found");
+            
             var e = _mapper.ToEntity(dto);
+            e.TrainerId = trainer.Id;
             await _context.WorkoutNotes.AddAsync(e);
             await _context.SaveChangesAsync();
             return _mapper.ToReadDto(e);

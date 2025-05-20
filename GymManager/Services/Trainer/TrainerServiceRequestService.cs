@@ -1,7 +1,6 @@
 ﻿using GymManager.Data;
 using GymManager.Models.DTOs.Trainer;
 using GymManager.Models.Mappers.Trainer;
-using GymManager.Models.Mappers.Admin;
 
 namespace GymManager.Services.Trainer
 {
@@ -9,12 +8,12 @@ namespace GymManager.Services.Trainer
     {
         private readonly GymDbContext _context;
         private readonly TrainerServiceRequestMapper _createMapper;
-        private readonly AdminServiceRequestMapper _readMapper;
+        private readonly TrainerServiceRequestMapper _readMapper;
 
         public TrainerServiceRequestService(
             GymDbContext context,
             TrainerServiceRequestMapper createMapper,
-            AdminServiceRequestMapper readMapper)
+            TrainerServiceRequestMapper readMapper)
         {
             _context = context;
             _createMapper = createMapper;

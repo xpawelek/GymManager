@@ -29,6 +29,14 @@ namespace GymManager.Services.Member
             return int.TryParse(id, out var mid) ? mid : null;
         }
 
+        public async Task<ReadSelfMembershipDto> CreateSelfMembership(CreateSelfMembershipDto selfMembershipDto)
+        {
+            var entity = _mapper.ToEntity(selfMembershipDto);
+            await _context.Memberships.AddAsync(entity);
+            await _context.SaveChangesAsync();
+            return _mapper.ToReadDto(entity);
+        }
+
         public async Task<ReadSelfMembershipDto> GetOwnAsync()
         {
             var memberId = GetCurrentMemberId()!.Value;

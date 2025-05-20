@@ -18,4 +18,13 @@ public partial class MemberSelfMembershipMapper
     [MapperIgnoreTarget(nameof(Entities.Membership.MemberId))]
     [MapperIgnoreTarget(nameof(Entities.Membership.MembershipType))]
     public partial void UpdateEntity(UpdateMembershipDto dto, Entities.Membership membership);
+    
+    //
+    [MapperIgnoreTarget(nameof(Entities.Membership.Id))]
+    [MapperIgnoreTarget(nameof(Entities.Membership.MemberId))]
+    [MapperIgnoreTarget(nameof(Entities.Membership.Member))]
+    [MapperIgnoreTarget(nameof(Entities.Membership.MembershipType))]
+    [MapperIgnoreTarget(nameof(Entities.Membership.StartDate))]
+    [MapperIgnoreTarget(nameof(Entities.Membership.EndDate))]
+    public partial Entities.Membership ToEntity(CreateSelfMembershipDto dto);
 }

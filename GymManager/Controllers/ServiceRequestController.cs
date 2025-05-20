@@ -71,7 +71,7 @@ namespace GymManager.Controllers
                     {
                         var dto = JsonSerializer.Deserialize<MemberCreateDto>(rawDto.ToString()!)!;
                         var r = await _member.CreateAsync(dto);
-                        return CreatedAtAction(nameof(GetById), new { id = r.Id }, r);
+                        return Accepted(new { message = "Your request has been accepted." });
                     }
                 case RoleConstants.Trainer:
                     {
