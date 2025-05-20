@@ -3,22 +3,26 @@ using GymManager.Models.DTOs.Trainer;
 using GymManager.Models.Mappers.Trainer;
 using Microsoft.EntityFrameworkCore;
 
-namespace GymManager.Services.Trainer;
-
-public class TrainerEquipmentService
+namespace GymManager.Services.Trainer
 {
-    private readonly GymDbContext _context;
-    private readonly TrainerEquipmentMapper _mapper;
-
-    public TrainerEquipmentService(GymDbContext context, TrainerEquipmentMapper mapper)
+    public class TrainerEquipmentService
     {
-        _context = context;
-        _mapper = mapper;
-    }
+        private readonly GymDbContext _context;
+        private readonly TrainerEquipmentMapper _mapper;
 
-    public async Task<List<ReadEquipmentDto>> GetAllAsync()
-    {
-        var equipment = await _context.Equipments.ToListAsync();
-        return _mapper.ToReadDtoList(equipment);
+        public TrainerEquipmentService(GymDbContext context, TrainerEquipmentMapper mapper)
+        {
+            _context = context;
+            _mapper = mapper;
+        }
+
+        public async Task<List<ReadEquipmentDto>> GetAllAsync()
+            => _mapper.ToReadDtoList(await _context.Equipments.ToListAsync());
+
+        public async Task<ReadEquipmentDto?> GetByIdAsync(int id)
+        {
+            var e = await _context.Equipments.FindAsync(id);
+            return e == null ? null : _mapper.ToReadDto(e);
+        }
     }
 }
