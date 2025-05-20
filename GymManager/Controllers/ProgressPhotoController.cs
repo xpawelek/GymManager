@@ -1,67 +1,115 @@
 ﻿using System.Security.Claims;
+using System.Text.Json;
+using GymManager.Models.Identity;
 using GymManager.Services.Admin;
 using GymManager.Services.Member;
+using GymManager.Services.Trainer;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-// aliasy bo są dwie takie samy nazwy..
 using AdminUpdateDto = GymManager.Models.DTOs.Admin.UpdateProgressPhotoDto;
-using MemberUpdateDto = GymManager.Models.DTOs.Member.UpdateProgressPhotoDto;
 using MemberCreateDto = GymManager.Models.DTOs.Member.CreateProgressPhotoDto;
+using MemberUpdateDto = GymManager.Models.DTOs.Member.UpdateProgressPhotoDto;
 
 namespace GymManager.Controllers
 {
     [ApiController]
     [Route("api/progress-photos")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     public class ProgressPhotoController : ControllerBase
     {
-        private readonly AdminProgressPhotoService _adminService;
-        private readonly MemberProgressPhotoService _memberService;
+        private readonly AdminProgressPhotoService _admin;
+        private readonly MemberProgressPhotoService _member;
+        private readonly TrainerProgressPhotoService _trainer;
 
         public ProgressPhotoController(
-            AdminProgressPhotoService adminService,
-            MemberProgressPhotoService memberService)
+            AdminProgressPhotoService admin,
+            MemberProgressPhotoService member,
+            TrainerProgressPhotoService trainer)
         {
-            _adminService = adminService;
-            _memberService = memberService;
+            _admin = admin;
+            _member = member;
+            _trainer = trainer;
         }
 
-        private string GetUserRole() => "Member";
-        private int? GetUserId() =>
-            int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : null;
+        private string Role => User.FindFirstValue(ClaimTypes.Role)!;
 
-        // PATCH /api/progress-photos/{id}
-        [HttpPatch("{id}")]
-        public async Task<IActionResult> Patch(int id,
-            [FromBody] object rawDto)   // przyjmujemy raw, zamienimy w kodzie
+        [HttpGet]
+        public async Task<IActionResult> GetAll()
         {
-            if (GetUserRole() == "Admin")
+            switch (Role)
             {
-                // rzutuj na adminowy DTO
-                var dto = System.Text.Json.JsonSerializer
-                    .Deserialize<AdminUpdateDto>(rawDto.ToString()!);
-                var success = await _adminService.PatchAsync(id, dto!);
-                return success ? NoContent() : NotFound();
+                case RoleConstants.Admin:
+                    return Ok(await _admin.GetAllAsync());
+                case RoleConstants.Member:
+                    return Ok(await _member.GetAllAsync());
+                case RoleConstants.Trainer:
+                    return Ok(await _trainer.GetAllAsync());
+                default:
+                    return Forbid();
             }
-
-            if (GetUserRole() == "Member")
-            {
-                // rzutuj na memberski DTO
-                var dto = System.Text.Json.JsonSerializer
-                    .Deserialize<MemberUpdateDto>(rawDto.ToString()!);
-                var success = await _memberService.PatchAsync(id, dto!);
-                return success ? NoContent() : NotFound();
-            }
-
-            return Forbid();
         }
 
-        // POST /api/progress-photos
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetById(int id)
+        {
+            switch (Role)
+            {
+                case RoleConstants.Admin:
+                    var a = await _admin.GetByIdAsync(id);
+                    return a == null ? NotFound() : Ok(a);
+                case RoleConstants.Member:
+                    var m = await _member.GetByIdAsync(id);
+                    return m == null ? NotFound() : Ok(m);
+                case RoleConstants.Trainer:
+                    var t = await _trainer.GetByIdAsync(id);
+                    return t == null ? NotFound() : Ok(t);
+                default:
+                    return Forbid();
+            }
+        }
+
         [HttpPost]
+        [Authorize(Roles = RoleConstants.Member)]
         public async Task<IActionResult> Create([FromBody] MemberCreateDto dto)
         {
-            if (GetUserRole() != "Member") return Forbid();
-            var result = await _memberService.CreateAsync(dto);
-            return CreatedAtAction(nameof(Patch), new { id = result.Id }, result);
+            var r = await _member.CreateAsync(dto);
+            return CreatedAtAction(nameof(GetById), new { id = r.Id }, r);
+        }
+
+        [HttpPatch("{id}")]
+        public async Task<IActionResult> Patch(int id, [FromBody] object raw)
+        {
+            switch (Role)
+            {
+                case RoleConstants.Admin:
+                    var aDto = JsonSerializer.Deserialize<AdminUpdateDto>(raw.ToString()!)!;
+                    return await _admin.PatchAsync(id, aDto)
+                        ? NoContent() : NotFound();
+                case RoleConstants.Member:
+                    var mDto = JsonSerializer.Deserialize<MemberUpdateDto>(raw.ToString()!)!;
+                    return await _member.PatchAsync(id, mDto)
+                        ? NoContent() : NotFound();
+                default:
+                    return Forbid();
+            }
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            switch (Role)
+            {
+                case RoleConstants.Admin:
+                    return await _admin.DeleteAsync(id)
+                        ? NoContent() : NotFound();
+                case RoleConstants.Member:
+                    return await _member.DeleteAsync(id)
+                        ? NoContent() : NotFound();
+                default:
+                    return Forbid();
+            }
         }
     }
 }

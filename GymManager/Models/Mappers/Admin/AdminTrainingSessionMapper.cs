@@ -1,7 +1,6 @@
 ﻿using GymManager.Models.DTOs.Admin;
 using GymManager.Models.Entities;
 using Riok.Mapperly.Abstractions;
-using ReadTrainingSessionDto = GymManager.Models.DTOs.Member.ReadTrainingSessionDto;
 
 namespace GymManager.Models.Mappers.Admin;
 

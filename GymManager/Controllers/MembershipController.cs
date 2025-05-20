@@ -1,95 +1,111 @@
 ﻿using System.Security.Claims;
-using GymManager.Models.DTOs.Admin;
+using System.Text.Json;
 using GymManager.Models.DTOs.Member;
+using GymManager.Models.Identity;
 using GymManager.Services.Admin;
 using GymManager.Services.Member;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+
+using AdminCreateDto = GymManager.Models.DTOs.Admin.CreateMembershipDto;
+using MemberCreateDto = GymManager.Models.DTOs.Member.CreateSelfMembershipDto;
 
 namespace GymManager.Controllers
 {
     [ApiController]
     [Route("api/memberships")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     public class MembershipController : ControllerBase
     {
-        private readonly AdminMembershipService _adminService;
-        private readonly MemberSelfMembershipService _memberService;
+        private readonly AdminMembershipService _admin;
+        private readonly MemberSelfMembershipService _member;
 
         public MembershipController(
-            AdminMembershipService adminService,
-            MemberSelfMembershipService memberService)
+            AdminMembershipService admin,
+            MemberSelfMembershipService member)
         {
-            _adminService = adminService;
-            _memberService = memberService;
+            _admin = admin;
+            _member = member;
         }
 
-        private string GetUserRole() => "Admin";
-        private int? GetUserId() =>
-            int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : null;
+        private string Role => User.FindFirstValue(ClaimTypes.Role)!;
 
-        // GET /api/memberships
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            switch (GetUserRole())
+            switch (Role)
             {
-                case "Admin":
-                    return Ok(await _adminService.GetAllAsync());
-                case "Member":
-                    return Ok(await _memberService.GetOwnAsync());
+                case RoleConstants.Admin:
+                    return Ok(await _admin.GetAllAsync());
+
+                case RoleConstants.Member:
+                    var own = await _member.GetOwnAsync();
+                    return own == null ? NotFound() : Ok(own);
+
                 default:
                     return Forbid();
             }
         }
 
-        // GET /api/memberships/{id}
         [HttpGet("{id}")]
+        [Authorize(Roles = RoleConstants.Admin)]
         public async Task<IActionResult> GetById(int id)
         {
-            switch (GetUserRole())
+            var dto = await _admin.GetByIdAsync(id);
+            return dto == null ? NotFound() : Ok(dto);
+        }
+
+        [HttpPost]
+        [Authorize(Roles = RoleConstants.Admin + "," + RoleConstants.Member)]
+        public async Task<IActionResult> Create([FromBody] object raw)
+        {
+            switch (Role)
             {
-                case "Admin":
-                    return Ok(await _adminService.GetByIdAsync(id));
-                case "Member":
-                    if (GetUserId() != id) return Forbid();
-                    return Ok(await _memberService.GetOwnAsync());
+                case RoleConstants.Admin:
+                    {
+                        var dto = JsonSerializer
+                            .Deserialize<AdminCreateDto>(raw.ToString()!)!;
+                        var r = await _admin.CreateAsync(dto);
+                        return CreatedAtAction(nameof(GetById), new { id = r.Id }, r);
+                    }
+                case RoleConstants.Member:
+                    {
+                        var dto = JsonSerializer
+                            .Deserialize<MemberCreateDto>(raw.ToString()!)!;
+                        var r = await _member.CreateAsync(dto);
+                        return CreatedAtAction(nameof(GetAll), null, r);
+                    }
                 default:
                     return Forbid();
             }
         }
 
-        // POST /api/memberships
-        [HttpPost]
-        public async Task<IActionResult> Create([FromBody] CreateMembershipDto dto)
-        {
-            if (GetUserRole() != "Admin") return Forbid();
-            var result = await _adminService.CreateAsync(dto);
-            return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
-        }
-
-        // PATCH /api/memberships/{id}
         [HttpPatch("{id}")]
+        [Authorize(Roles = RoleConstants.Admin + "," + RoleConstants.Member)]
         public async Task<IActionResult> Patch(int id, [FromBody] UpdateMembershipDto dto)
         {
-            if (GetUserRole() == "Admin")
+            switch (Role)
             {
-                var success = await _adminService.PatchAsync(id, dto);
-                return success ? NoContent() : NotFound();
+                case RoleConstants.Admin:
+                    return await _admin.PatchAsync(id, dto)
+                        ? NoContent() : NotFound();
+
+                case RoleConstants.Member:
+                    return await _member.UpdateOwnAsync(dto)
+                        ? NoContent() : NotFound();
+
+                default:
+                    return Forbid();
             }
-            if (GetUserRole() == "Member" && GetUserId() == id)
-            {
-                var success = await _memberService.UpdateOwnAsync(dto);
-                return success ? NoContent() : NotFound();
-            }
-            return Forbid();
         }
 
-        // DELETE /api/memberships/{id}
         [HttpDelete("{id}")]
+        [Authorize(Roles = RoleConstants.Admin)]
         public async Task<IActionResult> Delete(int id)
         {
-            if (GetUserRole() != "Admin") return Forbid();
-            var success = await _adminService.DeleteAsync(id);
-            return success ? NoContent() : NotFound();
+            return await _admin.DeleteAsync(id)
+                ? NoContent() : NotFound();
         }
     }
 }

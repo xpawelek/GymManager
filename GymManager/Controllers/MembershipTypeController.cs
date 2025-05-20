@@ -1,93 +1,101 @@
 ﻿using System.Security.Claims;
-using GymManager.Models.DTOs.Admin;
+using GymManager.Models.Identity;
 using GymManager.Services.Admin;
 using GymManager.Services.Member;
 using GymManager.Services.Trainer;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace GymManager.Controllers;
+using AdminCreateDto = GymManager.Models.DTOs.Admin.CreateMembershipTypeDto;
+using AdminUpdateDto = GymManager.Models.DTOs.Admin.UpdateMembershipTypeDto;
 
+namespace GymManager.Controllers
+{
     [ApiController]
     [Route("api/membership-types")]
-    public class MembershipTypeController : ControllerBase
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+    public class MembershipTypesController : ControllerBase
     {
-    private readonly AdminMembershipTypeService _adminService;
-    private readonly MemberMembershipTypeService _memberService;
-    private readonly TrainerMembershipTypeService _trainerService;
+        private readonly AdminMembershipTypeService _admin;
+        private readonly MemberMembershipTypeService _member;
+        private readonly TrainerMembershipTypeService _trainer;
 
-    public MembershipTypeController(
-        AdminMembershipTypeService adminService,
-        MemberMembershipTypeService memberSelfService,
-        TrainerMembershipTypeService trainerService)
-    {
-        _adminService = adminService;
-        _memberService = memberSelfService;
-        _trainerService = trainerService;
-    }
+        public MembershipTypesController(
+            AdminMembershipTypeService admin,
+            MemberMembershipTypeService member,
+            TrainerMembershipTypeService trainer)
+        {
+            _admin = admin;
+            _member = member;
+            _trainer = trainer;
+        }
 
-    private string GetUserRole() => "Admin";
+        private string Role => User.FindFirstValue(ClaimTypes.Role)!;
 
-        private int? GetUserId() =>
-            int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : null;
-
-        // GET /api/membership-types
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            switch (GetUserRole())
+            switch (Role)
             {
-                case "Admin":
-                    return Ok(await _adminService.GetAllAsync());
-                case "Trainer":
-                    return Ok(await _trainerService.GetAllAsync());
-                case "Member":
-                    return Ok(await _memberService.GetAllAsync());
+                case RoleConstants.Admin:
+                    return Ok(await _admin.GetAllAsync());
+                case RoleConstants.Member:
+                    return Ok(await _member.GetAllAsync());
+                case RoleConstants.Trainer:
+                    return Ok(await _trainer.GetAllAsync());
                 default:
                     return Forbid();
             }
         }
 
-        // GET /api/membership-types/{id}
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
-            switch (GetUserRole())
+            switch (Role)
             {
-                case "Admin":
-                    return Ok(await _adminService.GetByIdAsync(id));
-                case "Trainer":
-                    return Ok(await _trainerService.GetByIdAsync(id));
-                case "Member":
-                    return Ok(await _memberService.GetByIdAsync(id));
+                case RoleConstants.Admin:
+                    {
+                        var dto = await _admin.GetByIdAsync(id);
+                        return dto == null ? NotFound() : Ok(dto);
+                    }
+                case RoleConstants.Member:
+                    {
+                        var dto = await _member.GetByIdAsync(id);
+                        return dto == null ? NotFound() : Ok(dto);
+                    }
+                case RoleConstants.Trainer:
+                    {
+                        var dto = await _trainer.GetByIdAsync(id);
+                        return dto == null ? NotFound() : Ok(dto);
+                    }
                 default:
                     return Forbid();
             }
         }
 
-        // POST /api/membership-types
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] CreateMembershipTypeDto dto)
+        [Authorize(Roles = RoleConstants.Admin)]
+        public async Task<IActionResult> Create([FromBody] AdminCreateDto dto)
         {
-            if (GetUserRole() != "Admin") return Forbid();
-            var result = await _adminService.CreateAsync(dto);
-            return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
+            var r = await _admin.CreateAsync(dto);
+            return CreatedAtAction(nameof(GetById), new { id = r.Id }, r);
         }
 
-        // PATCH /api/membership-types/{id}
         [HttpPatch("{id}")]
-        public async Task<IActionResult> Patch(int id, [FromBody] UpdateMembershipTypeDto dto)
+        [Authorize(Roles = RoleConstants.Admin)]
+        public async Task<IActionResult> Patch(int id, [FromBody] AdminUpdateDto dto)
         {
-            if (GetUserRole() != "Admin") return Forbid();
-            var success = await _adminService.PatchAsync(id, dto);
-            return success ? NoContent() : NotFound();
+            var ok = await _admin.PatchAsync(id, dto);
+            return ok ? NoContent() : NotFound();
         }
 
-        // DELETE /api/membership-types/{id}
         [HttpDelete("{id}")]
+        [Authorize(Roles = RoleConstants.Admin)]
         public async Task<IActionResult> Delete(int id)
         {
-            if (GetUserRole() != "Admin") return Forbid();
-            var success = await _adminService.DeleteAsync(id);
-            return success ? NoContent() : NotFound();
+            var ok = await _admin.DeleteAsync(id);
+            return ok ? NoContent() : NotFound();
         }
     }
+}

@@ -1,95 +1,105 @@
 ﻿using System.Security.Claims;
-using GymManager.Models.DTOs.Admin;
-using GymManager.Models.DTOs.Member;
-using GymManager.Models.DTOs.Trainer;
+using System.Text.Json;
+using GymManager.Models.Identity;
 using GymManager.Services.Admin;
 using GymManager.Services.Member;
 using GymManager.Services.Trainer;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+
+using AdminCreateDto = GymManager.Models.DTOs.Admin.CreateServiceRequestDto;
+using AdminUpdateDto = GymManager.Models.DTOs.Admin.UpdateServiceRequestDto;
+using MemberCreateDto = GymManager.Models.DTOs.Member.CreateServiceRequestDto;
+using TrainerCreateDto = GymManager.Models.DTOs.Trainer.CreateServiceRequestDto;
 
 namespace GymManager.Controllers
 {
     [ApiController]
     [Route("api/service-requests")]
-    public class ServiceRequestController : ControllerBase
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+    public class ServiceRequestsController : ControllerBase
     {
-        private readonly AdminServiceRequestService _adminService;
-        private readonly MemberServiceRequestService _memberService;
-        private readonly TrainerServiceRequestService _trainerService;
+        private readonly AdminServiceRequestService _admin;
+        private readonly MemberServiceRequestService _member;
+        private readonly TrainerServiceRequestService _trainer;
 
-        public ServiceRequestController(
-            AdminServiceRequestService adminService,
-            MemberServiceRequestService memberService,
-            TrainerServiceRequestService trainerService)
+        public ServiceRequestsController(
+            AdminServiceRequestService admin,
+            MemberServiceRequestService member,
+            TrainerServiceRequestService trainer)
         {
-            _adminService = adminService;
-            _memberService = memberService;
-            _trainerService = trainerService;
+            _admin = admin;
+            _member = member;
+            _trainer = trainer;
         }
 
-        private string GetUserRole() => "Member";
-        private int? GetUserId() =>
-            int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : null;
+        private string Role => User.FindFirstValue(ClaimTypes.Role)!;
 
-        // GET /api/service-requests
+        // GET all – tylko Admin
         [HttpGet]
+        [Authorize(Roles = RoleConstants.Admin)]
         public async Task<IActionResult> GetAll()
         {
-            if (GetUserRole() != "Admin")
-                return Forbid();
-
-            return Ok(await _adminService.GetAllAsync());
+            var list = await _admin.GetAllAsync();
+            return Ok(list);
         }
 
-        // GET /api/service-requests/{id}
+        // GET by id – tylko Admin
         [HttpGet("{id}")]
+        [Authorize(Roles = RoleConstants.Admin)]
         public async Task<IActionResult> GetById(int id)
         {
-            if (GetUserRole() != "Admin")
-                return Forbid();
-
-            return Ok(await _adminService.GetByIdAsync(id));
+            var dto = await _admin.GetByIdAsync(id);
+            return dto == null ? NotFound() : Ok(dto);
         }
 
-        // PATCH /api/service-requests/{id}
-        [HttpPatch("{id}")]
-        public async Task<IActionResult> Patch(int id, [FromBody] UpdateServiceRequestDto dto)
+        // POST – Admin/Member/Trainer mogą zgłaszać
+        [HttpPost]
+        [Authorize(Roles = RoleConstants.Admin + "," + RoleConstants.Member + "," + RoleConstants.Trainer)]
+        public async Task<IActionResult> Create([FromBody] object rawDto)
         {
-            if (GetUserRole() != "Admin")
-                return Forbid();
+            switch (Role)
+            {
+                case RoleConstants.Admin:
+                    {
+                        var dto = JsonSerializer.Deserialize<AdminCreateDto>(rawDto.ToString()!)!;
+                        var r = await _admin.CreateAsync(dto);
+                        return CreatedAtAction(nameof(GetById), new { id = r.Id }, r);
+                    }
+                case RoleConstants.Member:
+                    {
+                        var dto = JsonSerializer.Deserialize<MemberCreateDto>(rawDto.ToString()!)!;
+                        var r = await _member.CreateAsync(dto);
+                        return CreatedAtAction(nameof(GetById), new { id = r.Id }, r);
+                    }
+                case RoleConstants.Trainer:
+                    {
+                        var dto = JsonSerializer.Deserialize<TrainerCreateDto>(rawDto.ToString()!)!;
+                        var r = await _trainer.CreateAsync(dto);
+                        return CreatedAtAction(nameof(GetById), new { id = r.Id }, r);
+                    }
+                default:
+                    return Forbid();
+            }
+        }
 
-            var ok = await _adminService.PatchAsync(id, dto);
+        // PATCH – tylko Admin
+        [HttpPatch("{id}")]
+        [Authorize(Roles = RoleConstants.Admin)]
+        public async Task<IActionResult> Patch(int id, [FromBody] AdminUpdateDto dto)
+        {
+            var ok = await _admin.PatchAsync(id, dto);
             return ok ? NoContent() : NotFound();
         }
 
-        // DELETE /api/service-requests/{id}
+        // DELETE – tylko Admin
         [HttpDelete("{id}")]
+        [Authorize(Roles = RoleConstants.Admin)]
         public async Task<IActionResult> Delete(int id)
         {
-            if (GetUserRole() != "Admin")
-                return Forbid();
-
-            var ok = await _adminService.DeleteAsync(id);
+            var ok = await _admin.DeleteAsync(id);
             return ok ? NoContent() : NotFound();
-        }
-
-        // POST /api/service-requests
-        [HttpPost]
-        public async Task<IActionResult> Create([FromBody] CreateServiceRequestDto dto)
-        {
-            if (GetUserRole() == "Member")
-            {
-                var r = await _memberService.CreateAsync(dto);
-                return CreatedAtAction(nameof(GetById), new { id = r.Id }, r);
-            }
-            if (GetUserRole() == "Trainer")
-            {
-                var r = await _trainerService.CreateAsync(dto);
-                return CreatedAtAction(nameof(GetById), new { id = r.Id }, r);
-            }
-
-            // tylko Member i Trainer mogą tu POSTować
-            return Forbid();
         }
     }
 }

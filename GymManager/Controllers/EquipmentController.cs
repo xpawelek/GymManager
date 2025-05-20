@@ -1,81 +1,93 @@
-﻿using GymManager.Models.DTOs.Admin;
-using GymManager.Models.Entities;
+﻿using System.Security.Claims;
+using GymManager.Models.DTOs.Admin;
+using GymManager.Models.Identity;
 using GymManager.Services.Admin;
 using GymManager.Services.Member;
 using GymManager.Services.Trainer;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace GymManager.Controllers;
-
-[ApiController]
-[Route("api/equipment")]
-public class EquipmentController : ControllerBase
+namespace GymManager.Controllers
 {
-    private readonly AdminEquipmentService _adminService;
-    private readonly MemberEquipmentService _memberService;
-    private readonly TrainerEquipmentService _trainerService;
-    private readonly IHttpContextAccessor _httpContext;
-
-    public EquipmentController(AdminEquipmentService adminService,
-        MemberEquipmentService memberService,
-        TrainerEquipmentService trainerService,
-        IHttpContextAccessor httpContextAccessor)
+    [ApiController]
+    [Route("api/equipment")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+    public class EquipmentController : ControllerBase
     {
-        _adminService = adminService;
-        _memberService = memberService;
-        _trainerService = trainerService;
-        _httpContext = httpContextAccessor;
-    }
+        private readonly AdminEquipmentService _admin;
+        private readonly MemberEquipmentService _member;
+        private readonly TrainerEquipmentService _trainer;
 
-    [HttpGet]
-    public async Task<IActionResult> GetAll()
-    {
-        var role = GetUserRole();
-
-        switch (role)
+        public EquipmentController(
+            AdminEquipmentService admin,
+            MemberEquipmentService member,
+            TrainerEquipmentService trainer)
         {
-            case "Admin":
-                return Ok(await _adminService.GetAllAsync());
-            case "Member":
-                return Ok(await _memberService.GetAllAsync());
-            case "Trainer":
-                return Ok(await _trainerService.GetAllAsync());
-            default:
-                return Forbid();
+            _admin = admin;
+            _member = member;
+            _trainer = trainer;
         }
-    }
 
-    [HttpPost]
-    public async Task<IActionResult> AddEquipment([FromBody] CreateEquipmentDto dto)
-    {
-        if (GetUserRole() != "Admin")
-            return Forbid();
+        private string Role => User.FindFirstValue(ClaimTypes.Role)!;
 
-        var result = await _adminService.CreateAsync(dto);
-        return CreatedAtAction(nameof(GetAll), new { id = result.Id }, result);
-    }
+        [HttpGet]
+        [Authorize(Roles = RoleConstants.Admin)]
+        public async Task<IActionResult> GetAllAdmin()
+            => Ok(await _admin.GetAllAsync());
 
-    [HttpPatch("{id}")]
-    public async Task<IActionResult> Patch(int id, [FromBody] UpdateEquipmentDto dto)
-    {
-        if (GetUserRole() != "Admin")
-            return Forbid();
+        [HttpGet("{id}")]
+        [Authorize(Roles = RoleConstants.Admin)]
+        public async Task<IActionResult> GetByIdAdmin(int id)
+        {
+            var dto = await _admin.GetByIdAsync(id);
+            return dto == null ? NotFound() : Ok(dto);
+        }
 
-        var success = await _adminService.PatchAsync(id, dto);
-        return success ? NoContent() : NotFound();
-    }
+        [HttpPost]
+        [Authorize(Roles = RoleConstants.Admin)]
+        public async Task<IActionResult> CreateAdmin([FromBody] CreateEquipmentDto dto)
+        {
+            var r = await _admin.CreateAsync(dto);
+            return CreatedAtAction(nameof(GetByIdAdmin), new { id = r.Id }, r);
+        }
 
-    [HttpDelete("{id}")]
-    public async Task<IActionResult> Delete(int id)
-    {
-        if(GetUserRole() != "Admin")
-            return Forbid();
+        [HttpPatch("{id}")]
+        [Authorize(Roles = RoleConstants.Admin)]
+        public async Task<IActionResult> PatchAdmin(int id, [FromBody] UpdateEquipmentDto dto)
+            => (await _admin.PatchAsync(id, dto)) ? NoContent() : NotFound();
 
-        var success = await _adminService.DeleteAsync(id);
-        return success ? NoContent() : NotFound();
-    }
-    private string GetUserRole()
-    {
-        return "Admin";
+        [HttpDelete("{id}")]
+        [Authorize(Roles = RoleConstants.Admin)]
+        public async Task<IActionResult> DeleteAdmin(int id)
+            => (await _admin.DeleteAsync(id)) ? NoContent() : NotFound();
+
+
+        [HttpGet("self")]
+        [Authorize(Roles = RoleConstants.Member)]
+        public async Task<IActionResult> GetAllMember()
+            => Ok(await _member.GetAllAsync());
+
+        [HttpGet("self/{id}")]
+        [Authorize(Roles = RoleConstants.Member)]
+        public async Task<IActionResult> GetByIdMember(int id)
+        {
+            var dto = await _member.GetByIdAsync(id);
+            return dto == null ? NotFound() : Ok(dto);
+        }
+
+
+        [HttpGet("me")]
+        [Authorize(Roles = RoleConstants.Trainer)]
+        public async Task<IActionResult> GetAllTrainer()
+            => Ok(await _trainer.GetAllAsync());
+
+        [HttpGet("me/{id}")]
+        [Authorize(Roles = RoleConstants.Trainer)]
+        public async Task<IActionResult> GetByIdTrainer(int id)
+        {
+            var dto = await _trainer.GetByIdAsync(id);
+            return dto == null ? NotFound() : Ok(dto);
+        }
     }
 }

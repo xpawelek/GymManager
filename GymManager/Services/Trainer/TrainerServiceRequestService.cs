@@ -1,8 +1,7 @@
-﻿using System.Security.Claims;
-using GymManager.Data;
+﻿using GymManager.Data;
 using GymManager.Models.DTOs.Trainer;
 using GymManager.Models.Mappers.Trainer;
-using Microsoft.AspNetCore.Http;
+using GymManager.Models.Mappers.Admin;
 
 namespace GymManager.Services.Trainer
 {
@@ -10,30 +9,24 @@ namespace GymManager.Services.Trainer
     {
         private readonly GymDbContext _context;
         private readonly TrainerServiceRequestMapper _createMapper;
-        private readonly IHttpContextAccessor _httpContext;
+        private readonly AdminServiceRequestMapper _readMapper;
 
         public TrainerServiceRequestService(
             GymDbContext context,
             TrainerServiceRequestMapper createMapper,
-            IHttpContextAccessor httpContextAccessor)
+            AdminServiceRequestMapper readMapper)
         {
             _context = context;
             _createMapper = createMapper;
-            _httpContext = httpContextAccessor;
+            _readMapper = readMapper;
         }
 
-        private int? GetCurrentTrainerId() =>
-            int.TryParse(_httpContext.HttpContext?
-                .User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : null;
-
-        public async Task<int> CreateAsync(CreateServiceRequestDto dto)
+        public async Task<ReadServiceRequestDto> CreateAsync(CreateServiceRequestDto dto)
         {
-            dto.TrainerId = GetCurrentTrainerId()!.Value;
             var e = _createMapper.ToEntity(dto);
             await _context.ServiceRequests.AddAsync(e);
             await _context.SaveChangesAsync();
-            return e.Id;
+            return _readMapper.ToReadDto(e);
         }
-    }
     }
 }

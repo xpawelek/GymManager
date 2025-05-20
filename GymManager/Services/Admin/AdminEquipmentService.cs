@@ -3,8 +3,8 @@ using GymManager.Models.DTOs.Admin;
 using GymManager.Models.Mappers.Admin;
 using Microsoft.EntityFrameworkCore;
 
-namespace GymManager.Services.Admin;
-
+namespace GymManager.Services.Admin
+{
     public class AdminEquipmentService
     {
         private readonly GymDbContext _context;
@@ -18,41 +18,40 @@ namespace GymManager.Services.Admin;
 
         public async Task<List<ReadEquipmentDto>> GetAllAsync()
         {
-            var equipments = await _context.Equipments.ToListAsync();
-            return _mapper.ToReadDtoList(equipments);
+            var list = await _context.Equipments.ToListAsync();
+            return _mapper.ToReadDtoList(list);
         }
 
-        public async Task<ReadEquipmentDto> CreateAsync(CreateEquipmentDto createEquipmentDto)
+        public async Task<ReadEquipmentDto?> GetByIdAsync(int id)
         {
-            var equipment = _mapper.ToEntity(createEquipmentDto);
-            await _context.Equipments.AddAsync(equipment);
-            await _context.SaveChangesAsync();
-            return _mapper.ToReadDto(equipment);
+            var e = await _context.Equipments.FindAsync(id);
+            return e is null ? null : _mapper.ToReadDto(e);
         }
-     
+
+        public async Task<ReadEquipmentDto> CreateAsync(CreateEquipmentDto dto)
+        {
+            var e = _mapper.ToEntity(dto);
+            await _context.Equipments.AddAsync(e);
+            await _context.SaveChangesAsync();
+            return _mapper.ToReadDto(e);
+        }
+
         public async Task<bool> PatchAsync(int id, UpdateEquipmentDto dto)
         {
-            var entity = await _context.Equipments.FindAsync(id);
-            if (entity == null)
-                return false;
-            
-            if(dto.Name is not null) entity.Name = dto.Name;
-            if(dto.Description is not null) entity.Description = dto.Description;
-            if(dto.Notes is not null) entity.Notes = dto.Notes;
-            
-            _mapper.UpdateEntity(dto, entity);
+            var e = await _context.Equipments.FindAsync(id);
+            if (e == null) return false;
+            _mapper.UpdateEntity(dto, e);
             await _context.SaveChangesAsync();
             return true;
         }
 
         public async Task<bool> DeleteAsync(int id)
         {
-            var entity = await _context.Equipments.FindAsync(id);
-            if(entity == null)
-                return false;
-            
-            _context.Equipments.Remove(entity);
+            var e = await _context.Equipments.FindAsync(id);
+            if (e == null) return false;
+            _context.Equipments.Remove(e);
             await _context.SaveChangesAsync();
             return true;
         }
     }
+}

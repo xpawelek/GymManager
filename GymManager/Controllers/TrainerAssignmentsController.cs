@@ -1,37 +1,36 @@
 ﻿using System.Security.Claims;
-using GymManager.Models.DTOs.Admin;
-using GymManager.Models.DTOs.Member;
-using GymManager.Models.Identity;
 using GymManager.Services.Admin;
 using GymManager.Services.Member;
 using GymManager.Services.Trainer;
+using GymManager.Models.Identity;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
+using AdminCreateDto = GymManager.Models.DTOs.Admin.CreateTrainerAssignmentDto;
+using AdminUpdateDto = GymManager.Models.DTOs.Admin.UpdateTrainerAssignmentsDto;
+using MemberCreateDto = GymManager.Models.DTOs.Member.CreateTrainerAssignmentDto;
+
 namespace GymManager.Controllers
 {
     [ApiController]
-    [Route("api/members")]
+    [Route("api/trainer-assignments")]
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
-    public class MemberController : ControllerBase
+    public class TrainerAssignmentsController : ControllerBase
     {
-        private readonly AdminMemberService _admin;
-        private readonly MemberSelfService _self;
-        private readonly TrainerMemberService _trainer;
+        private readonly AdminTrainerAssignmentService _admin;
+        private readonly MemberSelfTrainerAssignmentService _member;
+        private readonly TrainerSelfTrainerAssignmentService _trainer;
 
-        public MemberController(
-            AdminMemberService admin,
-            MemberSelfService self,
-            TrainerMemberService trainer)
+        public TrainerAssignmentsController(
+            AdminTrainerAssignmentService admin,
+            MemberSelfTrainerAssignmentService member,
+            TrainerSelfTrainerAssignmentService trainer)
         {
             _admin = admin;
-            _self = self;
+            _member = member;
             _trainer = trainer;
         }
-
-        private string Role => User.FindFirstValue(ClaimTypes.Role)!;
-        private int Id => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
         [HttpGet]
         [Authorize(Roles = RoleConstants.Admin)]
@@ -48,15 +47,15 @@ namespace GymManager.Controllers
 
         [HttpPost]
         [Authorize(Roles = RoleConstants.Admin)]
-        public async Task<IActionResult> CreateAdmin([FromBody] CreateMemberDto dto)
+        public async Task<IActionResult> CreateAdmin([FromBody] AdminCreateDto dto)
         {
-            var r = await _admin.CreateAsync(dto);
-            return CreatedAtAction(nameof(GetByIdAdmin), new { id = r.Id }, r);
+            var result = await _admin.CreateAsync(dto);
+            return CreatedAtAction(nameof(GetByIdAdmin), new { id = result.Id }, result);
         }
 
         [HttpPatch("{id}")]
         [Authorize(Roles = RoleConstants.Admin)]
-        public async Task<IActionResult> PatchAdmin(int id, [FromBody] UpdateMemberDto dto)
+        public async Task<IActionResult> PatchAdmin(int id, [FromBody] AdminUpdateDto dto)
             => (await _admin.PatchAsync(id, dto)) ? NoContent() : NotFound();
 
         [HttpDelete("{id}")]
@@ -65,28 +64,22 @@ namespace GymManager.Controllers
             => (await _admin.DeleteAsync(id)) ? NoContent() : NotFound();
 
 
-        [HttpGet("self")]
+        [HttpPost("self")]
         [Authorize(Roles = RoleConstants.Member)]
-        public async Task<IActionResult> GetSelf()
+        public async Task<IActionResult> CreateSelf([FromBody] MemberCreateDto dto)
         {
-            var dto = await _self.GetOwnAsync();
-            return dto == null ? NotFound() : Ok(dto);
+            var id = await _member.CreateAsync(dto);
+            return Created($"api/trainer-assignments/self/{id}", new { id });
         }
 
-        [HttpPatch("self")]
-        [Authorize(Roles = RoleConstants.Member)]
-        public async Task<IActionResult> UpdateSelf([FromBody] UpdateSelfMemberDto dto)
-            => (await _self.UpdateOwnAsync(dto)) ? NoContent() : NotFound();
-
-
-        [HttpGet("assigned")]
+        [HttpGet("me")]
         [Authorize(Roles = RoleConstants.Trainer)]
-        public async Task<IActionResult> GetAssigned()
+        public async Task<IActionResult> GetMyAssignments()
             => Ok(await _trainer.GetAllAsync());
 
-        [HttpGet("assigned/{id}")]
+        [HttpGet("me/{id}")]
         [Authorize(Roles = RoleConstants.Trainer)]
-        public async Task<IActionResult> GetAssignedById(int id)
+        public async Task<IActionResult> GetMyById(int id)
         {
             var dto = await _trainer.GetByIdAsync(id);
             return dto == null ? NotFound() : Ok(dto);

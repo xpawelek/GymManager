@@ -24,10 +24,12 @@ namespace GymManager.Services.Admin
             return _mapper.ToReadDtoList(list);
         }
 
-        public async Task<ReadServiceRequestDto> GetByIdAsync(int id)
+        public async Task<ReadServiceRequestDto?> GetByIdAsync(int id)
         {
             var e = await _context.ServiceRequests.FindAsync(id);
-            return _mapper.ToReadDto(e!);
+            return e == null
+                ? null
+                : _mapper.ToReadDto(e);
         }
 
         public async Task<ReadServiceRequestDto> CreateAsync(CreateServiceRequestDto dto)
