@@ -4,6 +4,7 @@ using GymManager.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GymManager.Migrations
 {
     [DbContext(typeof(GymDbContext))]
-    partial class GymDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250521214558_FixTrainerCascadeConflict")]
+    partial class FixTrainerCascadeConflict
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -677,11 +680,9 @@ namespace GymManager.Migrations
 
             modelBuilder.Entity("GymManager.Models.Entities.ServiceRequest", b =>
                 {
-                    b.HasOne("GymManager.Models.Entities.Equipment", "Equipment")
+                    b.HasOne("GymManager.Models.Entities.Equipment", null)
                         .WithMany("ServiceRequests")
                         .HasForeignKey("EquipmentId");
-
-                    b.Navigation("Equipment");
                 });
 
             modelBuilder.Entity("GymManager.Models.Entities.Trainer", b =>

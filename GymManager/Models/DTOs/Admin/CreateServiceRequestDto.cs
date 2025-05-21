@@ -13,4 +13,6 @@ public class CreateServiceRequestDto
     public string ProblemNote {get; set;}
     
     public IFormFile? ImagePath { get; set; }
+    
+    public int? EquipmentId { get; set; }
 }

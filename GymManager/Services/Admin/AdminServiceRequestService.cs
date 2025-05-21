@@ -44,6 +44,10 @@ namespace GymManager.Services.Admin
         {
             var e = await _context.ServiceRequests.FindAsync(id);
             if (e == null) return false;
+            if(dto.ProblemNote == null) dto.ProblemNote = e.ProblemNote;
+            if(dto.ServiceProblemTitle == null) dto.ServiceProblemTitle = e.ServiceProblemTitle;
+            if(dto.EquipmentId == null) dto.EquipmentId = e.EquipmentId;
+            
             _mapper.UpdateEntity(dto, e);
             await _context.SaveChangesAsync();
             return true;

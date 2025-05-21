@@ -17,4 +17,7 @@ public class ServiceRequest
     public string ProblemNote {get; set;}
     
     public string? ImagePath { get; set; }
+    
+    public int? EquipmentId { get; set; }
+    public Equipment? Equipment { get; set; }
 }

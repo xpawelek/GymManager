@@ -6,4 +6,6 @@ public class ReadServiceRequestDto
     public string ServiceProblemTitle { get; set; }
     public string ProblemNote {get; set;}
     public string? ImagePath { get; set; }
+    
+    public int? EquipmentId { get; set; }
 }
