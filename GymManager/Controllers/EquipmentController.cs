@@ -45,7 +45,7 @@ namespace GymManager.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = RoleConstants.Admin)]
+        [Authorize(Roles = $"{RoleConstants.Admin}, {RoleConstants.Receptionist}")]
         public async Task<IActionResult> CreateAdmin([FromBody] CreateEquipmentDto dto)
         {
             var r = await _admin.CreateAsync(dto);

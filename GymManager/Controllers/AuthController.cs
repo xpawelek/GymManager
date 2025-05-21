@@ -41,6 +41,17 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> RegisterTrainer([FromBody] RegisterTrainerDto dto)
     {
         //dodac walidacje, email zajety, wystarczajace haslo etc
+        var entity = _dbContext.Trainers.FirstOrDefault(x => x.Email == dto.Email);
+        if (entity != null)
+        {
+            return BadRequest("Email already exists");
+        }
+        entity = _dbContext.Trainers.FirstOrDefault(x => x.PhoneNumber == dto.PhoneNumber);
+        if (entity != null)
+        {
+            return BadRequest("Phone number already exists");
+        }
+        
         var user = new ApplicationUser
         {
             Email = dto.Email,

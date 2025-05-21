@@ -42,6 +42,7 @@ public class AdminMembershipTypeService
     {
         var entity = await _context.MembershipTypes.FindAsync(id);
         if (entity == null) return false;
+        if(dto.PersonalTrainingsPerWeek == null) dto.PersonalTrainingsPerWeek = entity.PersonalTrainingsPerWeek;
         _mapper.UpdateEntity(dto, entity);
         await _context.SaveChangesAsync();
         return true;

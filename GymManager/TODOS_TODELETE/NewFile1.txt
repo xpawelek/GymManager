@@ -11,3 +11,18 @@ member2@gmail.com - Member123!
     "email" : "member3@gmail.com",
     "password" : "Member123!"
 }
+
+{
+  "MemberId" : 11,
+  "MembershipTypeId" : 1,
+  "StartDate" : "2025-05-21T10:00:00",
+  "EndDate" : "2025-06-20T10:00:00"
+}
+
+
+        "id": 1,
+        "memberId": 9,
+        "membershipTypeId": 1,
+        "startDate": "2025-05-21T10:00:00",
+        "endDate": "2025-06-20T10:00:00",
+        "isActive": true

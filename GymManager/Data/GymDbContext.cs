@@ -33,12 +33,12 @@ public class GymDbContext : IdentityDbContext<ApplicationUser>
             .HasOne(t => t.User)
             .WithMany()
             .HasForeignKey(t => t.UserId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .OnDelete(DeleteBehavior.Cascade);
         
         modelBuilder.Entity<Member>()
             .HasOne(m => m.User)
             .WithMany()
             .HasForeignKey(m => m.UserId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

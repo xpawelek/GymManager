@@ -46,13 +46,15 @@ namespace GymManager.Controllers
             return dto == null ? NotFound() : Ok(dto);
         }
 
+        /*
         [HttpPost]
-        [Authorize(Roles = RoleConstants.Admin)]
+        [Authorize(Roles = $"{RoleConstants.Admin}, {RoleConstants.Receptionist}")]
         public async Task<IActionResult> CreateAdmin([FromBody] CreateMemberDto dto)
         {
             var r = await _admin.CreateAsync(dto);
             return CreatedAtAction(nameof(GetByIdAdmin), new { id = r.Id }, r);
         }
+        */
 
         [HttpPatch("{id}")]
         [Authorize(Roles = RoleConstants.Admin)]

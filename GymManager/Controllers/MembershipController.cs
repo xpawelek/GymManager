@@ -81,23 +81,19 @@ namespace GymManager.Controllers
             }
         }
 
-        [HttpPatch("{id}")]
-        [Authorize(Roles = RoleConstants.Admin + "," + RoleConstants.Member)]
-        public async Task<IActionResult> Patch(int id, [FromBody] UpdateMembershipDto dto)
+        [HttpPatch("admin/{id}")]
+        [Authorize(Roles = RoleConstants.Admin)]
+        public async Task<IActionResult> PatchAsAdmin(int id, [FromBody] Models.DTOs.Admin.UpdateMembershipDto dto)
         {
-            switch (Role)
-            {
-                case RoleConstants.Admin:
-                    return await _admin.PatchAsync(id, dto)
-                        ? NoContent() : NotFound();
-
-                case RoleConstants.Member:
-                    return await _member.UpdateOwnAsync(dto)
-                        ? NoContent() : NotFound();
-
-                default:
-                    return Forbid();
-            }
+            return await _admin.PatchAsync(id, dto) ? NoContent() : NotFound();
+        }
+        
+        
+        [HttpPatch("self")]
+        [Authorize(Roles = RoleConstants.Member)]
+        public async Task<IActionResult> PatchOwn([FromBody] UpdateMembershipDto dto)
+        {
+            return await _member.UpdateOwnAsync(dto) ? NoContent() : NotFound();
         }
 
         [HttpDelete("{id}")]

@@ -1,5 +1,4 @@
 ﻿using GymManager.Models.DTOs.Admin;
-using GymManager.Models.DTOs.Member;
 using GymManager.Models.Entities;
 using Riok.Mapperly.Abstractions;
 

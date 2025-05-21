@@ -17,7 +17,7 @@ public partial class AdminMembershipTypeMapper
     //GET ALL
     public partial List<ReadMembershipTypeDto> ToReadDtoList(List<MembershipType> membershipTypes);
     
-    //PUT 
+    //PATCH
     [MapperIgnoreTarget(nameof(MembershipType.Id))]
     [MapperIgnoreTarget(nameof(MembershipType.Memberships))]
     public partial void UpdateEntity(UpdateMembershipTypeDto dto, MembershipType membershipType);

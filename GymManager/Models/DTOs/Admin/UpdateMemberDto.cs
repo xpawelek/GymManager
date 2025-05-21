@@ -10,8 +10,6 @@ public class UpdateMemberDto
     [StringLength(50)]
     public string? LastName { get; set; } 
     
-    [EmailAddress]
-    public string? Email { get; set; } 
     
     public DateTime? DateOfBirth { get; set; } 
     
