@@ -9,7 +9,7 @@ public class CreateTrainerAssignmentDto
 
     [Required]
     public int MemberId { get; set; }
-    public DateTime? StartDate { get; set; } = DateTime.Now;
+    public DateTime? StartDate { get; set; }
     public DateTime? EndDate { get; set; }
     
 }

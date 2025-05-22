@@ -32,7 +32,33 @@ namespace GymManager.Services.Admin
 
         public async Task<ReadTrainerAssignmentDto> CreateAsync(CreateTrainerAssignmentDto dto)
         {
+            var checkEntityMembership = await _context.Memberships
+                .FirstOrDefaultAsync(m => m.MemberId == dto.MemberId);
+
+            if (checkEntityMembership is null)
+                throw new Exception("Membership not found for given member.");
+
+            var checkEntityMembershipType = await _context.MembershipTypes
+                .FirstOrDefaultAsync(mt => mt.Id == checkEntityMembership.MembershipTypeId);
+
+            if (checkEntityMembershipType is null)
+                throw new Exception("Membership type not found.");
+
+            if (checkEntityMembership is null || checkEntityMembershipType is null)
+            {
+                throw new NullReferenceException();
+            }
+            
+            if (checkEntityMembership.IsActive == false || checkEntityMembershipType.IncludesPersonalTrainer == false || checkEntityMembershipType.IncludesPersonalTrainer == false)
+            {
+                throw new Exception("Member doesn't have active membership or membership type doesn't allow for having trainer.");
+            }
+            
             var e = _mapper.ToEntity(dto);
+            
+            e.StartDate = checkEntityMembership.StartDate;
+            e.EndDate = checkEntityMembership.EndDate;
+            
             await _context.TrainerAssignments.AddAsync(e);
             await _context.SaveChangesAsync();
             return _mapper.ToReadDto(e);
