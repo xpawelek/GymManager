@@ -11,11 +11,13 @@ public partial class TrainerSelfMessageMapper
     [MapperIgnoreTarget(nameof(Entities.Message.Member))]
     [MapperIgnoreTarget(nameof(Entities.Message.Trainer))]
     [MapperIgnoreTarget(nameof(Entities.Message.TrainerId))]
+    [MapperIgnoreTarget(nameof(Entities.Message.SentByMember))]
     public partial Entities.Message ToEntity(CreateSelfMessageDto dto);
     // GET ONE
     [MapperIgnoreSource(nameof(Entities.Message.Member))]
     [MapperIgnoreSource(nameof(Entities.Message.Trainer))]
     [MapperIgnoreSource(nameof(Entities.Message.TrainerId))]
+    [MapperIgnoreSource(nameof(Entities.Message.SentByMember))]
     public partial ReadSelfMessageDto ToReadDto(Entities.Message message);
     //GET ALL
     public partial List<ReadSelfMessageDto> ToReadDtoList(List<Entities.Message> messages);
@@ -26,5 +28,6 @@ public partial class TrainerSelfMessageMapper
     [MapperIgnoreTarget(nameof(Entities.Message.Trainer))]
     [MapperIgnoreTarget(nameof(Entities.Message.Date))]
     [MapperIgnoreTarget(nameof(Entities.Message.TrainerId))]
+    [MapperIgnoreTarget(nameof(Entities.Message.SentByMember))]
     public partial void UpdateEntity(UpdateSelfMessageDto dto, Entities.Message message);
 }

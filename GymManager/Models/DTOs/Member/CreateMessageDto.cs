@@ -9,7 +9,7 @@ public class CreateMessageDto
     public string MessageContent { get; set; }
     
     [Required]
-    public DateTime Date { get; set; }
+    public DateTime Date { get; set; } = DateTime.Now;
 
     [Required]
     public int TrainerId { get; set; }

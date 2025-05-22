@@ -22,13 +22,27 @@ namespace GymManager.Services.Member
             _httpContext = httpContextAccessor;
         }
 
-        private int GetMemberId() =>
-            int.Parse(_httpContext.HttpContext!
-                .User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        private async Task<int> GetMemberId()
+        {
+            var userIdStr = _httpContext.HttpContext!
+                .User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+
+            var userId = Guid.Parse(userIdStr); 
+
+            var member = await _context.Members
+                .FirstOrDefaultAsync(m => m.UserId == userId.ToString());
+
+            if (member == null)
+                throw new Exception("Member not found");
+
+            return member.Id;
+        }
+
+            
 
         public async Task<List<ReadSelfMessageDto>> GetAllAsync()
         {
-            var mid = GetMemberId();
+            var mid = await GetMemberId();
             var list = await _context.Messages
                 .Where(m => m.MemberId == mid)
                 .ToListAsync();
@@ -37,7 +51,7 @@ namespace GymManager.Services.Member
 
         public async Task<ReadSelfMessageDto?> GetByIdAsync(int id)
         {
-            var mid = GetMemberId();
+            var mid = await GetMemberId();
             var e = await _context.Messages.FindAsync(id);
             if (e == null || e.MemberId != mid) return null;
             return _mapper.ToReadDto(e);
@@ -45,14 +59,15 @@ namespace GymManager.Services.Member
 
         public async Task<ReadSelfMessageDto> CreateAsync(CreateMessageDto dto)
         {
-            var mid = GetMemberId();
+            var mid = await GetMemberId();
             var assignment = await _context.TrainerAssignments
-                .AnyAsync(a => a.MemberId == mid && a.TrainerId == dto.TrainerId && a.IsActive);
+                .AnyAsync(a => a.MemberId == mid && a.TrainerId == dto.TrainerId && a.IsActive == true);
             if (!assignment)
                 throw new InvalidOperationException("You are not connected to this trainer");
 
             var e = _mapper.ToEntity(dto);
             e.MemberId = mid;
+            e.SentByMember = true;
             await _context.Messages.AddAsync(e);
             await _context.SaveChangesAsync();
             return _mapper.ToReadDto(e);
@@ -60,9 +75,12 @@ namespace GymManager.Services.Member
 
         public async Task<bool> UpdateAsync(int id, UpdateMessageDto dto)
         {
-            var mid = GetMemberId();
+            var mid = await GetMemberId();
             var e = await _context.Messages.FindAsync(id);
-            if (e == null || e.MemberId != mid) return false;
+            if (e == null || e.MemberId != mid || !e.SentByMember)
+            {
+                throw new Exception("Cannot update message!");
+            }
             _mapper.UpdateEntity(dto, e);
             await _context.SaveChangesAsync();
             return true;

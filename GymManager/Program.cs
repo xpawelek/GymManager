@@ -1,4 +1,5 @@
 using System.Text;
+using System.Text.Json;
 using GymManager.Data;
 using GymManager.Models.Identity;
 using GymManager.Models.Mappers.Admin;
@@ -53,6 +54,7 @@ builder.Services.AddScoped<TrainerProfileService>();
 builder.Services.AddScoped<AdminTrainerService>();
 builder.Services.AddScoped<MemberTrainerService>();
 builder.Services.AddScoped<TrainerProfileService>();
+builder.Services.AddScoped<AdminMessageService>();
 
 
 builder.Services.AddScoped<AdminEquipmentMapper>();
@@ -87,11 +89,18 @@ builder.Services.AddScoped<TrainerProfileMapper>();
 builder.Services.AddScoped<AdminTrainerMapper>();
 builder.Services.AddScoped<MemberTrainerMapper>();
 builder.Services.AddScoped<TrainerProfileMapper>();
+builder.Services.AddScoped<AdminMessageMapper>();
+
 
 builder.Services.AddScoped<JwtTokenGenerator>();
 
 builder.Services.AddHttpContextAccessor();
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+        options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+    });
 
 var jwtSetting = builder.Configuration.GetSection("JwtSettings");
 var secretKey = jwtSetting.GetValue<string>("SecretKey");

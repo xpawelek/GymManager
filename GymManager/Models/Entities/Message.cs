@@ -24,4 +24,7 @@ public class Message
     
     [Required]
     public Trainer Trainer { get; set; }
+    
+    [Required]
+    public bool SentByMember { get; set; }
 }

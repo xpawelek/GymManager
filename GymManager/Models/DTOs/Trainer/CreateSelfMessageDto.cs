@@ -9,7 +9,7 @@ public class CreateSelfMessageDto
     public string MessageContent { get; set; }
     
     [Required]
-    public DateTime Date { get; set; }
+    public DateTime Date { get; set; } = DateTime.Now;
 
     [Required]
     public int MemberId { get; set; }

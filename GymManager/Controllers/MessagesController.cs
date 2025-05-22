@@ -2,6 +2,7 @@
 using GymManager.Services.Member;
 using GymManager.Services.Trainer;
 using GymManager.Models.Identity;
+using GymManager.Services.Admin;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -22,44 +23,66 @@ namespace GymManager.Controllers
     {
         private readonly MemberMessageService _memberSvc;
         private readonly TrainerMessageService _trainerSvc;
+        private readonly AdminMessageService _adminSvc;
 
         public MessagesController(
             MemberMessageService memberSvc,
-            TrainerMessageService trainerSvc)
+            TrainerMessageService trainerSvc,
+            AdminMessageService adminSvc)
         {
             _memberSvc = memberSvc;
             _trainerSvc = trainerSvc;
+            _adminSvc = adminSvc;
         }
+        
 
         private string Role => User.FindFirstValue(ClaimTypes.Role)!;
 
         // GET /api/messages
+        [Authorize]
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            return Role switch
-            {
-                RoleConstants.Member => Ok(await _memberSvc.GetAllAsync()),
-                RoleConstants.Trainer => Ok(await _trainerSvc.GetAllAsync()),
-                _ => Forbid()
-            };
+            if (User.IsInRole(RoleConstants.Member))
+                return Ok(await _memberSvc.GetAllAsync());
+
+            if (User.IsInRole(RoleConstants.Trainer))
+                return Ok(await _trainerSvc.GetAllAsync());
+
+            if (User.IsInRole(RoleConstants.Admin))
+                return Ok(await _adminSvc.GetAllAsync());
+
+            return Forbid();
         }
 
         // GET /api/messages/{id}
+        [Authorize]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
-            return Role switch
+            if (User.IsInRole(RoleConstants.Member))
             {
-                RoleConstants.Member => (await _memberSvc.GetByIdAsync(id)) is MReadDto m
-                                          ? Ok(m) : NotFound(),
-                RoleConstants.Trainer => (await _trainerSvc.GetByIdAsync(id)) is TReadDto t
-                                          ? Ok(t) : NotFound(),
-                _ => Forbid()
-            };
+                var result = await _memberSvc.GetByIdAsync(id);
+                return result is not null ? Ok(result) : NotFound();
+            }
+
+            if (User.IsInRole(RoleConstants.Trainer))
+            {
+                var result = await _trainerSvc.GetByIdAsync(id);
+                return result is not null ? Ok(result) : NotFound();
+            }
+
+            if (User.IsInRole(RoleConstants.Admin))
+            {
+                var result = await _adminSvc.GetByIdAsync(id);
+                return result is not null ? Ok(result) : NotFound();
+            }
+
+            return Forbid();
         }
 
         // POST /api/messages
+        [Authorize(Roles = $"{RoleConstants.Trainer}, {RoleConstants.Member}")]
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] object raw)
         {
@@ -83,6 +106,7 @@ namespace GymManager.Controllers
         }
 
         // PATCH /api/messages/{id}
+        [Authorize(Roles = $"{RoleConstants.Trainer}, {RoleConstants.Member}")]
         [HttpPatch("{id}")]
         public async Task<IActionResult> Patch(int id, [FromBody] object raw)
         {

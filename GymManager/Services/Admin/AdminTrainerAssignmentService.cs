@@ -58,6 +58,8 @@ namespace GymManager.Services.Admin
             
             e.StartDate = checkEntityMembership.StartDate;
             e.EndDate = checkEntityMembership.EndDate;
+            e.IsActive = e.EndDate == null ||
+                         (DateTime.Now >= e.StartDate && DateTime.Now <= e.EndDate);
             
             await _context.TrainerAssignments.AddAsync(e);
             await _context.SaveChangesAsync();
