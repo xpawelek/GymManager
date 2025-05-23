@@ -25,5 +25,5 @@ public class Membership
     [Required]
     public DateTime? EndDate { get; set; }  // -> dto get: nie chcemy
     
-    public bool IsActive => DateTime.Now >= StartDate && DateTime.Now <= EndDate;  // -> dto get: chcemy
+    public bool IsActive { get; set; }  // -> dto get: chcemy
 }

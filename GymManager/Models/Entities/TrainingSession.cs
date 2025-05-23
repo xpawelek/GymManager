@@ -24,7 +24,7 @@ public class TrainingSession
     public DateTime StartTime { get; set; }
     
     [Required]
-    public TimeSpan Duration { get; set; }
+    public int DurationInMinutes { get; set; }
     
     [Required]
     public bool IsGroupSession { get; set; }

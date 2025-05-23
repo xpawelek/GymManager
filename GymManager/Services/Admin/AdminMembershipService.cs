@@ -59,6 +59,7 @@ namespace GymManager.Services.Admin
             
             entity.StartDate = dto.StartDate;
             entity.EndDate = dto.StartDate.AddDays(type.DurationInDays);
+            entity.IsActive = DateTime.Now >= entity.StartDate && DateTime.Now <= entity.EndDate;
             
             await _context.Memberships.AddAsync(entity);
             await _context.SaveChangesAsync();
@@ -85,6 +86,7 @@ namespace GymManager.Services.Admin
                     throw new Exception("Invalid membership type");
 
                 dto.EndDate = dto.StartDate.Value.AddDays(membershipType.DurationInDays);
+                dto.IsActive = DateTime.Now >= dto.StartDate && DateTime.Now <= dto.EndDate;
             }
 
             _mapper.UpdateEntity(dto, entity);

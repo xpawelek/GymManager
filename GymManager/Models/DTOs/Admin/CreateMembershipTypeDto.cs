@@ -21,7 +21,7 @@ public class CreateMembershipTypeDto
     [Required]
     public bool IncludesPersonalTrainer { get; set; }
     
-    public int? PersonalTrainingsPerWeek { get; set; }
+    public int? PersonalTrainingsPerMonth { get; set; }
     
     [Required]
     public bool AllowTrainerSelection { get; set; }

@@ -21,7 +21,7 @@ public partial class TrainerTrainingSessionMapper
     [MapperIgnoreTarget(nameof(TrainingSession.MemberId))]
     [MapperIgnoreTarget(nameof(TrainingSession.Id))]
     [MapperIgnoreTarget(nameof(TrainingSession.IsGroupSession))]
-    [MapperIgnoreTarget(nameof(TrainingSession.Duration))]
+    [MapperIgnoreTarget(nameof(TrainingSession.DurationInMinutes))]
     [MapperIgnoreTarget(nameof(TrainingSession.StartTime))]
     public partial void UpdateEntity(UpdateTrainingSessionDto dto, TrainingSession trainingSession);
 }

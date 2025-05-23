@@ -14,7 +14,7 @@ public class UpdateMembershipTypeDto
 
     public bool? IncludesPersonalTrainer { get; set; }
     
-    public int? PersonalTrainingsPerWeek { get; set; }
+    public int? PersonalTrainingsPerMonth { get; set; }
 
     public bool? AllowTrainerSelection { get; set; }
 

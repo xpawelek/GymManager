@@ -29,3 +29,22 @@ member2@gmail.com - Member123!
         
         memberid 9 
         trainer 1
+        
+        
+          {
+                "TrainerId": 1,
+                "Description": "Individual training",
+                "StartTime" : "2025-05-23T19:15:00", 
+                "DurationInMinutes" : "120",
+                "IsGroupSession" : false,
+                "MemberId" : 11
+            }
+            
+                {
+                    "id": 1,
+                    "memberId": 9,
+                    "membershipTypeId": 1,
+                    "startDate": "2025-05-21T10:00:00",
+                    "endDate": "2025-06-20T10:00:00",
+                    "isActive": false
+                }

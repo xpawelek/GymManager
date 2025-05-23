@@ -8,7 +8,7 @@ public class ReadMembershipTypeDto
     public decimal Price { get; set; }
     public int DurationInDays { get; set; }
     public bool IncludesPersonalTrainer { get; set; }
-    public int? PersonalTrainingsPerWeek { get; set; }
+    public int? PersonalTrainingsPerMonth { get; set; }
     public bool AllowTrainerSelection { get; set; }
     public bool IncludesProgressTracking { get; set; }
 }

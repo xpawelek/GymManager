@@ -11,7 +11,7 @@ public class UpdateTrainingSessionDto
     
     public DateTime? StartTime { get; set; }
 
-    public TimeSpan? Duration { get; set; }
+    public int? DurationInMinutes { get; set; }
 
     public bool? IsGroupSession { get; set; }
     
