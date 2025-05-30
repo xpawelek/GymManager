@@ -23,7 +23,10 @@ public partial class AdminTrainingSessionMapper
     //PUT 
     [MapperIgnoreTarget(nameof(TrainingSession.Trainer))]
     [MapperIgnoreTarget(nameof(TrainingSession.Member))]
+    [MapperIgnoreTarget(nameof(TrainingSession.MemberId))]
     [MapperIgnoreTarget(nameof(TrainingSession.WorkoutNote))]
     [MapperIgnoreTarget(nameof(TrainingSession.Id))]
+    [MapperIgnoreTarget(nameof(TrainingSession.DurationInMinutes))]
+    [MapperIgnoreTarget(nameof(TrainingSession.IsGroupSession))]
     public partial void UpdateEntity(UpdateTrainingSessionDto dto, TrainingSession trainingSession);
 }

@@ -24,11 +24,6 @@ public class GymDbContext : IdentityDbContext<ApplicationUser>
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
-        modelBuilder.Entity<TrainingSession>()
-            .HasOne(ts => ts.WorkoutNote)
-            .WithOne(wn => wn.TrainingSession)
-            .HasForeignKey<WorkoutNote>(wn => wn.TrainingSessionId);
-        
         modelBuilder.Entity<Trainer>()
             .HasOne(t => t.User)
             .WithMany()
@@ -39,6 +34,12 @@ public class GymDbContext : IdentityDbContext<ApplicationUser>
             .HasOne(m => m.User)
             .WithMany()
             .HasForeignKey(m => m.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+        
+        modelBuilder.Entity<WorkoutNote>()
+            .HasOne(w => w.TrainingSession)
+            .WithOne(t => t.WorkoutNote)
+            .HasForeignKey<WorkoutNote>(w => w.TrainingSessionId)
             .OnDelete(DeleteBehavior.Cascade);
     }
 }

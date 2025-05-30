@@ -22,27 +22,37 @@ namespace GymManager.Services.Trainer
             _httpContext = httpContextAccessor;
         }
 
-        private int? GetCurrentTrainerId()
+        private async Task<int> GetCurrentTrainerId()
         {
-            var id = _httpContext.HttpContext?
-                .User.FindFirstValue(ClaimTypes.NameIdentifier);
-            return int.TryParse(id, out var trainerId) ? trainerId : null;
+            var userIdStr = _httpContext.HttpContext!
+                .User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+
+            var userId = Guid.Parse(userIdStr); 
+
+            var trainer = await _context.Trainers
+                .FirstOrDefaultAsync(t => t.UserId == userId.ToString());
+
+            if (trainer == null)
+                throw new Exception("Trainer not found");
+
+            return trainer.Id;
         }
 
         public async Task<List<ReadMemberDto>> GetAllAsync()
         {
-            var trainerId = GetCurrentTrainerId()!;
+            var trainerId = await GetCurrentTrainerId()!;
             var assignments = await _context.TrainerAssignments
                 .Where(ta => ta.TrainerId == trainerId && ta.IsActive)
                 .Include(ta => ta.Member)
                 .Select(ta => ta.Member)
                 .ToListAsync();
+            
             return _mapper.ToReadDtoList(assignments);
         }
 
         public async Task<ReadMemberDto> GetByIdAsync(int memberId)
         {
-            var trainerId = GetCurrentTrainerId()!;
+            var trainerId = await GetCurrentTrainerId()!;
             var allowed = await _context.TrainerAssignments
                 .AnyAsync(ta => ta.TrainerId == trainerId
                                 && ta.MemberId == memberId

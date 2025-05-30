@@ -22,13 +22,25 @@ namespace GymManager.Services.Member
             _httpContext = httpContextAccessor;
         }
 
-        private int GetCurrentMemberId() =>
-            int.Parse(_httpContext.HttpContext!
-                .User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        private async Task<int> GetCurrentMemberId()
+        {
+            var userIdStr = _httpContext.HttpContext!
+                .User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+
+            var userId = Guid.Parse(userIdStr); 
+
+            var member = await _context.Members
+                .FirstOrDefaultAsync(t => t.UserId == userId.ToString());
+
+            if (member == null)
+                throw new Exception("Member not found");
+
+            return member.Id;
+        }
 
         public async Task<List<ReadSelfWorkoutNote>> GetAllAsync()
         {
-            var mid = GetCurrentMemberId();
+            var mid = await GetCurrentMemberId();
             var list = await _context.WorkoutNotes
                 .Where(n => n.MemberId == mid)
                 .ToListAsync();
@@ -37,7 +49,7 @@ namespace GymManager.Services.Member
 
         public async Task<ReadSelfWorkoutNote?> GetByIdAsync(int id)
         {
-            var mid = GetCurrentMemberId();
+            var mid = await GetCurrentMemberId();
             var e = await _context.WorkoutNotes.FindAsync(id);
             if (e == null || e.MemberId != mid) return null;
             return _mapper.ToReadDto(e);

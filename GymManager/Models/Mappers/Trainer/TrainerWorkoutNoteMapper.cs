@@ -35,8 +35,6 @@ public partial class TrainerWorkoutNoteMapper
     [MapperIgnoreTarget(nameof(WorkoutNote.TrainingSession))]
     [MapperIgnoreTarget(nameof(WorkoutNote.TrainingSessionId))]
     [MapperIgnoreTarget(nameof(WorkoutNote.Id))]
-    [MapperIgnoreTarget(nameof(WorkoutNote.CurrentHeight))]
-    [MapperIgnoreTarget(nameof(WorkoutNote.CurrentWeight))]
     [MapperIgnoreTarget(nameof(WorkoutNote.WorkoutStartTime))]
     public partial void UpdateEntity(UpdateSelfWorkoutNoteDto dto, WorkoutNote workoutNote);
 }

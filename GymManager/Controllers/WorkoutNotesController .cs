@@ -67,6 +67,7 @@ namespace GymManager.Controllers
             return dto == null ? NotFound() : Ok(dto);
         }
 
+        /*
         [HttpPost("me")]
         [Authorize(Roles = RoleConstants.Trainer)]
         public async Task<IActionResult> CreateAsTrainer([FromBody] CreateSelfWorkoutNote dto)
@@ -77,15 +78,18 @@ namespace GymManager.Controllers
                 new { id = result.Id },
                 result);
         }
+        */
 
         [HttpPatch("me/{id}")]
         [Authorize(Roles = RoleConstants.Trainer)]
         public async Task<IActionResult> PatchAsTrainer(int id, [FromBody] UpdateSelfWorkoutNoteDto dto)
             => (await _trainer.PatchAsync(id, dto)) ? NoContent() : NotFound();
-
+        
+        /*
         [HttpDelete("me/{id}")]
         [Authorize(Roles = RoleConstants.Trainer)]
         public async Task<IActionResult> DeleteAsTrainer(int id)
             => (await _trainer.DeleteAsync(id)) ? NoContent() : NotFound();
+            */
     }
 }
