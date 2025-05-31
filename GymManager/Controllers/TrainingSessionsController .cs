@@ -8,6 +8,8 @@ using Microsoft.AspNetCore.Mvc;
 
 using AdminCreateDto = GymManager.Models.DTOs.Admin.CreateTrainingSessionDto;
 using AdminUpdateDto = GymManager.Models.DTOs.Admin.UpdateTrainingSessionDto;
+using MemberCreateDto = GymManager.Models.DTOs.Member.CreateTrainingSessionDto;
+using MemberUpdateDto = GymManager.Models.DTOs.Member.UpdateTrainingSessionDto;
 
 namespace GymManager.Controllers
 {
@@ -50,22 +52,40 @@ namespace GymManager.Controllers
             var result = await _admin.CreateAsync(dto);
             return CreatedAtAction(nameof(GetByIdAdmin), new { id = result.Id }, result);
         }
+        
+        [HttpPost("self")]
+        [Authorize(Roles = RoleConstants.Member)]
+        public async Task<IActionResult> CreateMember([FromBody] MemberCreateDto dto)
+        {
+            var result = await _member.CreateAsync(dto);
+            return CreatedAtAction(nameof(GetByIdAdmin), new { id = result.Id }, result);
+        }
 
         [HttpPatch("{id}")]
         [Authorize(Roles = RoleConstants.Admin)]
         public async Task<IActionResult> PatchAdmin(int id, [FromBody] AdminUpdateDto dto)
             => (await _admin.PatchAsync(id, dto)) ? NoContent() : NotFound();
+        
+        [HttpPatch("self/{id}")]
+        [Authorize(Roles = RoleConstants.Member)]
+        public async Task<IActionResult> PatchMember(int id, [FromBody] MemberUpdateDto dto)
+            => (await _member.PatchAsync(id, dto)) ? NoContent() : NotFound();
 
         [HttpDelete("{id}")]
         [Authorize(Roles = RoleConstants.Admin)]
         public async Task<IActionResult> DeleteAdmin(int id)
             => (await _admin.DeleteAsync(id)) ? NoContent() : NotFound();
-
-
+        
+        
+        [HttpGet("public")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetAllPublic()
+            => Ok(await _member.GetAllGroupAsync());
+        
         [HttpGet("self")]
         [Authorize(Roles = RoleConstants.Member)]
         public async Task<IActionResult> GetAllMember()
-            => Ok(await _member.GetAllAsync());
+            => Ok(await _member.GetAllPersonalAsync());
 
         [HttpGet("self/{id}")]
         [Authorize(Roles = RoleConstants.Member)]
