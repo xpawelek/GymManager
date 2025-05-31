@@ -2,6 +2,7 @@
 using GymManager.Data;
 using GymManager.Models.DTOs.Member;
 using GymManager.Models.Mappers.Member;
+using Microsoft.EntityFrameworkCore;
 
 namespace GymManager.Services.Member
 {
@@ -21,26 +22,34 @@ namespace GymManager.Services.Member
             _httpContext = httpContextAccessor;
         }
 
-        private int? GetCurrentMemberId()
+        private async Task<int> GetCurrentMemberId()
         {
-            var id = _httpContext.HttpContext?
-                .User.FindFirstValue(ClaimTypes.NameIdentifier);
-            return int.TryParse(id, out var memberId) ? memberId : null;
+            var userIdStr = _httpContext.HttpContext!
+                .User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+
+            var userId = Guid.Parse(userIdStr); 
+
+            var member = await _context.Members.FirstOrDefaultAsync(m => m.UserId == userId.ToString());
+
+            if (member == null)
+                throw new Exception("Member not found");
+
+            return member.Id;
         }
 
         public async Task<ReadSelfMemberDto> GetOwnAsync()
         {
-            var memberId = GetCurrentMemberId()!;
+            var memberId = await GetCurrentMemberId();
             var entity = await _context.Members.FindAsync(memberId);
             return _mapper.ToReadDto(entity!);
         }
 
         public async Task<bool> UpdateOwnAsync(UpdateSelfMemberDto dto)
         {
-            var memberId = GetCurrentMemberId();
+            var memberId = await GetCurrentMemberId();
             if (memberId == null) return false;
 
-            var entity = await _context.Members.FindAsync(memberId.Value);
+            var entity = await _context.Members.FindAsync(memberId);
             if (entity == null) return false;
 
             _mapper.UpdateEntity(dto, entity);

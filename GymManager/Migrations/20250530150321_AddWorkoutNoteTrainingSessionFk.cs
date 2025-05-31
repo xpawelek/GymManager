@@ -10,21 +10,13 @@ namespace GymManager.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddForeignKey(
-                name: "FK_WorkoutNotes_TrainingSessions_TrainingSessionId",
-                table: "WorkoutNotes",
-                column: "TrainingSessionId",
-                principalTable: "TrainingSessions",
-                principalColumn: "Id",
-                onDelete: ReferentialAction.Cascade);
+
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropForeignKey(
-                name: "FK_WorkoutNotes_TrainingSessions_TrainingSessionId",
-                table: "WorkoutNotes");
+
         }
     }
 }

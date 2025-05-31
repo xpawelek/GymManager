@@ -41,13 +41,13 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> RegisterTrainer([FromBody] RegisterTrainerDto dto)
     {
         //dodac walidacje, email zajety, wystarczajace haslo etc
-        var entity = _dbContext.Trainers.FirstOrDefault(x => x.Email == dto.Email);
+        var entity = _dbContext.Users.FirstOrDefault(x => x.Email == dto.Email);
         if (entity != null)
         {
             return BadRequest("Email already exists");
         }
-        entity = _dbContext.Trainers.FirstOrDefault(x => x.PhoneNumber == dto.PhoneNumber);
-        if (entity != null)
+        var entity_trainer = _dbContext.Trainers.FirstOrDefault(x => x.PhoneNumber == dto.PhoneNumber);
+        if (entity_trainer != null)
         {
             return BadRequest("Phone number already exists");
         }
@@ -90,6 +90,12 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> RegisterReceptionist([FromBody] RegisterReceptionistDto dto)
     {
         //dodac walidacje, email zajety, wystarczajace haslo etc
+        var entity = _dbContext.Users.FirstOrDefault(x => x.Email == dto.Email);
+        if (entity != null)
+        {
+            return BadRequest("Email already exists");
+        }
+        
         var user = new ApplicationUser
         {
             Email = dto.Email,

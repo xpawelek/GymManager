@@ -45,6 +45,7 @@ namespace GymManager.Controllers
             return dto == null ? NotFound() : Ok(dto);
         }
 
+        /*
         [HttpPost]
         [Authorize(Roles = RoleConstants.Admin)]
         public async Task<IActionResult> CreateAdmin([FromBody] CreateTrainerDto dto)
@@ -52,6 +53,7 @@ namespace GymManager.Controllers
             var r = await _adminSvc.CreateAsync(dto);
             return CreatedAtAction(nameof(GetByIdAdmin), new { id = r.Id }, r);
         }
+        */
 
         [HttpPatch("{id}")]
         [Authorize(Roles = RoleConstants.Admin)]

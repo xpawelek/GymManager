@@ -23,16 +23,25 @@ namespace GymManager.Services.Member
             _httpContext = httpContextAccessor;
         }
 
-        private int? GetCurrentMemberId()
+        private async Task<int> GetCurrentMemberId()
         {
-            var id = _httpContext.HttpContext?
-                .User.FindFirstValue(ClaimTypes.NameIdentifier);
-            return int.TryParse(id, out var mid) ? mid : null;
+            var userIdStr = _httpContext.HttpContext!
+                .User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+
+            var userId = Guid.Parse(userIdStr); 
+
+            var member = await _context.Members
+                .FirstOrDefaultAsync(m => m.UserId == userId.ToString());
+
+            if (member == null)
+                throw new Exception("Member not found");
+
+            return member.Id;
         }
 
         public async Task<List<ReadProgressPhotoDto>> GetAllAsync()
         {
-            var memberId = GetCurrentMemberId()!.Value;
+            var memberId = await GetCurrentMemberId();
             var list = await _context.ProgressPhotos
                 .Where(p => p.MemberId == memberId)
                 .ToListAsync();
@@ -41,7 +50,7 @@ namespace GymManager.Services.Member
 
         public async Task<ReadProgressPhotoDto> GetByIdAsync(int id)
         {
-            var memberId = GetCurrentMemberId()!.Value;
+            var memberId = await GetCurrentMemberId();
             var entity = await _context.ProgressPhotos.FindAsync(id);
             if (entity == null || entity.MemberId != memberId)
                 return null!;
@@ -50,7 +59,7 @@ namespace GymManager.Services.Member
 
         public async Task<ReadProgressPhotoDto> CreateAsync(CreateProgressPhotoDto dto)
         {
-            dto.MemberId = GetCurrentMemberId()!.Value;
+            dto.MemberId = await GetCurrentMemberId();
             var entity = _mapper.ToEntity(dto);
             await _context.ProgressPhotos.AddAsync(entity);
             await _context.SaveChangesAsync();
@@ -59,7 +68,7 @@ namespace GymManager.Services.Member
 
         public async Task<bool> PatchAsync(int id, UpdateProgressPhotoDto dto)
         {
-            var memberId = GetCurrentMemberId()!.Value;
+            var memberId = await GetCurrentMemberId();
             var entity = await _context.ProgressPhotos.FindAsync(id);
             if (entity == null || entity.MemberId != memberId)
                 return false;
@@ -70,7 +79,7 @@ namespace GymManager.Services.Member
 
         public async Task<bool> DeleteAsync(int id)
         {
-            var memberId = GetCurrentMemberId()!.Value;
+            var memberId = await GetCurrentMemberId();
             var entity = await _context.ProgressPhotos.FindAsync(id);
             if (entity == null || entity.MemberId != memberId)
                 return false;

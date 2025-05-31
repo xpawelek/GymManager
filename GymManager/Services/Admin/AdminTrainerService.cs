@@ -25,6 +25,7 @@ namespace GymManager.Services.Admin
             return e is null ? null : _mapper.ToReadDto(e);
         }
 
+        /*
         public async Task<ReadTrainerDto> CreateAsync(CreateTrainerDto dto)
         {
             var e = _mapper.ToEntity(dto);
@@ -32,12 +33,20 @@ namespace GymManager.Services.Admin
             await _context.SaveChangesAsync();
             return _mapper.ToReadDto(e);
         }
+        */
 
         public async Task<bool> UpdateAsync(int id, UpdateTrainerDto dto)
         {
-            var e = await _context.Trainers.FindAsync(id);
-            if (e == null) return false;
-            _mapper.UpdateEntity(dto, e);
+            var entity = await _context.Trainers.FindAsync(id);
+            if (entity == null) return false;
+
+            if (dto.FirstName is not null) entity.FirstName = dto.FirstName;
+            if (dto.LastName is not null) entity.LastName = dto.LastName;
+            if (dto.PhoneNumber is not null) entity.PhoneNumber = dto.PhoneNumber;
+            if (dto.Description is not null) entity.Description = dto.Description;
+            if(dto.PhotoPath is not null) entity.PhotoPath = dto.PhotoPath;
+
+            _mapper.UpdateEntity(dto, entity);
             await _context.SaveChangesAsync();
             return true;
         }

@@ -45,6 +45,7 @@ namespace GymManager.Services.Member
             var mid = await GetMemberId();
             var list = await _context.Messages
                 .Where(m => m.MemberId == mid)
+                .OrderByDescending(m => m.Date)
                 .ToListAsync();
             return _mapper.ToReadDtoList(list);
         }
