@@ -22,25 +22,39 @@ namespace GymManager.Services.Trainer
             _httpContext = httpContextAccessor;
         }
 
-        private int GetCurrentTrainerId() =>
-            int.Parse(_httpContext.HttpContext!
-                .User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        private async Task<int> GetCurrentTrainerIdAsync()
+        {
+            var userIdStr = _httpContext.HttpContext?
+                .User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userIdStr))
+                throw new InvalidOperationException("UserId not found in token");
+            var trainer = await _context.Trainers
+                .FirstOrDefaultAsync(t => t.UserId == userIdStr);
+
+            if (trainer == null)
+                throw new InvalidOperationException("Trainer not found for current user");
+
+            return trainer.Id;
+        }
 
         public async Task<List<ReadTrainingSessionDto>> GetAllAsync()
         {
-            var tid = GetCurrentTrainerId();
-            var list = await _context.TrainingSessions
-                .Where(ts => ts.TrainerId == tid)
+            var trainerId = await GetCurrentTrainerIdAsync();
+            var sessions = await _context.TrainingSessions
+                .Where(ts => ts.TrainerId == trainerId)
                 .ToListAsync();
-            return _mapper.ToReadDtoList(list);
+
+            return _mapper.ToReadDtoList(sessions);
         }
 
         public async Task<ReadTrainingSessionDto?> GetByIdAsync(int id)
         {
-            var tid = GetCurrentTrainerId();
-            var e = await _context.TrainingSessions.FindAsync(id);
-            if (e == null || e.TrainerId != tid) return null;
-            return _mapper.ToReadDto(e);
+            var trainerId = await GetCurrentTrainerIdAsync();
+            var entity = await _context.TrainingSessions.FindAsync(id);
+            if (entity == null || entity.TrainerId != trainerId)
+                return null;
+
+            return _mapper.ToReadDto(entity);
         }
     }
 }

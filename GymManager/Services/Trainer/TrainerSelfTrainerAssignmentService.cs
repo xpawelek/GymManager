@@ -23,24 +23,44 @@ namespace GymManager.Services.Trainer
             _httpContext = httpContextAccessor;
         }
 
-        private int GetCurrentTrainerId() =>
-            int.Parse(_httpContext.HttpContext!.User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        private async Task<int> GetCurrentTrainerIdAsync()
+        {
+            var userIdStr = _httpContext.HttpContext?
+                .User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (string.IsNullOrEmpty(userIdStr))
+                throw new InvalidOperationException("UserId not found in token");
+
+            var trainer = await _context.Trainers
+                .FirstOrDefaultAsync(t => t.UserId == userIdStr);
+
+            if (trainer == null)
+                throw new InvalidOperationException("Trainer not found");
+
+            return trainer.Id;
+        }
+
 
         public async Task<List<ReadSelfTrainerAssignmentDto>> GetAllAsync()
         {
-            var tid = GetCurrentTrainerId();
+            var tid = await GetCurrentTrainerIdAsync();
+
             var list = await _context.TrainerAssignments
-                                     .Where(a => a.TrainerId == tid)
-                                     .ToListAsync();
+                .Where(a => a.TrainerId == tid)
+                .ToListAsync();
+
             return _mapper.ToReadDtoList(list);
         }
 
         public async Task<ReadSelfTrainerAssignmentDto?> GetByIdAsync(int id)
         {
-            var tid = GetCurrentTrainerId();
-            var e = await _context.TrainerAssignments.FindAsync(id);
-            if (e == null || e.TrainerId != tid) return null;
-            return _mapper.ToReadDto(e);
+            var tid = await GetCurrentTrainerIdAsync();
+
+            var entity = await _context.TrainerAssignments.FindAsync(id);
+            if (entity == null || entity.TrainerId != tid)
+                return null;
+
+            return _mapper.ToReadDto(entity);
         }
     }
 }

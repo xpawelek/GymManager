@@ -22,16 +22,25 @@ namespace GymManager.Services.Trainer
             _httpContext = httpContextAccessor;
         }
 
-        private int? GetCurrentTrainerId()
+        private async Task<int> GetCurrentTrainerIdAsync()
         {
-            var id = _httpContext.HttpContext?
-                .User.FindFirstValue(ClaimTypes.NameIdentifier);
-            return int.TryParse(id, out var tid) ? tid : null;
+            var userIdStr = _httpContext.HttpContext!
+                .User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+
+            var userId = Guid.Parse(userIdStr);
+
+            var trainer = await _context.Trainers
+                .FirstOrDefaultAsync(t => t.UserId == userId.ToString());
+
+            if (trainer == null)
+                throw new Exception("Trainer not found");
+
+            return trainer.Id;
         }
 
         public async Task<List<ReadProgressPhotoDto>> GetAllAsync()
         {
-            var trainerId = GetCurrentTrainerId()!.Value;
+            var trainerId = await GetCurrentTrainerIdAsync();
             var memberIds = await _context.TrainerAssignments
                 .Where(ta => ta.TrainerId == trainerId && ta.IsActive)
                 .Select(ta => ta.MemberId)
@@ -40,27 +49,34 @@ namespace GymManager.Services.Trainer
             var list = await _context.ProgressPhotos
                 .Where(p => p.IsPublic && memberIds.Contains(p.MemberId))
                 .ToListAsync();
+
             return _mapper.ToReadDtoList(list);
         }
-        
+
         public async Task<List<ReadProgressPhotoDto>> GetAllPublic()
         {
             var list = await _context.ProgressPhotos
-                .Where(p => p.IsPublic == true)
+                .Where(p => p.IsPublic)
                 .ToListAsync();
             return _mapper.ToReadDtoList(list);
         }
 
         public async Task<ReadProgressPhotoDto> GetByIdAsync(int id)
         {
-            var trainerId = GetCurrentTrainerId()!.Value;
+            var trainerId = await GetCurrentTrainerIdAsync();
+
             var entity = await _context.ProgressPhotos.FindAsync(id);
-            if (entity == null) return null!;
+            if (entity == null)
+                return null!;
+
             var allowed = await _context.TrainerAssignments
                 .AnyAsync(ta => ta.TrainerId == trainerId
                               && ta.MemberId == entity.MemberId
                               && ta.IsActive);
-            if (!allowed) return null!;
+
+            if (!allowed)
+                return null!;
+
             return _mapper.ToReadDto(entity);
         }
     }
