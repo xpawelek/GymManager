@@ -42,6 +42,14 @@ namespace GymManager.Services.Trainer
                 .ToListAsync();
             return _mapper.ToReadDtoList(list);
         }
+        
+        public async Task<List<ReadProgressPhotoDto>> GetAllPublic()
+        {
+            var list = await _context.ProgressPhotos
+                .Where(p => p.IsPublic == true)
+                .ToListAsync();
+            return _mapper.ToReadDtoList(list);
+        }
 
         public async Task<ReadProgressPhotoDto> GetByIdAsync(int id)
         {

@@ -29,6 +29,14 @@ namespace GymManager.Services.Admin
             var entity = await _context.ProgressPhotos.FindAsync(id);
             return _mapper.ToReadDto(entity!);
         }
+        
+        public async Task<List<ReadProgressPhotoDto>> GetAllPublic()
+        {
+            var list = await _context.ProgressPhotos
+                .Where(p => p.IsPublic == true)
+                .ToListAsync();
+            return _mapper.ToReadDtoList(list);
+        }
 
         public async Task<bool> PatchAsync(int id, UpdateProgressPhotoDto dto)
         {

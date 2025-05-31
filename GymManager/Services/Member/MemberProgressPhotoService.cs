@@ -47,19 +47,34 @@ namespace GymManager.Services.Member
                 .ToListAsync();
             return _mapper.ToReadDtoList(list);
         }
+        
+        public async Task<List<ReadProgressPhotoDto>> GetAllPublic()
+        {
+            var list = await _context.ProgressPhotos
+                .Where(p => p.IsPublic == true)
+                .ToListAsync();
+            return _mapper.ToReadDtoList(list);
+        }
 
         public async Task<ReadProgressPhotoDto> GetByIdAsync(int id)
         {
             var memberId = await GetCurrentMemberId();
-            var entity = await _context.ProgressPhotos.FindAsync(id);
-            if (entity == null || entity.MemberId != memberId)
+            if (memberId == null)
                 return null!;
+
+            var entity = await _context.ProgressPhotos
+                .FirstOrDefaultAsync(p => p.Id == id && p.MemberId == memberId);
+
+            if (entity == null)
+                return null!;
+
             return _mapper.ToReadDto(entity);
         }
 
         public async Task<ReadProgressPhotoDto> CreateAsync(CreateProgressPhotoDto dto)
         {
             dto.MemberId = await GetCurrentMemberId();
+            dto.Date = DateTime.Now;
             var entity = _mapper.ToEntity(dto);
             await _context.ProgressPhotos.AddAsync(entity);
             await _context.SaveChangesAsync();

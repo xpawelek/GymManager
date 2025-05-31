@@ -12,5 +12,7 @@ public class CreateServiceRequestDto
     [StringLength(250)]
     public string ProblemNote {get; set;}
     
+    public DateTime RequestDate { get; set; }
+    
     public IFormFile? ImagePath { get; set; }
 }

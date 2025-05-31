@@ -40,7 +40,9 @@ namespace GymManager.Services.Member
         public async Task<ReadSelfMemberDto> GetOwnAsync()
         {
             var memberId = await GetCurrentMemberId();
-            var entity = await _context.Members.FindAsync(memberId);
+            var entity = await _context.Members
+                .Include(m => m.User)
+                .FirstOrDefaultAsync(m => m.Id == memberId);
             return _mapper.ToReadDto(entity!);
         }
 
@@ -51,6 +53,7 @@ namespace GymManager.Services.Member
 
             var entity = await _context.Members.FindAsync(memberId);
             if (entity == null) return false;
+            
 
             _mapper.UpdateEntity(dto, entity);
             await _context.SaveChangesAsync();

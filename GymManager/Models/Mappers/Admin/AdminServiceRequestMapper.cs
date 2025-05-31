@@ -23,5 +23,6 @@ public partial class AdminServiceRequestMapper
     [MapperIgnoreTarget(nameof(ServiceRequest.ImagePath))]
     [MapperIgnoreSource(nameof(UpdateServiceRequestDto.Image))]
     [MapperIgnoreTarget(nameof(ServiceRequest.Equipment))]
+    [MapperIgnoreTarget(nameof(ServiceRequest.RequestDate))]
     public partial void UpdateEntity(UpdateServiceRequestDto dto, ServiceRequest serviceRequest);
 }

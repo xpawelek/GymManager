@@ -34,6 +34,7 @@ namespace GymManager.Services.Admin
 
         public async Task<ReadServiceRequestDto> CreateAsync(CreateServiceRequestDto dto)
         {
+            dto.RequestDate = DateTime.Now;
             var e = _mapper.ToEntity(dto);
             await _context.ServiceRequests.AddAsync(e);
             await _context.SaveChangesAsync();

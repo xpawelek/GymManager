@@ -19,5 +19,7 @@ public class ServiceRequest
     public string? ImagePath { get; set; }
     
     public int? EquipmentId { get; set; }
+    
+    public DateTime RequestDate { get; set; }
     public Equipment? Equipment { get; set; }
 }

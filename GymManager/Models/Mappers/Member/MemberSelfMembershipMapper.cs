@@ -26,5 +26,6 @@ public partial class MemberSelfMembershipMapper
     [MapperIgnoreTarget(nameof(Entities.Membership.MembershipType))]
     [MapperIgnoreTarget(nameof(Entities.Membership.StartDate))]
     [MapperIgnoreTarget(nameof(Entities.Membership.EndDate))]
+    [MapperIgnoreTarget(nameof(Entities.Membership.IsActive))]
     public partial Entities.Membership ToEntity(CreateSelfMembershipDto dto);
 }

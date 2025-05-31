@@ -7,13 +7,13 @@ public class CreateProgressPhotoDto
     [Required]
     public int MemberId { get; set; }
     
-    [Required]
-    public DateTime Date { get; set; }
+    public DateTime? Date { get; set; }
     
+    [Required]
     public string? Comment { get; set; }
     
     [Required]
-    public IFormFile? ImagePath { get; set; }
+    public string ImagePath { get; set; }
     
     public bool IsPublic { get; set; } = false;
 }

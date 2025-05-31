@@ -7,5 +7,6 @@ public class ReadServiceRequestDto
     public string ProblemNote {get; set;}
     public string? ImagePath { get; set; }
     
+    public DateTime RequestDate { get; set; }
     public int? EquipmentId { get; set; }
 }

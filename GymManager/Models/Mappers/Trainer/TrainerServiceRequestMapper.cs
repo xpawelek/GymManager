@@ -11,8 +11,14 @@ public partial class TrainerServiceRequestMapper
     [MapperIgnoreTarget(nameof(ServiceRequest.Id))]
     [MapperIgnoreTarget(nameof(ServiceRequest.ImagePath))]
     [MapperIgnoreSource(nameof(DTOs.Trainer.CreateServiceRequestDto.ImagePath))]
+    [MapperIgnoreSource(nameof(ServiceRequest.RequestDate))]
+    [MapperIgnoreTarget(nameof(ServiceRequest.RequestDate))]
+    [MapperIgnoreTarget(nameof(ServiceRequest.Equipment))]
+    [MapperIgnoreTarget(nameof(ServiceRequest.EquipmentId))]
     public partial ServiceRequest ToEntity(CreateServiceRequestDto dto);
     // GET ONE
+    [MapperIgnoreSource(nameof(ServiceRequest.Equipment))]
+    [MapperIgnoreSource(nameof(ServiceRequest.EquipmentId))]
     public partial ReadServiceRequestDto ToReadDto(ServiceRequest serviceRequest);
     //GET ALL
     public partial List<ReadServiceRequestDto> ToReadDtoList(List<ServiceRequest> serviceRequests);
@@ -20,5 +26,8 @@ public partial class TrainerServiceRequestMapper
     [MapperIgnoreTarget(nameof(ServiceRequest.Id))]
     [MapperIgnoreTarget(nameof(ServiceRequest.ImagePath))]
     [MapperIgnoreSource(nameof(DTOs.Trainer.UpdateServiceRequestDto.Image))]
+    [MapperIgnoreTarget(nameof(ServiceRequest.RequestDate))]
+    [MapperIgnoreTarget(nameof(ServiceRequest.Equipment))]
+    [MapperIgnoreTarget(nameof(ServiceRequest.EquipmentId))]
     public partial void UpdateEntity(UpdateServiceRequestDto dto, ServiceRequest serviceRequest);
 }

@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 
 namespace GymManager.Models.DTOs.Member;
 
@@ -9,9 +10,6 @@ public class UpdateSelfMemberDto
     
     [StringLength(50)]
     public string? LastName { get; set; }
-    
-    [EmailAddress]
-    public string? Email { get; set; }
     
     public DateTime? DateOfBirth { get; set; } 
     
