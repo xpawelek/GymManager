@@ -1,0 +1,60 @@
+﻿@page
+@model GymManagerWebApp.Pages.Memberships.IndexModel
+
+@{
+    ViewData["Title"] = "Moje karnety";
+}
+
+<h2>Moje karnety</h2>
+
+@if (!string.IsNullOrEmpty((string)ViewData["ErrorMessage"]))
+{
+    <div class="alert alert-danger">@ViewData["ErrorMessage"]</div>
+}
+
+@if (Model.MembershipsList == null || Model.MembershipsList.Count == 0)
+{
+    <div class="alert alert-info">Nie posiadasz żadnych aktywnych karnetów.</div>
+}
+else
+{
+    <table class="table table-bordered table-hover">
+        <thead class="table-light">
+            <tr>
+                <th>Typ karnetu</th>
+                <th>Data rozpoczęcia</th>
+                <th>Data zakończenia</th>
+                <th>Aktywny?</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var m in Model.MembershipsList)
+            {
+                <tr>
+                    <td>@m.MembershipTypeId</td>
+                    <td>@m.StartDate.ToString("yyyy-MM-dd")</td>
+                    <td>
+                        @if (m.EndDate.HasValue)
+                        {
+                            @m.EndDate.Value.ToString("yyyy-MM-dd")
+                        }
+                        else
+                        {
+                            <em>—</em>
+                        }
+                    </td>
+                    <td>
+                        @if (m.IsActive)
+                        {
+                            <span class="badge bg-success">Tak</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary">Nie</span>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

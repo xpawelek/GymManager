@@ -1,0 +1,26 @@
+﻿@page
+@model GymManagerWebApp.Pages.Account.LoginModel
+
+@{
+    ViewData["Title"] = "Logowanie";
+}
+
+<h2>Logowanie</h2>
+
+<form method="post" class="mt-4">
+    <div class="mb-3">
+        <label asp-for="Input.Email" class="form-label">Email</label>
+        <input asp-for="Input.Email" class="form-control" />
+        <span asp-validation-for="Input.Email" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Input.Password" class="form-label">Hasło</label>
+        <input asp-for="Input.Password" type="password" class="form-control" />
+        <span asp-validation-for="Input.Password" class="text-danger"></span>
+    </div>
+    <button type="submit" class="btn btn-primary">Zaloguj się</button>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

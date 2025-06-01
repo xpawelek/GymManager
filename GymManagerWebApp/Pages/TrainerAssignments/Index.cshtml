@@ -1,0 +1,51 @@
+﻿@page
+@model GymManagerWebApp.Pages.TrainerAssignments.IndexModel
+
+@{
+    ViewData["Title"] = "Przypisania trenera";
+}
+
+<h2>Przypisania trenera</h2>
+
+@if (!string.IsNullOrEmpty((string)ViewData["ErrorMessage"]))
+{
+    <div class="alert alert-danger">@ViewData["ErrorMessage"]</div>
+}
+
+@if (Model.AssignmentsList == null || Model.AssignmentsList.Count == 0)
+{
+    <div class="alert alert-info">Brak aktywnych przypisań.</div>
+}
+else
+{
+    <table class="table table-bordered table-striped">
+        <thead class="table-dark">
+            <tr>
+                <th>MemberId</th>
+                <th>StartDate</th>
+                <th>EndDate</th>
+                <th>Aktywny?</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var a in Model.AssignmentsList)
+            {
+                <tr>
+                    <td>@a.MemberId</td>
+                    <td>@(a.StartDate?.ToString("yyyy-MM-dd") ?? "-")</td>
+                    <td>@(a.EndDate?.ToString("yyyy-MM-dd") ?? "-")</td>
+                    <td>
+                        @if (a.IsActive)
+                        {
+                            <span class="badge bg-success">Tak</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary">Nie</span>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

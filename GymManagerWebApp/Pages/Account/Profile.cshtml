@@ -1,0 +1,70 @@
+﻿@page
+@model GymManagerWebApp.Pages.Account.ProfileModel
+@using System.Security.Claims
+
+@{
+    ViewData["Title"] = "Mój profil";
+}
+
+<h2>Mój profil</h2>
+
+@if (!string.IsNullOrEmpty((string)ViewData["ErrorMessage"]))
+{
+    <div class="alert alert-danger">@ViewData["ErrorMessage"]</div>
+}
+else if (Model.IsMember)
+{
+    <dl class="row">
+        <dt class="col-sm-2">ID członka</dt>
+        <dd class="col-sm-10">@Model.MemberProfile.Id</dd>
+
+        <dt class="col-sm-2">Imię</dt>
+        <dd class="col-sm-10">@Model.MemberProfile.FirstName</dd>
+
+        <dt class="col-sm-2">Nazwisko</dt>
+        <dd class="col-sm-10">@Model.MemberProfile.LastName</dd>
+
+        <dt class="col-sm-2">Email</dt>
+        <dd class="col-sm-10">@Model.MemberProfile.Email</dd>
+
+        <dt class="col-sm-2">Data urodzenia</dt>
+        <dd class="col-sm-10">@Model.MemberProfile.DateOfBirth.ToString("yyyy-MM-dd")</dd>
+
+        <dt class="col-sm-2">Numer telefonu</dt>
+        <dd class="col-sm-10">@Model.MemberProfile.PhoneNumber</dd>
+
+        <dt class="col-sm-2">Numer karty</dt>
+        <dd class="col-sm-10">@Model.MemberProfile.MembershipCardNumber</dd>
+    </dl>
+}
+else if (Model.IsTrainer)
+{
+    <dl class="row">
+        <dt class="col-sm-2">ID trenera</dt>
+        <dd class="col-sm-10">@Model.TrainerProfile.Id</dd>
+
+        <dt class="col-sm-2">Imię</dt>
+        <dd class="col-sm-10">@Model.TrainerProfile.FirstName</dd>
+
+        <dt class="col-sm-2">Nazwisko</dt>
+        <dd class="col-sm-10">@Model.TrainerProfile.LastName</dd>
+
+        <dt class="col-sm-2">Email</dt>
+        <dd class="col-sm-10">@Model.TrainerProfile.Email</dd>
+
+        <dt class="col-sm-2">Numer telefonu</dt>
+        <dd class="col-sm-10">@Model.TrainerProfile.PhoneNumber</dd>
+
+        <dt class="col-sm-2">Opis</dt>
+        <dd class="col-sm-10">@Model.TrainerProfile.Description</dd>
+
+        <dt class="col-sm-2">Zdjęcie (ścieżka)</dt>
+        <dd class="col-sm-10">@Model.TrainerProfile.PhotoPath</dd>
+    </dl>
+}
+else if (Model.IsAdmin)
+{
+    <div class="alert alert-warning">
+        Jesteś zalogowany jako Administrator, nie ma dedykowanego widoku profilu.
+    </div>
+}

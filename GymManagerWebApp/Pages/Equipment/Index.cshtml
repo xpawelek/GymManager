@@ -1,0 +1,44 @@
+﻿@page
+@model GymManagerWebApp.Pages.Equipment.IndexModel
+
+@{
+    ViewData["Title"] = "Sprzęt";
+}
+
+<h2>Sprzęt</h2>
+
+@if (!string.IsNullOrEmpty((string)ViewData["ErrorMessage"]))
+{
+    <div class="alert alert-danger">
+        @ViewData["ErrorMessage"]
+    </div>
+}
+
+@if (Model.EquipmentList == null || Model.EquipmentList.Count == 0)
+{
+    <div class="alert alert-info">
+        Brak dostępnych pozycji sprzętu.
+    </div>
+}
+else
+{
+    <table class="table table-striped">
+        <thead class="table-dark">
+            <tr>
+                <th>Nazwa</th>
+                <th>Opis</th>
+                <th>Ilość</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model.EquipmentList)
+            {
+                <tr>
+                    <td>@item.Name</td>
+                    <td>@item.Description</td>
+                    <td>@item.Quantity</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

@@ -1,0 +1,53 @@
+﻿@page
+@model GymManagerWebApp.Pages.Messages.IndexModel
+
+@{
+    ViewData["Title"] = "Wiadomości";
+}
+
+<h2>Wiadomości</h2>
+
+@if (!string.IsNullOrEmpty((string)ViewData["ErrorMessage"]))
+{
+    <div class="alert alert-danger">@ViewData["ErrorMessage"]</div>
+}
+
+@if (Model.MessagesList == null || Model.MessagesList.Count == 0)
+{
+    <div class="alert alert-info">Brak wiadomości.</div>
+}
+else
+{
+    <table class="table table-striped table-bordered">
+        <thead class="table-dark">
+            <tr>
+                <th>Data</th>
+                <th>Treść</th>
+                <th>Trener / Członek</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var m in Model.MessagesList)
+            {
+                <tr>
+                    <td>@m.Date.ToString("yyyy-MM-dd HH:mm")</td>
+                    <td>@m.MessageContent</td>
+                    <td>
+                        @if (Model.IsMemberRole)
+                        {
+                            <span>do trenera (ID: @m.TrainerId)</span>
+                        }
+                        else if (Model.IsTrainerRole)
+                        {
+                            <span>do członka (ID: @m.MemberId)</span>
+                        }
+                        else
+                        {
+                            @:—
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

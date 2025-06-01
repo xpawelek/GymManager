@@ -1,0 +1,53 @@
+﻿@page
+@model GymManagerWebApp.Pages.TrainingSessions.IndexModel
+
+@{
+    ViewData["Title"] = "Treningi";
+}
+
+<h2>Treningi</h2>
+
+@if (!string.IsNullOrEmpty((string)ViewData["ErrorMessage"]))
+{
+    <div class="alert alert-danger">@ViewData["ErrorMessage"]</div>
+}
+
+@if (Model.SessionsList == null || Model.SessionsList.Count == 0)
+{
+    <div class="alert alert-info">Brak zaplanowanych treningów.</div>
+}
+else
+{
+    <table class="table table-hover">
+        <thead class="table-secondary">
+            <tr>
+                <th>Opis</th>
+                <th>StartTime</th>
+                <th>Duracja (min)</th>
+                <th>Sekwencja grupowa?</th>
+                <th>MemberId</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var ts in Model.SessionsList)
+            {
+                <tr>
+                    <td>@ts.Description</td>
+                    <td>@ts.StartTime.ToString("yyyy-MM-dd HH:mm")</td>
+                    <td>@ts.DurationInMinutes</td>
+                    <td>
+                        @if (ts.IsGroupSession)
+                        {
+                            <span class="badge bg-success">Tak</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary">Nie</span>
+                        }
+                    </td>
+                    <td>@(ts.MemberId.HasValue ? ts.MemberId.Value.ToString() : "-")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

@@ -1,0 +1,35 @@
+﻿@page
+@model GymManagerWebApp.Pages.ProgressPhotos.IndexModel
+
+@{
+    ViewData["Title"] = "Zdjęcia progresu";
+}
+
+<h2>Zdjęcia progresu</h2>
+
+@if (!string.IsNullOrEmpty((string)ViewData["ErrorMessage"]))
+{
+    <div class="alert alert-danger">@ViewData["ErrorMessage"]</div>
+}
+
+@if (Model.PhotosList == null || Model.PhotosList.Count == 0)
+{
+    <div class="alert alert-info">Brak dostępnych zdjęć progresu.</div>
+}
+else
+{
+    <div class="row">
+        @foreach (var p in Model.PhotosList)
+        {
+            <div class="col-md-4 mb-3">
+                <div class="card">
+                    <img src="@p.ImagePath" class="card-img-top" alt="Zdjęcie progresu" />
+                    <div class="card-body">
+                        <p class="card-text">@p.Comment</p>
+                        <small class="text-muted">@p.Date.ToString("yyyy-MM-dd")</small>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}

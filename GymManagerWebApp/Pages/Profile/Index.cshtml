@@ -1,0 +1,40 @@
+﻿@page
+@model GymManagerWebApp.Pages.Trainer.ProfileModel
+
+@{
+    ViewData["Title"] = "Mój profil (Trener)";
+}
+
+<h2>Mój profil</h2>
+
+@if (!string.IsNullOrEmpty((string)ViewData["ErrorMessage"]))
+{
+    <div class="alert alert-danger">@ViewData["ErrorMessage"]</div>
+}
+
+@if (Model.TrainerProfile == null)
+{
+    <div class="alert alert-info">Nie znaleziono profilu trenera.</div>
+}
+else
+{
+    <dl class="row">
+        <dt class="col-sm-2">Imię</dt>
+        <dd class="col-sm-10">@Model.TrainerProfile.FirstName</dd>
+
+        <dt class="col-sm-2">Nazwisko</dt>
+        <dd class="col-sm-10">@Model.TrainerProfile.LastName</dd>
+
+        <dt class="col-sm-2">Email</dt>
+        <dd class="col-sm-10">@Model.TrainerProfile.Email</dd>
+
+        <dt class="col-sm-2">Telefon</dt>
+        <dd class="col-sm-10">@Model.TrainerProfile.PhoneNumber</dd>
+
+        <dt class="col-sm-2">Opis</dt>
+        <dd class="col-sm-10">@Model.TrainerProfile.Description</dd>
+
+        <dt class="col-sm-2">Zdjęcie (ścieżka)</dt>
+        <dd class="col-sm-10">@Model.TrainerProfile.PhotoPath</dd>
+    </dl>
+}

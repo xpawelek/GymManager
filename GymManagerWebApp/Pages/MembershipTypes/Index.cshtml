@@ -1,0 +1,53 @@
+﻿@page
+@model GymManagerWebApp.Pages.MembershipTypes.IndexModel
+
+@{
+    ViewData["Title"] = "Typy karnetów";
+}
+
+<h2>Typy karnetów</h2>
+
+@if (!string.IsNullOrEmpty((string)ViewData["ErrorMessage"]))
+{
+    <div class="alert alert-danger">@ViewData["ErrorMessage"]</div>
+}
+
+@if (Model.MembershipTypesList == null || Model.MembershipTypesList.Count == 0)
+{
+    <div class="alert alert-info">Brak dostępnych typów karnetów.</div>
+}
+else
+{
+    <table class="table table-hover table-bordered">
+        <thead class="table-secondary">
+            <tr>
+                <th>Nazwa</th>
+                <th>Opis</th>
+                <th>Cena</th>
+                <th>Czas (dni)</th>
+                <th>Trener osobisty?</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var t in Model.MembershipTypesList)
+            {
+                <tr>
+                    <td>@t.Name</td>
+                    <td>@t.Description</td>
+                    <td>@t.Price.ToString("C")</td>
+                    <td>@t.DurationInDays</td>
+                    <td>
+                        @if (t.IncludesPersonalTrainer)
+                        {
+                            <span class="badge bg-success">Tak</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary">Nie</span>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
