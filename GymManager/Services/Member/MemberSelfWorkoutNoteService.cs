@@ -38,7 +38,7 @@ namespace GymManager.Services.Member
             return member.Id;
         }
 
-        public async Task<List<ReadSelfWorkoutNote>> GetAllAsync()
+        public async Task<List<ReadSelfWorkoutNoteDto>> GetAllAsync()
         {
             var mid = await GetCurrentMemberId();
             var list = await _context.WorkoutNotes
@@ -47,7 +47,7 @@ namespace GymManager.Services.Member
             return _mapper.ToReadDtoList(list);
         }
 
-        public async Task<ReadSelfWorkoutNote?> GetByIdAsync(int id)
+        public async Task<ReadSelfWorkoutNoteDto?> GetByIdAsync(int id)
         {
             var mid = await GetCurrentMemberId();
             var e = await _context.WorkoutNotes.FindAsync(id);
