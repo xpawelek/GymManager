@@ -1,6 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
+# 
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GymManager", "GymManager\GymManager.csproj", "{455CA0D6-A998-4A95-8DB6-67854AF957CB}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "GymManager", "GymManager", "{9770DFCE-BA29-48D4-B12A-EC849F65A39E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GymManager.Client", "GymManager.Client\GymManager.Client.csproj", "{A62D0AC2-921E-406D-A1B6-BF133BC9B9D1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GymManager.Shared", "GymManager.Shared\GymManager.Shared.csproj", "{175C4617-888F-4FA8-993D-E3DCD17CC5D8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -12,5 +19,16 @@ Global
 		{455CA0D6-A998-4A95-8DB6-67854AF957CB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{455CA0D6-A998-4A95-8DB6-67854AF957CB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{455CA0D6-A998-4A95-8DB6-67854AF957CB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A62D0AC2-921E-406D-A1B6-BF133BC9B9D1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A62D0AC2-921E-406D-A1B6-BF133BC9B9D1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A62D0AC2-921E-406D-A1B6-BF133BC9B9D1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A62D0AC2-921E-406D-A1B6-BF133BC9B9D1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{175C4617-888F-4FA8-993D-E3DCD17CC5D8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{175C4617-888F-4FA8-993D-E3DCD17CC5D8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{175C4617-888F-4FA8-993D-E3DCD17CC5D8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{175C4617-888F-4FA8-993D-E3DCD17CC5D8}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{455CA0D6-A998-4A95-8DB6-67854AF957CB} = {9770DFCE-BA29-48D4-B12A-EC849F65A39E}
 	EndGlobalSection
 EndGlobal

@@ -1,6 +1,6 @@
 ﻿using System.Security.Claims;
 using System.Text.Json;
-using GymManager.Models.DTOs.Member;
+using GymManager.Shared.DTOs.Member;
 using GymManager.Models.Identity;
 using GymManager.Services.Admin;
 using GymManager.Services.Member;
@@ -8,8 +8,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-using AdminCreateDto = GymManager.Models.DTOs.Admin.CreateMembershipDto;
-using MemberCreateDto = GymManager.Models.DTOs.Member.CreateSelfMembershipDto;
+using AdminCreateDto = GymManager.Shared.DTOs.Admin.CreateMembershipDto;
+using MemberCreateDto = GymManager.Shared.DTOs.Member.CreateSelfMembershipDto;
 
 namespace GymManager.Controllers
 {
@@ -83,7 +83,7 @@ namespace GymManager.Controllers
 
         [HttpPatch("admin/{id}")]
         [Authorize(Roles = RoleConstants.Admin)]
-        public async Task<IActionResult> PatchAsAdmin(int id, [FromBody] Models.DTOs.Admin.UpdateMembershipDto dto)
+        public async Task<IActionResult> PatchAsAdmin(int id, [FromBody] GymManager.Shared.DTOs.Admin.UpdateMembershipDto dto)
         {
             return await _admin.PatchAsync(id, dto) ? NoContent() : NotFound();
         }

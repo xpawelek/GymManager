@@ -1,4 +1,4 @@
-﻿using GymManager.Models.DTOs.Admin;
+﻿using GymManager.Shared.DTOs.Admin;
 using GymManager.Models.Entities;
 using Riok.Mapperly.Abstractions;
 namespace GymManager.Models.Mappers.Receptionist;

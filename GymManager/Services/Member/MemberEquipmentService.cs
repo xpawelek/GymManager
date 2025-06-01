@@ -1,5 +1,5 @@
 ﻿using GymManager.Data;
-using GymManager.Models.DTOs.Member;
+using GymManager.Shared.DTOs.Member;
 using GymManager.Models.Mappers.Member;
 using Microsoft.EntityFrameworkCore;
 

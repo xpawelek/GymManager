@@ -1,9 +1,9 @@
 ﻿using System.Security.Claims;
 using GymManager.Data;
-using GymManager.Models.DTOs.Auth;
-using GymManager.Models.DTOs.Member;
-using GymManager.Models.DTOs.Receptionist;
-using GymManager.Models.DTOs.Trainer;
+using GymManager.Shared.DTOs.Auth;
+using GymManager.Shared.DTOs.Member;
+using GymManager.Shared.DTOs.Receptionist;
+using GymManager.Shared.DTOs.Trainer;
 using GymManager.Models.Entities;
 using GymManager.Models.Identity;
 using Microsoft.AspNetCore.Authentication.JwtBearer;

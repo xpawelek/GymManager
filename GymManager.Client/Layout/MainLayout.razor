@@ -1,0 +1,34 @@
+﻿@using GymManager.Shared.DTOs.Admin
+@inherits LayoutComponentBase
+@page "/equipment"
+@inject PublicEquipmentService EquipmentService
+
+<h3>Available Equipment</h3>
+
+@if (equipmentList == null)
+{
+    <p>Loading...</p>
+}
+else if (equipmentList.Count == 0)
+{
+    <p>No equipment found.</p>
+}
+else
+{
+    <ul>
+        @foreach (var item in equipmentList)
+        {
+            <li>@item.Name - @item.Description</li>
+        }
+    </ul>
+}
+
+@code {
+    private List<ReadEquipmentDto>? equipmentList;
+
+    protected override async Task OnInitializedAsync()
+    {
+        equipmentList = await EquipmentService.GetPublicEquipmentAsync();
+    }
+}
+

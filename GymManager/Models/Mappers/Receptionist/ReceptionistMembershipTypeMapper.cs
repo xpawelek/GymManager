@@ -1,5 +1,5 @@
 ﻿using Riok.Mapperly.Abstractions;
-using GymManager.Models.DTOs.Admin;
+using GymManager.Shared.DTOs.Admin;
 using GymManager.Models.Entities;
 
 namespace GymManager.Models.Mappers.Receptionist;

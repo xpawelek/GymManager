@@ -26,4 +26,31 @@
       <Folder Include="wwwroot\uploads\" />
     </ItemGroup>
 
+    <ItemGroup>
+      <_ContentIncludedByDefault Remove="GymManager.Client\bin\Debug\net8.0\GymManager.Client.staticwebassets.runtime.json" />
+      <_ContentIncludedByDefault Remove="GymManager.Client\bin\Debug\net8.0\wwwroot\_framework\blazor.boot.json" />
+      <_ContentIncludedByDefault Remove="GymManager.Client\obj\Debug\net8.0\blazor.boot.json" />
+      <_ContentIncludedByDefault Remove="GymManager.Client\obj\Debug\net8.0\blazor.build.boot-extension.json" />
+      <_ContentIncludedByDefault Remove="GymManager.Client\obj\Debug\net8.0\GymManager.Client.sourcelink.json" />
+      <_ContentIncludedByDefault Remove="GymManager.Client\obj\Debug\net8.0\staticwebassets.build.json" />
+      <_ContentIncludedByDefault Remove="GymManager.Client\obj\Debug\net8.0\staticwebassets.development.json" />
+      <_ContentIncludedByDefault Remove="GymManager.Client\obj\Debug\net8.0\staticwebassets.pack.json" />
+      <_ContentIncludedByDefault Remove="GymManager.Client\obj\GymManager.Client.csproj.nuget.dgspec.json" />
+      <_ContentIncludedByDefault Remove="GymManager.Client\obj\project.assets.json" />
+      <_ContentIncludedByDefault Remove="GymManager.Client\obj\project.packagespec.json" />
+      <_ContentIncludedByDefault Remove="GymManager.Client\Properties\launchSettings.json" />
+      <_ContentIncludedByDefault Remove="GymManager.Client\wwwroot\sample-data\weather.json" />
+      <_ContentIncludedByDefault Remove="GymManager.Client\App.razor" />
+      <_ContentIncludedByDefault Remove="GymManager.Client\Layout\MainLayout.razor" />
+      <_ContentIncludedByDefault Remove="GymManager.Client\Layout\NavMenu.razor" />
+      <_ContentIncludedByDefault Remove="GymManager.Client\Pages\Counter.razor" />
+      <_ContentIncludedByDefault Remove="GymManager.Client\Pages\Home.razor" />
+      <_ContentIncludedByDefault Remove="GymManager.Client\Pages\Weather.razor" />
+      <_ContentIncludedByDefault Remove="GymManager.Client\_Imports.razor" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\GymManager.Shared\GymManager.Shared.csproj" />
+    </ItemGroup>
+
 </Project>

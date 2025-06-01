@@ -142,6 +142,15 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
     .AddEntityFrameworkStores<GymDbContext>()
     .AddDefaultTokenProviders();
 
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+    {
+        policy.WithOrigins("http://localhost:5000")
+            .AllowAnyMethod()
+            .AllowAnyHeader();
+    });
+});
 
 var app = builder.Build();
 
@@ -164,6 +173,7 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+app.UseCors();
 app.UseAuthentication(); 
 app.UseAuthorization();  
 app.MapControllers();  

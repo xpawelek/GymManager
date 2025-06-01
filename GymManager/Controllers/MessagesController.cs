@@ -7,12 +7,12 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-using MCreateDto = GymManager.Models.DTOs.Member.CreateMessageDto;
-using MReadDto = GymManager.Models.DTOs.Member.ReadSelfMessageDto;
-using MUpdateDto = GymManager.Models.DTOs.Member.UpdateMessageDto;
-using TCreateDto = GymManager.Models.DTOs.Trainer.CreateSelfMessageDto;
-using TReadDto = GymManager.Models.DTOs.Trainer.ReadSelfMessageDto;
-using TUpdateDto = GymManager.Models.DTOs.Trainer.UpdateSelfMessageDto;
+using MCreateDto = GymManager.Shared.DTOs.Member.CreateMessageDto;
+using MReadDto = GymManager.Shared.DTOs.Member.ReadSelfMessageDto;
+using MUpdateDto = GymManager.Shared.DTOs.Member.UpdateMessageDto;
+using TCreateDto = GymManager.Shared.DTOs.Trainer.CreateSelfMessageDto;
+using TReadDto = GymManager.Shared.DTOs.Trainer.ReadSelfMessageDto;
+using TUpdateDto = GymManager.Shared.DTOs.Trainer.UpdateSelfMessageDto;
 
 namespace GymManager.Controllers
 {

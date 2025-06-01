@@ -1,4 +1,4 @@
-﻿using GymManager.Models.DTOs.Trainer;
+﻿using GymManager.Shared.DTOs.Trainer;
 using GymManager.Services.Trainer;
 using GymManager.Models.Identity;
 using Microsoft.AspNetCore.Authentication.JwtBearer;

@@ -7,8 +7,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-using AdminCreateDto = GymManager.Models.DTOs.Admin.CreateMembershipTypeDto;
-using AdminUpdateDto = GymManager.Models.DTOs.Admin.UpdateMembershipTypeDto;
+using AdminCreateDto = GymManager.Shared.DTOs.Admin.CreateMembershipTypeDto;
+using AdminUpdateDto = GymManager.Shared.DTOs.Admin.UpdateMembershipTypeDto;
 
 namespace GymManager.Controllers
 {

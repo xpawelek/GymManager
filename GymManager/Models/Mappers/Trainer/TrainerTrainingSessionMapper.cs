@@ -1,5 +1,5 @@
 ﻿using Riok.Mapperly.Abstractions;
-using GymManager.Models.DTOs.Trainer;
+using GymManager.Shared.DTOs.Trainer;
 using GymManager.Models.Entities;
 namespace GymManager.Models.Mappers.Trainer;
 
