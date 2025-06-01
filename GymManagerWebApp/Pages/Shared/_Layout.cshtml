@@ -1,77 +1,80 @@
-﻿<!DOCTYPE html>
+﻿@* Pages/Shared/_Layout.cshtml *@
+<!DOCTYPE html>
 <html lang="pl">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>@ViewData["Title"] – GymManager Web</title>
+    <title>@ViewData["Title"] - GymManager</title>
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.4.0/dist/css/bootstrap.min.css"
-          rel="stylesheet"
-          integrity="sha384-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
-          crossorigin="anonymous" />
+    <!-- 1. Bootstrap CSS z podkatalogu dist -->
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
 
+    <!-- 2. Własne style -->
     <link rel="stylesheet" href="~/css/site.css" />
-
-    @RenderSection("HeadContent", required: false)
 </head>
-<body class="d-flex flex-column min-vh-100">
-
-    <!-- 1. NAVBAR -->
+<body>
     <header>
-        <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-            <div class="container">
-                <a class="navbar-brand" href="/">GymManager</a>
+        <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top">
+            <div class="container-fluid">
+                <a class="navbar-brand" asp-page="/Index">GymManager</a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
-                        data-bs-target="#mainNavbar" aria-controls="mainNavbar"
-                        aria-expanded="false" aria-label="Toggle navigation">
+                        data-bs-target="#mainNavbar"
+                        aria-controls="mainNavbar" aria-expanded="false"
+                        aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
 
                 <div class="collapse navbar-collapse" id="mainNavbar">
                     <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                        <li class="nav-item"><a class="nav-link" href="/Equipment">Sprzęt</a></li>
-                        <li class="nav-item"><a class="nav-link" href="/MembershipTypes">Typy karnetów</a></li>
-                        <li class="nav-item"><a class="nav-link" href="/Memberships">Moje karnety</a></li>
-                        <li class="nav-item"><a class="nav-link" href="/ProgressPhotos">Zdjęcia progresu</a></li>
-                        <li class="nav-item"><a class="nav-link" href="/Messages">Wiadomości</a></li>
-                        <li class="nav-item"><a class="nav-link" href="/TrainerAssignments">Przypisania</a></li>
-                        <li class="nav-item"><a class="nav-link" href="/TrainingSessions">Treningi</a></li>
+                        <li class="nav-item">
+                            <a class="nav-link @(ViewContext.ActionDescriptor.DisplayName.Contains("/Index") ? "active" : "")"
+                               asp-page="/Index">Home</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link @(ViewContext.ActionDescriptor.DisplayName.Contains("/TypyKarnetow") ? "active" : "")"
+                               asp-page="/TypyKarnetow">Typy karnetów</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link @(ViewContext.ActionDescriptor.DisplayName.Contains("/MojeKarnety") ? "active" : "")"
+                               asp-page="/MojeKarnety">Moje karnety</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link @(ViewContext.ActionDescriptor.DisplayName.Contains("/Zajecia") ? "active" : "")"
+                               asp-page="/Zajecia">Zajęcia</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link @(ViewContext.ActionDescriptor.DisplayName.Contains("/Sprzet") ? "active" : "")"
+                               asp-page="/Sprzet">Sprzęt</a>
+                        </li>
                     </ul>
-                    <ul class="navbar-nav ms-auto">
-                        @if (User.Identity?.IsAuthenticated == true)
-                        {
-                            <li class="nav-item">
-                                <form method="post" action="/Account/Logout" class="d-inline">
-                                    <button type="submit" class="btn btn-outline-light btn-sm">Wyloguj</button>
-                                </form>
-                            </li>
-                        }
-                        else
-                        {
-                            <li class="nav-item"><a class="nav-link" href="/Account/Login">Zaloguj</a></li>
-                            <li class="nav-item"><a class="nav-link" href="/Account/Register">Zarejestruj</a></li>
-                        }
+                    <ul class="navbar-nav mb-2 mb-lg-0">
+                        <li class="nav-item">
+                            <a class="nav-link" asp-page="/Account/Login">Zaloguj</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-page="/Account/Register">Zarejestruj</a>
+                        </li>
                     </ul>
                 </div>
             </div>
         </nav>
     </header>
 
-    <!-- MIEJSCE NA TREŚĆ -->
-    <div class="container mt-5 mb-5 flex-grow-1">
+    <!-- Dodaj trochę odstępu od góry, bo navbar jest fixed-top -->
+    <div class="container mt-5 pt-3">
         @RenderBody()
     </div>
 
-    <footer class="bg-dark text-light py-3 mt-auto">
+    <footer class="footer bg-light border-top py-3 mt-auto">
         <div class="container text-center">
-            &copy; 2025 – GymManager Web. Wszelkie prawa zastrzeżone.
+            <span class="text-muted">© 2025 – GymManager. Wszelkie prawa zastrzeżone.</span>
         </div>
     </footer>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.4.0/dist/js/bootstrap.bundle.min.js"
-            integrity="sha384-YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY"
-            crossorigin="anonymous"></script>
-
+    <!-- 3. jQuery (tylko jeśli naprawdę potrzebujesz, bo Bootstrap 5 działa bez jQuery) -->
+    <script src="~/lib/jquery/jquery.min.js"></script>
+    <!-- 4. Bootstrap JS z podkatalogu dist -->
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     @RenderSection("Scripts", required: false)
 </body>
 </html>
