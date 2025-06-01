@@ -1,5 +1,5 @@
 ﻿using GymManager.Data;
-using GymManager.Models.DTOs.Admin;
+using GymManager.Shared.DTOs.Admin;
 using GymManager.Models.Identity;
 using GymManager.Models.Mappers.Admin;
 using Microsoft.AspNetCore.Identity;

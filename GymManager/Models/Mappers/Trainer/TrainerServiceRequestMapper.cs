@@ -1,5 +1,5 @@
 ﻿using Riok.Mapperly.Abstractions;
-using GymManager.Models.DTOs.Trainer;
+using GymManager.Shared.DTOs.Trainer;
 using GymManager.Models.Entities;
 
 namespace GymManager.Models.Mappers.Trainer;
@@ -10,7 +10,7 @@ public partial class TrainerServiceRequestMapper
     //POST
     [MapperIgnoreTarget(nameof(ServiceRequest.Id))]
     [MapperIgnoreTarget(nameof(ServiceRequest.ImagePath))]
-    [MapperIgnoreSource(nameof(DTOs.Trainer.CreateServiceRequestDto.ImagePath))]
+    [MapperIgnoreSource(nameof(CreateServiceRequestDto.ImagePath))]
     [MapperIgnoreSource(nameof(ServiceRequest.RequestDate))]
     [MapperIgnoreTarget(nameof(ServiceRequest.RequestDate))]
     [MapperIgnoreTarget(nameof(ServiceRequest.Equipment))]
@@ -25,7 +25,7 @@ public partial class TrainerServiceRequestMapper
     //PUT 
     [MapperIgnoreTarget(nameof(ServiceRequest.Id))]
     [MapperIgnoreTarget(nameof(ServiceRequest.ImagePath))]
-    [MapperIgnoreSource(nameof(DTOs.Trainer.UpdateServiceRequestDto.Image))]
+    [MapperIgnoreSource(nameof(UpdateServiceRequestDto.Image))]
     [MapperIgnoreTarget(nameof(ServiceRequest.RequestDate))]
     [MapperIgnoreTarget(nameof(ServiceRequest.Equipment))]
     [MapperIgnoreTarget(nameof(ServiceRequest.EquipmentId))]

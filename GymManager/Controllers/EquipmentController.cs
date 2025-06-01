@@ -1,5 +1,5 @@
 ﻿using System.Security.Claims;
-using GymManager.Models.DTOs.Admin;
+using GymManager.Shared.DTOs.Admin;
 using GymManager.Models.Identity;
 using GymManager.Services.Admin;
 using GymManager.Services.Member;
@@ -42,6 +42,14 @@ namespace GymManager.Controllers
         {
             var dto = await _admin.GetByIdAsync(id);
             return dto == null ? NotFound() : Ok(dto);
+        }
+        
+        [HttpGet("public")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetPublicEquipment()
+        {
+            var equipmentList = await _member.GetAllAsync(); 
+            return Ok(equipmentList);
         }
 
         [HttpPost]

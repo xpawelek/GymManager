@@ -6,10 +6,10 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-using AdminCreateDto = GymManager.Models.DTOs.Admin.CreateTrainingSessionDto;
-using AdminUpdateDto = GymManager.Models.DTOs.Admin.UpdateTrainingSessionDto;
-using MemberCreateDto = GymManager.Models.DTOs.Member.CreateTrainingSessionDto;
-using MemberUpdateDto = GymManager.Models.DTOs.Member.UpdateTrainingSessionDto;
+using AdminCreateDto = GymManager.Shared.DTOs.Admin.CreateTrainingSessionDto;
+using AdminUpdateDto = GymManager.Shared.DTOs.Admin.UpdateTrainingSessionDto;
+using MemberCreateDto = GymManager.Shared.DTOs.Member.CreateTrainingSessionDto;
+using MemberUpdateDto = GymManager.Shared.DTOs.Member.UpdateTrainingSessionDto;
 
 namespace GymManager.Controllers
 {

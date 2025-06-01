@@ -1,4 +1,4 @@
-﻿using GymManager.Models.DTOs.Trainer;
+﻿using GymManager.Shared.DTOs.Trainer;
 using GymManager.Services.Admin;
 using GymManager.Services.Member;
 using GymManager.Services.Trainer;

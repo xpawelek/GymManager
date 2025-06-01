@@ -1,4 +1,4 @@
-﻿using GymManager.Models.DTOs.Member;
+﻿using GymManager.Shared.DTOs.Member;
 using Riok.Mapperly.Abstractions;
 
 namespace GymManager.Models.Mappers.Member;

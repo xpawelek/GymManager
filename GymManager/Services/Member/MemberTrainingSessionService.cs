@@ -1,6 +1,6 @@
 ﻿using System.Security.Claims;
 using GymManager.Data;
-using GymManager.Models.DTOs.Member;
+using GymManager.Shared.DTOs.Member;
 using GymManager.Models.Entities;
 using GymManager.Models.Mappers.Member;
 using Microsoft.EntityFrameworkCore;

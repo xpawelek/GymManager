@@ -1,6 +1,6 @@
 ﻿using System.Security.Claims;
-using GymManager.Models.DTOs.Admin;
-using GymManager.Models.DTOs.Member;
+using GymManager.Shared.DTOs.Admin;
+using GymManager.Shared.DTOs.Member;
 using GymManager.Models.Identity;
 using GymManager.Services.Admin;
 using GymManager.Services.Member;
