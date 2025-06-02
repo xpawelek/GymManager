@@ -1,0 +1,41 @@
+﻿@page "/trainers"
+
+@using GymManager.Client.Services
+@using GymManager.Shared.DTOs.Member
+@inject TrainerService TrainerService
+
+<section class="py-5 bg-white text-dark">
+    <div class="container text-center">
+        <h2 class="mb-5" style="font-size: 4rem;">Meet our Trainers</h2>
+        <div class="row justify-content-center">
+            @if (trainers == null)
+            {
+                <p>Loading trainers...</p>
+            }
+            else
+            {
+                @foreach (var trainer in trainers)
+                {
+                    <div class="col-md-4 mb-4">
+                        <div class="card shadow-sm p-3 border-0">
+                            <img src="@trainer.PhotoPath" class="card-img-top rounded" alt="@trainer.FirstName" />
+                            <div class="card-body">
+                                <h5 class="card-title">@trainer.FirstName @trainer.LastName</h5>
+                                <p class="card-text">@trainer.Description</p>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+</section>
+
+@code {
+    private List<ReadTrainerDto>? trainers;
+
+    protected override async Task OnInitializedAsync()
+    {
+        trainers = await TrainerService.GetAllMemberAsync();
+    }
+}
