@@ -1,34 +1,153 @@
 ﻿@using GymManager.Shared.DTOs.Admin
 @inherits LayoutComponentBase
-@page "/equipment"
-@inject PublicEquipmentService EquipmentService
 
-<h3>Available Equipment</h3>
+<nav class="navbar navbar-expand-lg navbar-dark px-3 navbar_style">
+    <div class="container-fluid">
+        <a class="navbar-brand d-flex align-items-center nav_text" href="/">
+            <i class="fa-solid fa-dumbbell me-2" style="color: #d52020;"></i>
+            PrimeFit
+        </a>
+        
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar" aria-controls="mainNavbar" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        
+        <div class="collapse navbar-collapse justify-content-end" id="mainNavbar">
+            <ul class="navbar-nav mb-3 mb-lg-0 me-4 px-2 py-2">
+                <li class="nav-item">
+                    <a class="nav-link nav_text" href="/equipment">Equipment</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link nav_text" href="/trainers">Trainers</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link nav_text" href="/progress">Progress</a>
+                </li>
+            </ul>
+            
+            <a class="nav-link text-white" href="/login" title="Login">
+                <i class="fa-solid fa-right-to-bracket"></i>
+            </a>
+        </div>
+    </div>
+</nav>
 
-@if (equipmentList == null)
-{
-    <p>Loading...</p>
-}
-else if (equipmentList.Count == 0)
-{
-    <p>No equipment found.</p>
-}
-else
-{
-    <ul>
-        @foreach (var item in equipmentList)
-        {
-            <li>@item.Name - @item.Description</li>
-        }
-    </ul>
-}
+<section class="banner">
+    <img src="images/xa.png" class="w-100" alt="Hero Banner" />
+</section>
 
-@code {
-    private List<ReadEquipmentDto>? equipmentList;
+<section class="info-section d-flex flex-wrap">
+    <div class="info-left d-flex align-items-center text-dark flex-grow-1">
+        <div class="d-flex align-items-center mx-auto px-5">
+            <i class="fa-solid fa-person-running fa-2x m-4 "></i>
+            <div class = "p-5 info-note">
+                <h4 class="fw-bold" style="color: #F5F5F5">Client's zone</h4>
+                <p class="m-5 line-height-tight">Keep up with your training plan by joining to us!</p>
+                <a href="/login" class="btn btn-outline-light px-5 py-3">Login</a>
+            </div>
+        </div>
+    </div>
 
-    protected override async Task OnInitializedAsync()
-    {
-        equipmentList = await EquipmentService.GetPublicEquipmentAsync();
-    }
-}
+    <div class="info-right d-flex align-items-center flex-grow-1">
+        <div class="d-flex align-items-center mx-auto px-5">
+            <i class="fa-solid fa-calendar-days fa-2x m-4" style="color:#e01b1b"></i>
+            <div class = "p-5 info-note">
+                <h4 class="fw-bold" style="color: #F5F5F5">Trainings schedule</h4>
+                <p class="m-5 line-height-tight" style="color: #e01b1b">Let's check available trainings that gonna happen soon!</p>
+                <a href="/schedule" class="btn btn-outline-danger px-5 py-3">Check</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="py-5 bg-light">
+    <div class="container-fluid px-5">
+        <h1 class="mb-5 text-center" style="font-size:4rem">What can we offer <u style="color: #e01b1b">you?</u></h1>
+        <div class="row">
+            <div class="col-md-4 offer text-center">
+                <h5 class="">Membership</h5>
+                <i class="fa-solid fa-user-plus p-3"></i>
+                <p class="p-3">Choose the perfect plan for yourself and take control of your fitness journey</p>
+                <a href="/memberships" class="btn btn-danger px-5 py-4">Get more info!</a>
+            </div>
+            <div class="col-md-4 offer text-center">
+                <h5>Equipment</h5>
+                <i class="fa-solid fa-medal p-3"></i>
+                <p class="p-2">Top-quality strength and cardio equipment designed to support every type of workout </p>
+                <a href="/equipment" class="btn btn-danger px-5 py-4">Get more info!</a>
+            </div>
+            <div class="col-md-4 offer text-center">
+                <h5>Training sessions</h5>
+                <i class="fa-solid fa-dumbbell p-3"></i>
+                <p class="p-2">Group and individual training sessions led by certified experts who are passionate about your progress</p>
+                <a href="/classes" class="btn btn-danger px-5 py-4">Get more info!</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="py-5 bg-white text-dark">
+    <div class="container text-center">
+        <h2 class="mb-4">Nasz zespół</h2>
+        <div id="trainerCarousel" class="carousel slide" data-bs-ride="carousel">
+            <div class="carousel-inner">
+                <div class="carousel-item active text-center">
+                    <img src="images/trainer1.jpg" class="rounded-circle mb-3" style="width: 150px; height: 150px;" />
+                    <h5>Anna Kowalska</h5>
+                    <button class="btn btn-outline-danger mt-2">Zobacz profil</button>
+                </div>
+                <div class="carousel-item text-center">
+                    <img src="images/trainer2.jpg" class="rounded-circle mb-3" style="width: 150px; height: 150px;" />
+                    <h5>Paweł Nowak</h5>
+                    <button class="btn btn-outline-danger mt-2">Zobacz profil</button>
+                </div>
+                <div class="carousel-item text-center">
+                    <img src="images/trainer3.jpg" class="rounded-circle mb-3" style="width: 150px; height: 150px;" />
+                    <h5>Katarzyna Lewandowska</h5>
+                    <button class="btn btn-outline-danger mt-2">Zobacz profil</button>
+                </div>
+            </div>
+
+            <button class="carousel-control-prev" type="button" data-bs-target="#trainerCarousel" data-bs-slide="prev">
+                <span class="carousel-control-prev-icon"></span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#trainerCarousel" data-bs-slide="next">
+                <span class="carousel-control-next-icon"></span>
+            </button>
+        </div>
+    </div>
+</section>
+
+
+<section class="py-5 bg-light text-dark text-center">
+    <div class="container">
+        <h2 class="mb-4">Opinie naszych klientów</h2>
+        <div class="row">
+            <div class="col-md-4">
+                <img src="images/user1.jpg" class="rounded-circle mb-2" style="width: 80px; height: 80px;" />
+                <p>"Świetne miejsce i profesjonalna kadra!"</p>
+                <strong>Anna</strong>
+            </div>
+            <div class="col-md-4">
+                <img src="images/user2.jpg" class="rounded-circle mb-2" style="width: 80px; height: 80px;" />
+                <p>"Trenuję tu od roku — efekty są niesamowite!"</p>
+                <strong>Paweł</strong>
+            </div>
+            <div class="col-md-4">
+                <img src="images/user3.jpg" class="rounded-circle mb-2" style="width: 80px; height: 80px;" />
+                <p>"Super atmosfera, polecam każdemu."</p>
+                <strong>Kasia</strong>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<footer class="bg-dark text-white text-center py-4">
+    <div class="container">
+        <p class="mb-1">🏋️ PrimeFit – Twoja droga do lepszej formy</p>
+        <p class="mb-0">Adres: ul. Sportowa 5, 00-001 Warszawa</p>
+        <p class="mb-0">Email: kontakt@primefit.pl | Tel: 123-456-789</p>
+    </div>
+</footer>
 
