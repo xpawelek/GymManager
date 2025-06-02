@@ -1,7 +1,12 @@
 ﻿@page "/"
+@using GymManager.Client.Components
+
+<Navbar></Navbar>
+<Banner></Banner>
+<ClientInfo></ClientInfo>
 <section class="py-5 bg-light">
     <div class="container-fluid px-5">
-        <h1 class="mb-5 text-center" style="font-size:3rem">What can we offer <u style="color: #e01b1b">you?</u></h1>
+        <h1 class="mb-5 text-center" style="font-size:2.5rem">What can we offer <u style="color: #e01b1b">you?</u></h1>
         <div class="row">
             <div class="col-md-4 offer text-center">
                 <h5 class="">Membership</h5>
@@ -27,7 +32,7 @@
 
 <section class="py-5 bg-white text-dark">
     <div class="container-fluid text-center">
-        <h2 class="mb-5" style="font-size: 3rem;">Check our team!</h2>
+        <h2 class="mb-5" style="font-size: 2.5rem;">Check our team!</h2>
         <div class="row justify-content-center gx-2">
             <div class="col-md-3 mb-4 text-center">
                 <div class="trainer-img-wrapper mx-auto">
@@ -55,7 +60,7 @@
 
 <section class="py-5 bg-light text-dark text-center">
     <div class="container-fluid px-5">
-        <h2 class="mb-5" style="font-size: 3rem;">Opinie naszych klientów</h2>
+        <h2 class="mb-5" style="font-size: 2.5rem;">Opinie naszych klientów</h2>
         <div class="row justify-content-center mt-5">
             <div class="col-md-4 mb-4 mx-2">
                 <div class="opinion-card position-relative p-4 bg-white shadow rounded">
@@ -81,3 +86,4 @@
         </div>
     </div>
 </section>
+<Footer></Footer>

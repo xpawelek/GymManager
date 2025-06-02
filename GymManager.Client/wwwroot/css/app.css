@@ -33,17 +33,17 @@
 
 .info-section {
     display: flex;
-    min-height: 100px;
+    min-height: 80px;
     overflow: hidden;
 }
 
 .info-section .info-note a {
     font-size: 0.9rem;
+    font-weight: 400;
 }
 
 .info-left, .info-right {
     width: 50%;
-    padding: 1.5rem;
 }
 
 .info-left {
@@ -153,3 +153,30 @@ footer h5 {
 footer p {
     font-size: 0.8rem;
 }
+
+
+ .login-card {
+     max-width: 400px;
+     width: 100%;
+     border: none;
+     border-radius: 12px;
+     background-color: white;
+ }
+
+ .login-card .form-control {
+     border-radius: 8px;
+     border: 1px solid #ccc;
+     padding: 0.75rem;
+ }
+
+ .login-card .btn-danger {
+     background-color: #e01b1b;
+     border: none;
+     padding: 0.6rem;
+     font-weight: bold;
+     transition: background-color 0.3s ease;
+ }
+
+ .login-card .btn-danger:hover {
+     background-color: #c01717;
+ }
