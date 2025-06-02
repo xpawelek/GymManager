@@ -13,8 +13,8 @@ public partial class MemberSelfWorkoutNoteMapper
     [MapperIgnoreSource(nameof(WorkoutNote.Trainer))]
     [MapperIgnoreSource(nameof(WorkoutNote.TrainingSession))]
     [MapperIgnoreSource(nameof(WorkoutNote.TrainingSessionId))]
-    public partial ReadSelfWorkoutNote ToReadDto(WorkoutNote workoutNote);
+    public partial ReadSelfWorkoutNoteDto ToReadDto(WorkoutNote workoutNote);
     
     //GET ALL
-    public partial List<ReadSelfWorkoutNote> ToReadDtoList(List<WorkoutNote> workoutNotes);
+    public partial List<ReadSelfWorkoutNoteDto> ToReadDtoList(List<WorkoutNote> workoutNotes);
 }

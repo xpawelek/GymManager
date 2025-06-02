@@ -2,7 +2,7 @@
 
 namespace GymManager.Shared.DTOs.Member;
 
-public class ReadSelfWorkoutNote
+public class ReadSelfWorkoutNoteDto
 {
     public int Id { get; set; }
     
