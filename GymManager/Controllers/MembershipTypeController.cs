@@ -74,6 +74,14 @@ namespace GymManager.Controllers
             }
         }
 
+        [HttpGet("public")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetPublicMembershipType()
+        {
+            var membershipTypeList = await _member.GetAllAsync();
+            return Ok(membershipTypeList);
+        }
+
         [HttpPost]
         [Authorize(Roles = RoleConstants.Admin)]
         public async Task<IActionResult> Create([FromBody] AdminCreateDto dto)
