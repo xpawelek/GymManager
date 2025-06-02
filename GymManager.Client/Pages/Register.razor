@@ -1,0 +1,98 @@
+﻿@page "/Register"
+@using System.Text.Json
+@using GymManager.Client.Components
+@using GymManager.Client.Services
+@using GymManager.Shared.DTOs.Auth
+@using GymManager.Shared.DTOs.Member
+@inject AuthService AuthService
+@inject NavigationManager Navigation
+@inject AuthStateService AuthState
+
+<Navbar></Navbar>
+
+<div class="d-flex flex-column min-vh-100">
+    <main class="flex-fill" style="background-color: #F5F5F5;">
+        <div class="container d-flex justify-content-center align-items-center p-4" style="min-height: 80vh;">
+            <div class="card p-5 shadow" style="max-width: 600px; width: 100%;">
+                <h2 class="text-center mb-4" style="color: #e01b1b;">Register to PrimeFit</h2>
+
+                <div class="row mb-3">
+                    <div class="col">
+                        <label class="form-label text-dark">First Name</label>
+                        <input @bind="firstName" type="text" class="form-control" placeholder="Enter first name">
+                    </div>
+                    <div class="col">
+                        <label class="form-label text-dark">Last Name</label>
+                        <input @bind="lastName" type="text" class="form-control" placeholder="Enter last name">
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col">
+                        <label class="form-label text-dark">Date of Birth</label>
+                        <input @bind="dateOfBirth" type="date" class="form-control">
+                    </div>
+                    <div class="col">
+                        <label class="form-label text-dark">Phone Number</label>
+                        <input @bind="phoneNumber" type="tel" class="form-control" placeholder="Enter phone number">
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label text-dark">Email</label>
+                    <input @bind="email" type="email" class="form-control" placeholder="Enter email">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label text-dark">Password</label>
+                    <input @bind="password" type="password" class="form-control" placeholder="Enter password">
+                </div>
+
+                <div class="d-grid mb-3">
+                    <button class="btn btn-danger" @onclick="HandleRegister">Register</button>
+                </div>
+
+                <p class="text-danger mt-2" style="font-size: 0.8rem" hidden="@string.IsNullOrEmpty(errorMessage)">@errorMessage</p>
+
+                <div class="text-center">
+                    <small class="text-muted">Already have an account? <a href="/login" class="text-danger">Login</a></small>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <Footer></Footer>
+</div>
+
+@code {
+    private string firstName = "";
+    private string lastName = "";
+    private string email = "";
+    private DateTime dateOfBirth = DateTime.Today;
+    private string phoneNumber = "";
+    private string password = "";
+    private string errorMessage = "";
+
+    private async Task HandleRegister()
+    {
+        var success = await AuthService.RegisterMemberAsync(new RegisterMemberDto
+        {
+            FirstName = firstName,
+            LastName = lastName,
+            Email = email,
+            DateOfBirth = dateOfBirth,
+            PhoneNumber = phoneNumber,
+            Password = password
+        });
+
+        if (success)
+        {
+            Navigation.NavigateTo("/login");
+        }
+        else
+        {
+            errorMessage = "Registration failed. Try again.";
+        }
+    }
+}
