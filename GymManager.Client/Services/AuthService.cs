@@ -1,7 +1,9 @@
 ﻿using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
+using Blazored.LocalStorage;
 using GymManager.Shared.DTOs.Auth;
 using GymManager.Shared.DTOs.Member;
 using GymManager.Shared.DTOs.Trainer;
@@ -12,18 +14,38 @@ namespace GymManager.Client.Services
     public class AuthService
     {
         private readonly HttpClient _http;
+        private readonly ILocalStorageService _localStorage;
 
-        public AuthService(HttpClient http)
+        public AuthService(HttpClient http, ILocalStorageService localStorage)
         {
             _http = http;
+            _localStorage = localStorage;
         }
 
         // [POST] /api/auth/login
         // Public
-        public async Task<LoginResponse?> LoginAsync(LoginDto dto)
+        public async Task<bool> LoginAsync(LoginDto dto)
         {
             var response = await _http.PostAsJsonAsync("api/auth/login", dto);
-            return await response.Content.ReadFromJsonAsync<LoginResponse>();
+            var json = JsonSerializer.Serialize(dto);
+            Console.WriteLine($"POST to /api/auth/login: {json}");
+            if (!response.IsSuccessStatusCode)
+                return false;
+
+            var result = await response.Content.ReadFromJsonAsync<LoginResponse>();
+            if (result?.Token is null) return false;
+            
+            await _localStorage.SetItemAsync("authToken", result.Token);
+            _http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", result.Token);
+            
+
+            return true;
+        }
+        
+        public async Task LogoutAsync()
+        {
+            await _localStorage.RemoveItemAsync("authToken");
+            _http.DefaultRequestHeaders.Authorization = null;
         }
 
         // [POST] /api/auth/register-member
@@ -88,4 +110,6 @@ namespace GymManager.Client.Services
         public List<string>? Roles { get; set; }
         public string? Token { get; set; }
     }
+    
+    
 }

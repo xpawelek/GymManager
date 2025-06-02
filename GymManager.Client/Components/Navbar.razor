@@ -1,5 +1,65 @@
-﻿<h3>Navbar</h3>
+﻿@using Blazored.LocalStorage
+@using GymManager.Client.Services
+@inject AuthStateService AuthState
+@inject NavigationManager Navigation
+@inject ILocalStorageService LocalStorage
 
-@code {
-    
+<nav class="navbar navbar-expand-lg navbar-dark px-3 navbar_style">
+    <div class="container-fluid">
+        <a class="navbar-brand d-flex align-items-center nav_text" href="/">
+            <i class="fa-solid fa-dumbbell me-2" style="color: #d52020;"></i>
+            PrimeFit
+        </a>
+
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar" aria-controls="mainNavbar" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse justify-content-end" id="mainNavbar">
+            <ul class="navbar-nav mb-3 mb-lg-0 me-4 px-2 py-2">
+                <li class="nav-item">
+                    <a class="nav-link nav_text" href="/equipment">Equipment</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link nav_text" href="/trainers">Trainers</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link nav_text" href="/progress">Progress</a>
+                </li>
+            </ul>
+            
+            @if (AuthState.IsLoggedIn)
+            {
+                <a class="nav-link text-white" href="#" title="Logout" @onclick="Logout">
+                    <i style="color: #e01b1b" class="fa-solid fa-right-from-bracket"></i>
+                </a>
+            }
+            else
+            {
+                <a class="nav-link text-white" href="/login" title="Login">
+                    <i class="fa-solid fa-right-to-bracket"></i>
+                </a>
+            }
+        </div>
+    </div>
+</nav>
+
+@code
+{
+    protected override void OnInitialized()
+    {
+        AuthState.OnChange += StateHasChanged;
+    }
+
+    private async Task Logout()
+    {
+        await LocalStorage.RemoveItemAsync("authToken");
+        AuthState.SetLoginState(false);
+        Navigation.NavigateTo("/", true);
+    }
+
+    public void Dispose()
+    {
+        AuthState.OnChange -= StateHasChanged;
+    }
 }

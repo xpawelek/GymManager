@@ -1,6 +1,68 @@
-﻿@page "/Login"
-<h3>Login</h3>
+﻿@page "/login"
+@using System.Text.Json
+@using GymManager.Client.Components
+@using GymManager.Client.Services
+@using GymManager.Shared.DTOs.Auth
+@inject AuthService AuthService
+@inject NavigationManager Navigation
+@inject AuthStateService AuthState
 
-@code {
-    
+<Navbar></Navbar>
+
+<div class="d-flex flex-column min-vh-100">
+    <main class="flex-fill" style="background-color: #F5F5F5;">
+        <div class="container d-flex justify-content-center align-items-center" style="min-height: 80vh;">
+            <div class="card p-4 shadow login-card">
+                <h2 class="text-center mb-4" style="color: #e01b1b;">Log in to PrimeFit</h2>
+                
+                <div class="mb-3">
+                    <label for="email" class="form-label text-dark">Email address</label>
+                    <input @bind="email" type="email" class="form-control" id="email" placeholder="Enter email">
+                </div>
+                
+                <div class="mb-3">
+                    <label for="password" class="form-label text-dark">Password</label>
+                    <input @bind="password" type="password" class="form-control" id="password" placeholder="Password">
+                </div>
+                
+                <div class="d-grid mb-3">
+                    <button class="btn btn-danger" @onclick="HandleLogin">Login</button>
+                </div>
+                
+                <p class="text-danger mt-2" style="font-size: 0.8rem" hidden="@string.IsNullOrEmpty(errorMessage)">@errorMessage</p>
+
+                <div class="text-center">
+                    <small class="text-muted">Don't have an account? <a href="/register" class="text-danger">Register</a></small>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <Footer></Footer>
+</div>
+
+@code
+{
+    private string email = "";
+    private string password = "";
+    private string errorMessage = "";
+
+    private async Task HandleLogin()
+    {
+        var success = await AuthService.LoginAsync(new LoginDto
+        {
+            Email = email,
+            Password = password
+        });
+
+        if (success)
+        {
+            AuthState.SetLoginState(true);
+            Navigation.NavigateTo("/");
+        }
+        else
+        {
+            errorMessage = "Invalid email or password.";
+        }
+    }
 }
