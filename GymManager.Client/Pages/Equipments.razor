@@ -1,0 +1,41 @@
+﻿@page "/equipment"
+
+@using GymManager.Client.Services
+@using GymManager.Shared.DTOs.Equipment
+@inject EquipmentService EquipmentService
+
+<section class="py-5 bg-white text-dark">
+    <div class="container text-center">
+        <h2 class="mb-5" style="font-size: 4rem;">Available Equipment</h2>
+        <div class="row justify-content-center">
+            @if (equipments == null)
+            {
+                <p>Loading equipment...</p>
+            }
+            else
+            {
+                @foreach (var equipment in equipments)
+                {
+                    <div class="col-md-4 mb-4">
+                        <div class="card shadow-sm p-3 border-0">
+                            <img src="@equipment.PhotoPath" class="card-img-top rounded" alt="@equipment.Name" />
+                            <div class="card-body">
+                                <h5 class="card-title">@equipment.Name</h5>
+                                <p class="card-text">@equipment.Description</p>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+</section>
+
+@code {
+    private List<ReadEquipmentDto>? equipments;
+
+    protected override async Task OnInitializedAsync()
+    {
+        equipments = await EquipmentService.GetAllAsync();
+    }
+}
