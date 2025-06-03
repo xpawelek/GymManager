@@ -53,6 +53,7 @@
                 </div>
 
                 <p class="text-danger mt-2" style="font-size: 0.8rem" hidden="@string.IsNullOrEmpty(errorMessage)">@errorMessage</p>
+                <p class="text-success mt-2" style="font-size: 0.8rem" hidden="@string.IsNullOrEmpty(successMessage)">@successMessage</p>
 
                 <div class="text-center">
                     <small class="text-muted">Already have an account? <a href="/login" class="text-danger">Login</a></small>
@@ -73,9 +74,48 @@
     private string phoneNumber = "";
     private string password = "";
     private string errorMessage = "";
+    private string successMessage = "";
 
     private async Task HandleRegister()
     {
+        errorMessage = "";
+        
+        if (string.IsNullOrWhiteSpace(firstName))
+        {
+            errorMessage = "First name is required.";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(lastName))
+        {
+            errorMessage = "Last name is required.";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(email) || !email.Contains('@'))
+        {
+            errorMessage = "Valid email is required.";
+            return;
+        }
+
+        if (dateOfBirth >= DateTime.Today)
+        {
+            errorMessage = "Date of birth cannot be in the future.";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(phoneNumber) || !System.Text.RegularExpressions.Regex.IsMatch(phoneNumber, @"^\d{9}$"))
+        {
+            errorMessage = "Phone number must be exactly 9 digits.";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(password) || password.Length < 6)
+        {
+            errorMessage = "Password must be at least 6 characters.";
+            return;
+        }
+
         var success = await AuthService.RegisterMemberAsync(new RegisterMemberDto
         {
             FirstName = firstName,
@@ -88,6 +128,9 @@
 
         if (success)
         {
+            successMessage = "Registered successfully, redirecting...";
+            StateHasChanged();
+            await Task.Delay(3000);
             Navigation.NavigateTo("/login");
         }
         else
@@ -95,4 +138,5 @@
             errorMessage = "Registration failed. Try again.";
         }
     }
+
 }
