@@ -13,6 +13,9 @@ public class UpdateEquipmentDto
     [StringLength(300)]
     public string? Notes { get; set; }
 
+    [Required]
+    public string PhotoPath { get; set; }
+
     [Range(0, int.MaxValue)]
     public int? Quantity { get; set; }
 }
