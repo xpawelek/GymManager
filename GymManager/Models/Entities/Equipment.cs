@@ -21,6 +21,9 @@ public class Equipment
     
     [StringLength(300)]
     public string? Notes { get; set; }  // -> dto get: chcemy
-    
+
+    [Required]
+    public string PhotoPath { get; set; }
+
     public ICollection<ServiceRequest> ServiceRequests { get; set; } = new List<ServiceRequest>(); // -> chcemy wysweitlac adminiowi zeby mogl przydzielic?
 }
