@@ -40,8 +40,10 @@ namespace GymManager.Services.Member
 
         public async Task<ReadSelfMembershipDto> CreateSelfMembership(CreateSelfMembershipDto selfMembershipDto)
         {
+            var memberId = await GetCurrentMemberId();
             var entity = _mapper.ToEntity(selfMembershipDto);
-            
+            entity.MemberId = memberId;
+
             var entityInDb = await _context.Memberships.FirstOrDefaultAsync(m => m.MemberId == entity.MemberId);
 
             if (entityInDb != null)
