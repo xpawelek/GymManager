@@ -9,6 +9,7 @@ using GymManager.Shared.DTOs.Member;
 using AReadDto = GymManager.Shared.DTOs.Admin.ReadTrainerDto;
 using TReadDto = GymManager.Shared.DTOs.Trainer.ReadTrainerDto;
 using MReadDto = GymManager.Shared.DTOs.Member.ReadTrainerDto;
+using Microsoft.AspNetCore.Components.Forms;
 
 namespace GymManager.Client.Services
 {
@@ -33,6 +34,23 @@ namespace GymManager.Client.Services
         public async Task<AReadDto?> GetByIdAdminAsync(int id)
         {
             return await _http.GetFromJsonAsync<AReadDto>($"api/trainers/{id}");
+        }
+
+        // [POST] /api/trainers/{id}/upload-photo
+        // Admin
+        public async Task<string?> UploadPhotoAdminAsync(int trainerId, IBrowserFile file)
+        {
+            var content = new MultipartFormDataContent();
+            var stream = new StreamContent(file.OpenReadStream(10 * 1024 * 1024)); // max 10MB ???
+            stream.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(file.ContentType);
+            content.Add(stream, "file", file.Name);
+
+            var response = await _http.PostAsync($"api/trainers/{trainerId}/upload-photo", content);
+
+            if (!response.IsSuccessStatusCode)
+                return null;
+
+            return await response.Content.ReadAsStringAsync();
         }
 
         // [PATCH] /api/trainers/{id}
