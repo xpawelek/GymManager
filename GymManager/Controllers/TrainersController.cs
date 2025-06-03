@@ -92,7 +92,6 @@ namespace GymManager.Controllers
 
 
         [HttpGet("public")]
-        [Authorize(Roles = RoleConstants.Member)]
         public async Task<IActionResult> GetAllMember()
             => Ok(await _memberSvc.GetAllAsync());
 
