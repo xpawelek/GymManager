@@ -25,9 +25,9 @@
             <div class="row justify-content-center gx-4">
                 @foreach (var equipment in equipments)
                 {
-                    <div class="col-md-3 mb-4 text-center">
+                    <div class="col-md-4 mb-4 text-center">
                         <div class="trainer-img-wrapper mx-auto">
-                            <img src=@($"http://localhost:5119{equipment.PhotoPath}") class="trainer-img" alt="@equipment.Name" />
+                            <img src=@($"{equipment.PhotoPath}") class="trainer-img" alt="@equipment.Name" />
                         </div>
                         <h4 class="mt-3">@equipment.Name</h4>
                         <p class="text-muted">@equipment.Description</p>

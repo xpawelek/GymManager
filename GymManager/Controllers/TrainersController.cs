@@ -78,6 +78,11 @@ namespace GymManager.Controllers
             var baseUrl = $"{Request.Scheme}://{Request.Host}";
             var fullUrl = $"{baseUrl.TrimEnd('/')}/{relativePath.TrimStart('/')}";
 
+
+            var relativePath = $"/uploads/{fileName}";
+            var baseUrl = $"{Request.Scheme}://{Request.Host}";
+            var fullUrl = $"{baseUrl.TrimEnd('/')}/{relativePath.TrimStart('/')}";
+
             var updated = await _adminSvc.UpdateAsync(id, new UpdateTrainerDto { PhotoPath = fullUrl });
 
             return updated ? Ok(fullUrl) : NotFound();

@@ -8,7 +8,7 @@ namespace GymManager.Client.Services
 {
     using AdminCreateDto = GymManager.Shared.DTOs.Admin.CreateMembershipTypeDto;
     using AdminUpdateDto = GymManager.Shared.DTOs.Admin.UpdateMembershipTypeDto;
-    using ReadDto = GymManager.Shared.DTOs.Admin.ReadMembershipTypeDto;
+    using ReadDto = GymManager.Shared.DTOs.Member.ReadMembershipTypeDto;
 
     public class MembershipTypeService
     {

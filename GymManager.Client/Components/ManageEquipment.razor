@@ -48,6 +48,7 @@
                     <td>@item.Description</td>
                     <td>@item.Quantity</td>
                     <td>@item.Notes</td>
+
                     <td>
                         @if (!string.IsNullOrEmpty(item.PhotoPath))
                         {
@@ -56,6 +57,7 @@
                             </button>
                         }
                     </td>
+
 
                     <td>
                         <button class="btn btn-sm btn-outline-dark me-2" @onclick="() => StartEdit(item)">Edit</button>

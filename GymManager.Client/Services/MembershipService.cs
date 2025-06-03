@@ -57,6 +57,14 @@ namespace GymManager.Client.Services
         {
             var json = JsonSerializer.Serialize(dto);
             var response = await _http.PostAsync("api/memberships", new StringContent(json, Encoding.UTF8, "application/json"));
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var content = await response.Content.ReadAsStringAsync();
+                Console.WriteLine("CreateAsMemberAsync failed: " + content); // lub loguj w inny sposób
+                return null;
+            }
+
             return await response.Content.ReadFromJsonAsync<ReadMembershipDto>();
         }
 
