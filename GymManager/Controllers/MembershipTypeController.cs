@@ -79,7 +79,9 @@ namespace GymManager.Controllers
         public async Task<IActionResult> GetPublicMembershipType()
         {
             var membershipTypeList = await _member.GetAllAsync();
-            return Ok(membershipTypeList);
+            var visibleTypes = membershipTypeList.Where(m => m.IsVisible).ToList();
+            return Ok(visibleTypes);
+
         }
 
         [HttpPost]

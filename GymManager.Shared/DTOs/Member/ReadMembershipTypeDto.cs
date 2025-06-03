@@ -11,4 +11,5 @@ public class ReadMembershipTypeDto
     public int? PersonalTrainingsPerMonth { get; set; }
     public bool AllowTrainerSelection { get; set; }
     public bool IncludesProgressTracking { get; set; }
+    public bool IsVisible { get; set; }
 }
