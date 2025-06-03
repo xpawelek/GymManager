@@ -1,0 +1,70 @@
+﻿@page "/offers"
+@inject MembershipTypeService MembershipTypeService
+@using GymManager.Shared.DTOs.Member
+@using GymManager.Client.Components
+@using GymManager.Client.Services
+@using MemberDto = GymManager.Shared.DTOs.Member.ReadMembershipTypeDto
+
+<Navbar />
+<Banner />
+<ClientInfo />
+
+<section class="py-5 bg-white text-dark">
+    <div class="container text-center">
+        <h2 class="mb-5" style="font-size: 2.75rem; font-weight: 600;">
+            Choose your <span style="color: #e01b1b">Membership</span>
+        </h2>
+
+        @if (membershipType == null)
+        {
+            <p class="text-center">Loading offers...</p>
+        }
+        else if (!membershipType.Any())
+        {
+            <p class="text-center">No available offers at this time.</p>
+        }
+        else
+        {
+            <div class="row g-4 justify-content-center">
+                @foreach (var offer in membershipType)
+                {
+                    <div class="col-md-5">
+                        <div class="card shadow-sm border border-2 border-danger rounded-4 h-100">
+                            <div class="card-body text-start p-4">
+                                <h4 class="fw-bold text-uppercase text-danger">@offer.Name</h4>
+                                <p class="mt-3 text-muted">@offer.Description</p>
+                                <ul class="list-unstyled small text-muted">
+                                    <li><i class="fa-solid fa-clock me-2"></i>Duration: @offer.DurationInDays days</li>
+                                    <li><i class="fa-solid fa-coins me-2"></i>Price: $@offer.Price</li>
+                                    <li><i class="fa-solid fa-user-check me-2"></i>Trainer included: @(offer.IncludesPersonalTrainer ? "Yes" : "No")</li>
+                                    @if (offer.PersonalTrainingsPerMonth > 0)
+                                    {
+                                        <li><i class="fa-solid fa-calendar-check me-2"></i>PT sessions/mo: @offer.PersonalTrainingsPerMonth</li>
+                                    }
+                                    <li><i class="fa-solid fa-hand-point-up me-2"></i>Trainer selection: @(offer.AllowTrainerSelection ? "Yes" : "No")</li>
+                                    <li><i class="fa-solid fa-chart-line me-2"></i>Progress tracking: @(offer.IncludesProgressTracking ? "Yes" : "No")</li>
+                                </ul>
+
+                                <div class="mt-4 d-flex justify-content-between align-items-center">
+                                   <!-- <a href="#" class="btn btn-outline-dark rounded-pill">Learn More</a> -->
+                                    <a href="/memberships" class="btn btn-danger rounded-pill px-4 ms-auto">Join Now</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</section>
+
+<Footer />
+
+@code {
+    private List<MemberDto>? membershipType;
+
+    protected override async Task OnInitializedAsync()
+    {
+        membershipType = await MembershipTypeService.GetPublicAsync();
+    }
+}

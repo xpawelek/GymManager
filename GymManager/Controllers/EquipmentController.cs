@@ -52,7 +52,6 @@ namespace GymManager.Controllers
             return Ok(equipmentList);
         }
         
-
         [HttpPost("{id}/upload-photo")]
         [Authorize(Roles = RoleConstants.Admin)]
         public async Task<IActionResult> UploadEquipmentPhoto(int id, IFormFile file)
@@ -80,7 +79,6 @@ namespace GymManager.Controllers
 
             return updated ? Ok(fullUrl) : NotFound();
         }
-
 
         [HttpPost]
         [Authorize(Roles = $"{RoleConstants.Admin}, {RoleConstants.Receptionist}")]
