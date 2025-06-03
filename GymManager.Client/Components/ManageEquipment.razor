@@ -1,5 +1,6 @@
 ﻿@using GymManager.Client.Services
 @using GymManager.Shared.DTOs.Admin
+@using Microsoft.AspNetCore.Components.Forms
 @inject EquipmentService EquipmentService
 
 <div class="card shadow-sm p-4">
@@ -19,7 +20,8 @@
             <textarea class="form-control mb-2" placeholder="Description" @bind="equipmentDto.Description"></textarea>
             <textarea class="form-control mb-2" placeholder="Notes (optional)" @bind="equipmentDto.Notes"></textarea>
             <input type="number" class="form-control mb-2" placeholder="Quantity" @bind="equipmentDto.Quantity" min="0" />
-
+            <InputFile class="form-control mb-2" OnChange="OnFileSelected" />
+            
             <div class="d-flex justify-content-end">
                 <button class="btn btn-secondary me-2" @onclick="CancelForm">Cancel</button>
                 <button class="btn btn-danger" @onclick="SaveEquipment">Save</button>
@@ -45,6 +47,11 @@
                     <td>@item.Description</td>
                     <td>@item.Quantity</td>
                     <td>@item.Notes</td>
+                    @if (!string.IsNullOrEmpty(item.PhotoPath))
+                    {
+                        <img src="@item.PhotoPath" width="50" />
+                    }
+
                     <td>
                         <button class="btn btn-sm btn-outline-dark me-2" @onclick="() => StartEdit(item)">Edit</button>
                         <button class="btn btn-sm btn-outline-danger" @onclick="() => Delete(item.Id)">Delete</button>
@@ -62,6 +69,7 @@
     private CreateEquipmentDto equipmentDto = new();
     private int? editId = null;
     private bool showForm = false;
+    private IBrowserFile? selectedFile;
 
     private IEnumerable<ReadEquipmentDto> FilteredEquipment =>
         string.IsNullOrWhiteSpace(search)
@@ -126,6 +134,12 @@
                 Quantity = equipmentDto.Quantity
             };
             await EquipmentService.PatchAsync(editId.Value, updateDto);
+
+            if (selectedFile != null)
+            {
+                await EquipmentService.uploadPhotoAsync(editId.Value, selectedFile);
+                selectedFile = null;
+            }
         }
 
         await LoadEquipment();
@@ -136,5 +150,10 @@
     {
         await EquipmentService.DeleteAsync(id);
         await LoadEquipment();
+    }
+
+    private void OnFileSelected(InputFileChangeEventArgs e)
+    {
+        selectedFile = e.File;
     }
 }

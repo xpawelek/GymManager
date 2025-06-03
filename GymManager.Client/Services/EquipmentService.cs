@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 using GymManager.Shared.DTOs.Admin;
+using Microsoft.AspNetCore.Components.Forms;
 
 namespace GymManager.Client.Services
 {
@@ -87,5 +88,19 @@ namespace GymManager.Client.Services
         {
             return await _http.GetFromJsonAsync<ReadEquipmentDto>($"api/equipment/me/{id}");
         }
+
+        public async Task<bool> uploadPhotoAsync(int id, IBrowserFile file)
+        {
+            var content = new MultipartFormDataContent();
+            var fileContent = new StreamContent(file.OpenReadStream(maxAllowedSize: 5 * 1024 * 1024));
+            fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(file.ContentType);
+    
+            content.Add(fileContent, "file", file.Name);
+    
+            var response = await _http.PostAsync("api/equipment/{id}/upload-photo", content);
+            return response.IsSuccessStatusCode;
+        }
+
+        
     }
 }

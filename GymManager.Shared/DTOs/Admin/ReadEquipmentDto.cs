@@ -9,6 +9,5 @@ public class ReadEquipmentDto
     public string Name { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public string? Notes { get; set; }
-    public string PhotoPath { get; set; }
     public List<ReadServiceRequestDto> ServiceRequests { get; set; } = new(); // czytamy tutaj zgloszenia serwisowe
 }
