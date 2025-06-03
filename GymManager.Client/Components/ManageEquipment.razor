@@ -48,10 +48,14 @@
                     <td>@item.Description</td>
                     <td>@item.Quantity</td>
                     <td>@item.Notes</td>
-                    @if (!string.IsNullOrEmpty(item.PhotoPath))
-                    {
-                        <img src='@($"{item.PhotoPath}")'></img>
-                    }
+                    <td>
+                        @if (!string.IsNullOrEmpty(item.PhotoPath))
+                        {
+                            <button class="btn btn-sm btn-outline-primary" @onclick="() => ShowPhoto(item.PhotoPath)">
+                                <i class="fa-solid fa-eye"></i>
+                            </button>
+                        }
+                    </td>
 
                     <td>
                         <button class="btn btn-sm btn-outline-dark me-2" @onclick="() => StartEdit(item)">Edit</button>
@@ -63,6 +67,18 @@
     </table>
 </div>
 
+@if (showPhotoModal && !string.IsNullOrEmpty(photoToShow))
+{
+    <div class="modal show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.55);">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content text-center p-3" style="background-color: rgba(255, 255, 255, 0.1); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);">
+                <img src="@photoToShow" alt="Equipment Photo" class="img-fluid rounded" />
+                <button class="btn btn-danger mt-3" @onclick="ClosePhoto">Close</button>
+            </div>
+        </div>
+    </div>
+}
+
 @code {
     private List<ReadEquipmentDto> allEquipment = new();
     private string search = "";
@@ -71,7 +87,9 @@
     private int? editId = null;
     private bool showForm = false;
     private IBrowserFile? selectedFile;
-
+    private bool showPhotoModal = false;
+    private string? photoToShow;
+    
     private IEnumerable<ReadEquipmentDto> FilteredEquipment =>
         string.IsNullOrWhiteSpace(search)
             ? allEquipment
@@ -108,9 +126,9 @@
     {
         equipmentDto = new CreateEquipmentDto
         {
-            Name = equipment.Name.ToUpper(),
-            Description = equipment.Description.ToUpper(),
-            Notes = equipment.Notes?.ToUpper(),
+            Name = equipment.Name,
+            Description = equipment.Description,
+            Notes = equipment.Notes,
             Quantity = equipment.Quantity,
         };
         editId = equipment.Id;
@@ -123,15 +141,21 @@
 
         if (editId == null)
         {
-            await EquipmentService.CreateAsync(equipmentDto);
+            var created = await EquipmentService.CreateAsync(equipmentDto);
+            
+            if (selectedFile != null && created?.Id != null)
+            {
+                await EquipmentService.uploadPhotoAsync(created.Id, selectedFile);
+                selectedFile = null;
+            }
         }
         else
         {
             var updateDto = new UpdateEquipmentDto
             {
-                Name = equipmentDto.Name.ToUpper(),
-                Description = equipmentDto.Description.ToUpper(),
-                Notes = equipmentDto.Notes?.ToUpper(),
+                Name = equipmentDto.Name,
+                Description = equipmentDto.Description,
+                Notes = equipmentDto.Notes,
                 Quantity = equipmentDto.Quantity
             };
             await EquipmentService.PatchAsync(editId.Value, updateDto);
@@ -156,5 +180,18 @@
     private void OnFileSelected(InputFileChangeEventArgs e)
     {
         selectedFile = e.File;
+    }
+    
+    
+    private void ShowPhoto(string photoPath)
+    {
+        photoToShow = photoPath;
+        showPhotoModal = true;
+    }
+
+    private void ClosePhoto()
+    {
+        showPhotoModal = false;
+        photoToShow = null;
     }
 }

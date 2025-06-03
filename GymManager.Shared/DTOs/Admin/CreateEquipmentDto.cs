@@ -12,11 +12,7 @@ public class CreateEquipmentDto
     [StringLength(300)]
     public string Description { get; set; } = string.Empty;
 
-    [StringLength(300)]
-    public string? Notes { get; set; }
-
-    
-    public string? PhotoPath { get; set; }
+    [StringLength(300)] public string? Notes { get; set; }
 
     [Range(0, int.MaxValue)]
     public int Quantity { get; set; }
