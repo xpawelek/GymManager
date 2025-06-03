@@ -21,7 +21,4 @@ public class CreateTrainerDto
     [Required]
     [StringLength(500)]
     public string Description { get; set; }
-    
-    [Required]
-    public string PhotoPath { get; set; }
 }
