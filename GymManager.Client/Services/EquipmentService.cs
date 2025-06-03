@@ -97,7 +97,7 @@ namespace GymManager.Client.Services
     
             content.Add(fileContent, "file", file.Name);
     
-            var response = await _http.PostAsync("api/equipment/{id}/upload-photo", content);
+            var response = await _http.PostAsync($"api/equipment/{id}/upload-photo", content);
             return response.IsSuccessStatusCode;
         }
 

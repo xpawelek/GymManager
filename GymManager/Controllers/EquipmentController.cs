@@ -72,8 +72,7 @@ namespace GymManager.Controllers
                 await file.CopyToAsync(stream);
             }
 
-            var relativePath = $"/uploads/{fileName}";
-
+            var relativePath = $"uploads/{fileName}"; 
             var updated = await _admin.PatchAsync(id, new UpdateEquipmentDto { PhotoPath = relativePath });
             return updated ? Ok(relativePath) : NotFound();
         }
