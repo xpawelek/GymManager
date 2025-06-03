@@ -1,7 +1,9 @@
 ﻿@page "/"
 @using GymManager.Client.Components
 @using GymManager.Client.Services
+@using GymManager.Shared.DTOs.Member
 @inject AuthStateService AuthState
+@inject TrainerService TrainerService
 
 <Navbar></Navbar>
 <Banner></Banner>
@@ -36,30 +38,26 @@
     <div class="container-fluid text-center">
         <h2 class="mb-5" style="font-size: 2.5rem;">Check our team!</h2>
         <div class="row justify-content-center gx-2">
-            <div class="col-md-3 mb-4 text-center">
-                <div class="trainer-img-wrapper mx-auto">
-                    <img src="images/trainer1.jpg" class="trainer-img" alt="Anna Kowalska" />
-                </div>
-                <h4 class="mt-3">Anna Kowalska</h4>
-            </div>
-            <div class="col-md-3 mb-4 text-center">
-                <div class="trainer-img-wrapper mx-auto">
-                    <img src="images/trainer2.jpg" class="trainer-img" alt="Paweł Nowak" />
-                </div>
-                <h4 class="mt-3">Paweł Nowak</h4>
-            </div>
-            <div class="col-md-3 mb-4 text-center">
-                <div class="trainer-img-wrapper mx-auto">
-                    <img src="images/trainer3.jpg" class="trainer-img" alt="Katarzyna Lewandowska" />
-                </div>
-                <h4 class="mt-3">Katarzyna Lewandowska</h4>
-            </div>
+            @if (trainers == null)
+            {
+                <p>Loading trainers...</p>
+            }
+            else
+            {
+                @foreach (var trainer in trainers.Take(3))
+                {
+                    <div class="col-md-3 mb-4 text-center">
+                        <div class="trainer-img-wrapper mx-auto">
+                            <img src="@trainer.PhotoPath" class="trainer-img" alt="@trainer.FirstName @trainer.LastName" />
+                        </div>
+                        <h4 class="mt-3">@trainer.FirstName @trainer.LastName</h4>
+                    </div>
+                }
+            }
         </div>
-        <button class="btn check_all text-light">Check us!</button>
-
+        <a href="/trainers" class="btn check_all text-light">Check us!</a>
     </div>
 </section>
-
 
 <section class="py-5 bg-light text-dark text-center">
     <div class="container-fluid px-5">
@@ -93,6 +91,13 @@
 
 
 @code {
+    private List<ReadTrainerDto>? trainers;
+
+    protected override async Task OnInitializedAsync()
+    {
+        trainers = await TrainerService.GetAllMemberAsync();
+    }
+
     protected override void OnInitialized()
     {
         AuthState.OnChange += StateHasChanged;
