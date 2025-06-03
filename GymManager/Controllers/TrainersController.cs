@@ -92,6 +92,7 @@ namespace GymManager.Controllers
 
 
         [HttpGet("public")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetAllMember()
             => Ok(await _memberSvc.GetAllAsync());
 
