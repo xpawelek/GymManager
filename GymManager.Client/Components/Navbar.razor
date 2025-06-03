@@ -26,6 +26,12 @@
                 <li class="nav-item">
                     <a class="nav-link nav_text" href="/progress">Progress</a>
                 </li>
+                @if (AuthState.IsLoggedIn && AuthState.UserRole == "Admin")
+                {
+                    <li class="nav-item">
+                        <a class="nav-link nav_text" style="color: #f5b510" href="/admin/dashboard">Dashboard</a>
+                    </li>
+                }
             </ul>
             
             @if (AuthState.IsLoggedIn)

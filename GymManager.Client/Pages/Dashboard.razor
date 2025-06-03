@@ -1,0 +1,63 @@
+﻿@page "/admin/dashboard"
+@using GymManager.Client.Services
+@using GymManager.Client.Components
+@inject AuthStateService AuthState
+@inject NavigationManager Navigation
+
+<Navbar></Navbar>
+
+<div class="d-flex flex-column min-vh-100">
+    <main class="flex-fill" style="background-color: #FAFAFA;">
+        @if (AuthState.UserRole != "Admin")
+        {
+            <div class="container text-center mt-5">
+                <h1 class="text-danger">Access denied...</h1>
+            </div>
+            Navigation.NavigateTo("/");
+        }
+        else
+        {
+            <div class="container mt-5 p-4">
+                <h2 class="text-center mb-4" style="color: #e01b1b;">Admin Dashboard</h2>
+
+                <ul class="nav nav-tabs mb-4">
+                    <li class="nav-item">
+                        <button class="nav-link @GetTabClass("equipment")" @onclick='() => SelectTab("equipment")'>Equipment</button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link @GetTabClass("trainers")" @onclick='() => SelectTab("trainers")'>Trainers</button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link @GetTabClass("memberships")" @onclick='() => SelectTab("memberships")'>Memberships</button>
+                    </li>
+                </ul>
+
+                @if (selectedTab == "equipment")
+                {
+                    <ManageEquipment />
+                }
+                else if (selectedTab == "trainers")
+                {
+                    
+                }
+                else if (selectedTab == "memberships")
+                {
+                    
+                }
+            </div>
+        }
+    </main>
+
+    <Footer></Footer>
+</div>
+
+@code {
+    private string selectedTab = "equipment";
+
+    private void SelectTab(string tab)
+    {
+        selectedTab = tab;
+    }
+
+    private string GetTabClass(string tab) => selectedTab == tab ? "active" : "";
+}

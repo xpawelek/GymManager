@@ -1,0 +1,140 @@
+﻿@using GymManager.Client.Services
+@using GymManager.Shared.DTOs.Admin
+@inject EquipmentService EquipmentService
+
+<div class="card shadow-sm p-4">
+    <h3 class="mb-4" style="color: #e01b1b;">Manage Equipment</h3>
+
+    <div class="mb-3 d-flex justify-content-between align-items-center">
+        <input type="text" class="form-control w-50" placeholder="Search..." @bind="search" />
+        <button class="btn btn-danger" @onclick="ShowCreateForm">Add New Equipment</button>
+    </div>
+
+    @if (showForm)
+    {
+        <div class="card p-3 bg-light mb-4">
+            <h5>@(editId == null ? "Add Equipment" : "Edit Equipment")</h5>
+
+            <input class="form-control mb-2" placeholder="Name" @bind="equipmentDto.Name" />
+            <textarea class="form-control mb-2" placeholder="Description" @bind="equipmentDto.Description"></textarea>
+            <textarea class="form-control mb-2" placeholder="Notes (optional)" @bind="equipmentDto.Notes"></textarea>
+            <input type="number" class="form-control mb-2" placeholder="Quantity" @bind="equipmentDto.Quantity" min="0" />
+
+            <div class="d-flex justify-content-end">
+                <button class="btn btn-secondary me-2" @onclick="CancelForm">Cancel</button>
+                <button class="btn btn-danger" @onclick="SaveEquipment">Save</button>
+            </div>
+        </div>
+    }
+
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Description</th>
+                <th>Quantity</th>
+                <th>Notes</th>
+                <th style="width: 150px;">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in FilteredEquipment)
+            {
+                <tr>
+                    <td>@item.Name</td>
+                    <td>@item.Description</td>
+                    <td>@item.Quantity</td>
+                    <td>@item.Notes</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-dark me-2" @onclick="() => StartEdit(item)">Edit</button>
+                        <button class="btn btn-sm btn-outline-danger" @onclick="() => Delete(item.Id)">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@code {
+    private List<ReadEquipmentDto> allEquipment = new();
+    private string search = "";
+
+    private CreateEquipmentDto equipmentDto = new();
+    private int? editId = null;
+    private bool showForm = false;
+
+    private IEnumerable<ReadEquipmentDto> FilteredEquipment =>
+        string.IsNullOrWhiteSpace(search)
+            ? allEquipment
+            : allEquipment.Where(e =>
+                e.Name.Contains(search, StringComparison.OrdinalIgnoreCase) ||
+                e.Description.Contains(search, StringComparison.OrdinalIgnoreCase) ||
+                (e.Notes?.Contains(search, StringComparison.OrdinalIgnoreCase) ?? false));
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadEquipment();
+    }
+
+    private async Task LoadEquipment()
+    {
+        allEquipment = await EquipmentService.GetAllAdminAsync() ?? new();
+    }
+
+    private void ShowCreateForm()
+    {
+        equipmentDto = new CreateEquipmentDto();
+        editId = null;
+        showForm = true;
+    }
+
+    private void CancelForm()
+    {
+        equipmentDto = new CreateEquipmentDto();
+        editId = null;
+        showForm = false;
+    }
+
+    private void StartEdit(ReadEquipmentDto equipment)
+    {
+        equipmentDto = new CreateEquipmentDto
+        {
+            Name = equipment.Name.ToUpper(),
+            Description = equipment.Description.ToUpper(),
+            Notes = equipment.Notes?.ToUpper(),
+            Quantity = equipment.Quantity
+        };
+        editId = equipment.Id;
+        showForm = true;
+    }
+
+    private async Task SaveEquipment()
+    {
+        if (string.IsNullOrWhiteSpace(equipmentDto.Name)) return;
+
+        if (editId == null)
+        {
+            await EquipmentService.CreateAsync(equipmentDto);
+        }
+        else
+        {
+            var updateDto = new UpdateEquipmentDto
+            {
+                Name = equipmentDto.Name.ToUpper(),
+                Description = equipmentDto.Description.ToUpper(),
+                Notes = equipmentDto.Notes?.ToUpper(),
+                Quantity = equipmentDto.Quantity
+            };
+            await EquipmentService.PatchAsync(editId.Value, updateDto);
+        }
+
+        await LoadEquipment();
+        CancelForm();
+    }
+
+    private async Task Delete(int id)
+    {
+        await EquipmentService.DeleteAsync(id);
+        await LoadEquipment();
+    }
+}

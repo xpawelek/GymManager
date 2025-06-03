@@ -51,6 +51,7 @@ namespace GymManager.Controllers
             var equipmentList = await _member.GetAllAsync(); 
             return Ok(equipmentList);
         }
+        
 
         [HttpPost]
         [Authorize(Roles = $"{RoleConstants.Admin}, {RoleConstants.Receptionist}")]
