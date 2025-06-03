@@ -1,0 +1,89 @@
+﻿@page "/admin/trainers/edit/{id:int}"
+@inject TrainerService TrainerService
+@inject NavigationManager Navigation
+
+@using GymManager.Client.Services
+@using GymManager.Shared.DTOs.Admin
+@using Microsoft.AspNetCore.Components.Forms
+
+
+<h3>Edit Trainer</h3>
+
+@if (trainer == null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <div class="mb-3">
+        <label>First Name:</label>
+        <input @bind="trainer.FirstName" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label>Last Name:</label>
+        <input @bind="trainer.LastName" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label>Phone:</label>
+        <input @bind="trainer.PhoneNumber" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label>Description:</label>
+        <textarea @bind="trainer.Description" class="form-control"></textarea>
+    </div>
+
+    <div class="mb-3">
+        <label>Trainer Photo:</label><br />
+        @if (!string.IsNullOrEmpty(trainer.PhotoPath))
+        {
+            <img src="@trainer.PhotoPath" alt="Trainer photo" style="max-height: 200px;" />
+        }
+        <InputFile OnChange="UploadPhoto" />
+    </div>
+
+    <button class="btn btn-success" @onclick="Save">Save</button>
+}
+
+@code {
+    [Parameter] public int id { get; set; }
+    private UpdateTrainerDto? trainer;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var data = await TrainerService.GetByIdAdminAsync(id);
+        if (data != null)
+        {
+            trainer = new UpdateTrainerDto
+                {
+                    FirstName = data.FirstName,
+                    LastName = data.LastName,
+                    PhoneNumber = data.PhoneNumber,
+                    Description = data.Description,
+                    PhotoPath = data.PhotoPath
+                };
+        }
+    }
+
+    private async Task Save()
+    {
+        if (trainer != null)
+        {
+            var success = await TrainerService.UpdateAdminAsync(id, trainer);
+            if (success)
+                Navigation.NavigateTo("/admin/trainers");
+        }
+    }
+
+    private async Task UploadPhoto(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        var path = await TrainerService.UploadPhotoAdminAsync(id, file);
+        if (path != null)
+        {
+            trainer!.PhotoPath = path;
+        }
+    }
+}

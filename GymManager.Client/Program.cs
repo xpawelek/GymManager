@@ -9,29 +9,79 @@ var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
-builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("http://localhost:5119/") });
-
 builder.Services.AddBlazoredLocalStorage();
-builder.Services.AddScoped<AuthService>();
-builder.Services.AddScoped<EquipmentService>();
-builder.Services.AddScoped<MemberService>();
-builder.Services.AddScoped<MembershipService>();
-builder.Services.AddScoped<MembershipTypeService>();
-builder.Services.AddScoped<MessageService>();
-builder.Services.AddScoped<ProgressPhotoService>();
-builder.Services.AddScoped<ServiceRequestService>();
-builder.Services.AddScoped<TrainerAssignmentService>();
-builder.Services.AddScoped<TrainerProfileService>();
-builder.Services.AddScoped<TrainerService>();
-builder.Services.AddScoped<TrainingSessionService>();
-builder.Services.AddScoped<WorkoutNoteService>();
 builder.Services.AddScoped<AuthStateService>();
+builder.Services.AddTransient<AuthHeaderHandler>();
+
+builder.Services.AddHttpClient<AuthService>(client =>
+{
+    client.BaseAddress = new Uri("http://localhost:5119/");
+});
+
+builder.Services.AddHttpClient<TrainerService>(client =>
+{
+    client.BaseAddress = new Uri("http://localhost:5119/");
+}).AddHttpMessageHandler<AuthHeaderHandler>();
+
+builder.Services.AddHttpClient<EquipmentService>(client =>
+{
+    client.BaseAddress = new Uri("http://localhost:5119/");
+}).AddHttpMessageHandler<AuthHeaderHandler>();
+
+builder.Services.AddHttpClient<MemberService>(client =>
+{
+    client.BaseAddress = new Uri("http://localhost:5119/");
+}).AddHttpMessageHandler<AuthHeaderHandler>();
+
+builder.Services.AddHttpClient<MembershipService>(client =>
+{
+    client.BaseAddress = new Uri("http://localhost:5119/");
+}).AddHttpMessageHandler<AuthHeaderHandler>();
+
+builder.Services.AddHttpClient<MembershipTypeService>(client =>
+{
+    client.BaseAddress = new Uri("http://localhost:5119/");
+}).AddHttpMessageHandler<AuthHeaderHandler>();
+
+builder.Services.AddHttpClient<MessageService>(client =>
+{
+    client.BaseAddress = new Uri("http://localhost:5119/");
+}).AddHttpMessageHandler<AuthHeaderHandler>();
+
+builder.Services.AddHttpClient<ProgressPhotoService>(client =>
+{
+    client.BaseAddress = new Uri("http://localhost:5119/");
+}).AddHttpMessageHandler<AuthHeaderHandler>();
+
+builder.Services.AddHttpClient<ServiceRequestService>(client =>
+{
+    client.BaseAddress = new Uri("http://localhost:5119/");
+}).AddHttpMessageHandler<AuthHeaderHandler>();
+
+builder.Services.AddHttpClient<TrainerAssignmentService>(client =>
+{
+    client.BaseAddress = new Uri("http://localhost:5119/");
+}).AddHttpMessageHandler<AuthHeaderHandler>();
+
+builder.Services.AddHttpClient<TrainerProfileService>(client =>
+{
+    client.BaseAddress = new Uri("http://localhost:5119/");
+}).AddHttpMessageHandler<AuthHeaderHandler>();
+
+builder.Services.AddHttpClient<TrainingSessionService>(client =>
+{
+    client.BaseAddress = new Uri("http://localhost:5119/");
+}).AddHttpMessageHandler<AuthHeaderHandler>();
+
+builder.Services.AddHttpClient<WorkoutNoteService>(client =>
+{
+    client.BaseAddress = new Uri("http://localhost:5119/");
+}).AddHttpMessageHandler<AuthHeaderHandler>();
+
 builder.Logging.SetMinimumLevel(LogLevel.Information);
 
 var host = builder.Build();
-
 var authState = host.Services.GetRequiredService<AuthStateService>();
-await authState.InitializeAsync(); 
-
+await authState.InitializeAsync();
 
 await host.RunAsync();
