@@ -1,9 +1,14 @@
 ﻿@page "/offers"
 @inject MembershipTypeService MembershipTypeService
+@inject MembershipService MembershipService
+@inject AuthStateService AuthStateService
+@inject AuthStateService AuthState
+@inject NavigationManager NavigationManager
 @using GymManager.Shared.DTOs.Member
 @using GymManager.Client.Components
 @using GymManager.Client.Services
 @using MemberDto = GymManager.Shared.DTOs.Member.ReadMembershipTypeDto
+@using CreateSelfMembershipDto = GymManager.Shared.DTOs.Member.CreateSelfMembershipDto
 
 <Navbar />
 <Banner />
@@ -45,9 +50,11 @@
                                     <li><i class="fa-solid fa-chart-line me-2"></i>Progress tracking: @(offer.IncludesProgressTracking ? "Yes" : "No")</li>
                                 </ul>
 
-                                <div class="mt-4 d-flex justify-content-between align-items-center">
-                                   <!-- <a href="#" class="btn btn-outline-dark rounded-pill">Learn More</a> -->
-                                    <a href="/memberships" class="btn btn-danger rounded-pill px-4 ms-auto">Join Now</a>
+                                <div class="mt-4 d-flex justify-content-end align-items-center">
+                                    <button class="btn btn-danger rounded-pill px-4"
+                                            @onclick="() => JoinMembership(offer.Id)">
+                                        Join Now
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -67,4 +74,22 @@
     {
         membershipType = await MembershipTypeService.GetPublicAsync();
     }
+
+    private async Task JoinMembership(int membershipTypeId)
+    {
+        if (!AuthState.IsLoggedIn)
+        {
+            NavigationManager.NavigateTo("/login");
+            return;
+        }
+
+        var dto = new CreateSelfMembershipDto{ MembershipTypeId = membershipTypeId };
+
+        var result = await MembershipService.CreateAsMemberAsync(dto);
+        if (result != null)
+        {
+            NavigationManager.NavigateTo("/progress", true);
+        }
+    }
+
 }
