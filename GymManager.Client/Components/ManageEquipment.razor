@@ -50,7 +50,7 @@
                     <td>@item.Notes</td>
                     @if (!string.IsNullOrEmpty(item.PhotoPath))
                     {
-                        <p>"@($"{Navigation.BaseUri}{item.PhotoPath}")"</p>
+                        <img src='@($"{item.PhotoPath}")'></img>
                     }
 
                     <td>
