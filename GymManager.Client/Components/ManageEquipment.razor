@@ -2,6 +2,7 @@
 @using GymManager.Shared.DTOs.Admin
 @using Microsoft.AspNetCore.Components.Forms
 @inject EquipmentService EquipmentService
+@inject NavigationManager Navigation
 
 <div class="card shadow-sm p-4">
     <h3 class="mb-4" style="color: #e01b1b;">Manage Equipment</h3>
@@ -49,7 +50,7 @@
                     <td>@item.Notes</td>
                     @if (!string.IsNullOrEmpty(item.PhotoPath))
                     {
-                        <img src="@item.PhotoPath" width="50" />
+                        <img src='@($"{item.PhotoPath}")'></img>
                     }
 
                     <td>
@@ -110,7 +111,7 @@
             Name = equipment.Name.ToUpper(),
             Description = equipment.Description.ToUpper(),
             Notes = equipment.Notes?.ToUpper(),
-            Quantity = equipment.Quantity
+            Quantity = equipment.Quantity,
         };
         editId = equipment.Id;
         showForm = true;
