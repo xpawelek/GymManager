@@ -52,6 +52,32 @@ namespace GymManager.Controllers
             return Ok(equipmentList);
         }
 
+        [HttpPost("{id}/upload-photo")]
+        [Authorize(Roles = RoleConstants.Admin)]
+        public async Task<IActionResult> UploadEquipmentPhoto(int id, IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+                return BadRequest("No file selected");
+
+            var uploadsPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/uploads");
+            if (!Directory.Exists(uploadsPath))
+                Directory.CreateDirectory(uploadsPath);
+
+            var fileName = Guid.NewGuid() + Path.GetExtension(file.FileName);
+            var filePath = Path.Combine(uploadsPath, fileName);
+
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await file.CopyToAsync(stream);
+            }
+
+            var relativePath = $"/uploads/{fileName}";
+
+            var updated = await _admin.PatchAsync(id, new UpdateEquipmentDto { PhotoPath = relativePath });
+            return updated ? Ok(relativePath) : NotFound();
+        }
+
+
         [HttpPost]
         [Authorize(Roles = $"{RoleConstants.Admin}, {RoleConstants.Receptionist}")]
         public async Task<IActionResult> CreateAdmin([FromBody] CreateEquipmentDto dto)
