@@ -58,7 +58,7 @@
         if (success)
         {
             AuthState.SetLoginState(true);
-            Navigation.NavigateTo("/");
+            Navigation.NavigateTo("/", forceLoad: true);
         }
         else
         {

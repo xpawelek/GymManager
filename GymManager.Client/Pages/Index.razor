@@ -1,5 +1,7 @@
 ﻿@page "/"
 @using GymManager.Client.Components
+@using GymManager.Client.Services
+@inject AuthStateService AuthState
 
 <Navbar></Navbar>
 <Banner></Banner>
@@ -86,4 +88,24 @@
         </div>
     </div>
 </section>
+
+@if (AuthState.IsLoggedIn && AuthState.UserRole == "Admin")
+{
+    <section>
+        xdddddd
+    </section>
+}
 <Footer></Footer>
+
+
+@code {
+    protected override void OnInitialized()
+    {
+        AuthState.OnChange += StateHasChanged;
+    }
+
+    public void Dispose()
+    {
+        AuthState.OnChange -= StateHasChanged;
+    }
+}

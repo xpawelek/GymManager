@@ -4,6 +4,7 @@ using GymManager.Client;
 using GymManager.Client.Services;
 using Blazored.LocalStorage;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.DependencyInjection;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");

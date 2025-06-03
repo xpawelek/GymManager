@@ -15,6 +15,7 @@ namespace GymManager.Client.Services
     {
         private readonly HttpClient _http;
         private readonly ILocalStorageService _localStorage;
+        
 
         public AuthService(HttpClient http, ILocalStorageService localStorage)
         {
