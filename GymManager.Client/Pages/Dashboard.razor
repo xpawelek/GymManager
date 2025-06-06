@@ -18,7 +18,7 @@
         else
         {
             <div class="container mt-5 p-4">
-                <h2 class="text-center mb-4" style="color: #e01b1b;">Admin Dashboard</h2>
+                <h2 class="text-center mb-4" style="color: #f5b510; text-shadow: 0 0 1px rgba(255,255,255, 0.5)">Admin Dashboard</h2>
 
                 <ul class="nav nav-tabs mb-4">
                     <li class="nav-item">
@@ -28,7 +28,7 @@
                         <button class="nav-link @GetTabClass("trainers")" @onclick='() => SelectTab("trainers")'>Trainers</button>
                     </li>
                     <li class="nav-item">
-                        <button class="nav-link @GetTabClass("memberships")" @onclick='() => SelectTab("memberships")'>Memberships</button>
+                        <button class="nav-link @GetTabClass("members")" @onclick='() => SelectTab("members")'>Members</button>
                     </li>
                 </ul>
 
@@ -40,9 +40,9 @@
                 {
                     <ManageTrainers/>
                 }
-                else if (selectedTab == "memberships")
-                {
-                    
+                else if (selectedTab == "members")
+                {   
+                    <ManageMembers/>
                 }
             </div>
         }

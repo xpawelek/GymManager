@@ -1,4 +1,6 @@
-﻿@using GymManager.Shared.DTOs.Admin
+﻿@using System.Text
+@using System.Text.Json
+@using GymManager.Shared.DTOs.Admin
 @using GymManager.Client.Services
 @using GymManager.Shared.DTOs.Trainer
 @using Microsoft.AspNetCore.Components.Forms
@@ -6,11 +8,11 @@
 @inject TrainerService TrainerService
 
 <div class="card shadow-sm p-4">
-    <h3 class="mb-4" style="color: #1b6ce0;">Manage Trainers</h3>
+    <h3 class="mb-4 text-danger">Manage Trainers</h3>
 
     <div class="mb-3 d-flex justify-content-between align-items-center">
         <input type="text" class="form-control w-50" placeholder="Search..." @bind="search" />
-        <button class="btn btn-primary" @onclick="ShowCreateForm">Add New Trainer</button>
+        <button class="btn btn-danger" @onclick="ShowCreateForm">Add New Trainer</button>
     </div>
 
     @if (showForm)
@@ -21,6 +23,10 @@
             <input class="form-control mb-2" placeholder="First Name" @bind="trainerDto.FirstName" />
             <input class="form-control mb-2" placeholder="Last Name" @bind="trainerDto.LastName" />
             <input class="form-control mb-2" placeholder="Email" @bind="trainerDto.Email" />
+            @if (editId == null)
+            {
+                <input class="form-control mb-2"  type="password" @bind="assignedPassword" />   
+            }
             <input class="form-control mb-2" placeholder="Phone" @bind="trainerDto.PhoneNumber" />
             <textarea class="form-control mb-2" placeholder="Description" @bind="trainerDto.Description"></textarea>
             <InputFile class="form-control mb-2" OnChange="OnFileSelected" />
@@ -91,6 +97,8 @@
     private int? editId = null;
     private bool showForm = false;
     private IBrowserFile? selectedFile;
+    private string assignedPassword = string.Empty;
+    
 
     private IEnumerable<ReadTrainerDto> FilteredTrainers =>
         string.IsNullOrWhiteSpace(search)
@@ -154,8 +162,12 @@
                 Email = trainerDto.Email,
                 PhoneNumber = trainerDto.PhoneNumber,
                 Description = trainerDto.Description,
-                Password = "Trainer123!"
+                Password = assignedPassword
             };
+
+            var content = new StringContent(JsonSerializer.Serialize(registerDto), Encoding.UTF8, "application/json");
+            Console.WriteLine(JsonSerializer.Serialize(registerDto));
+
 
             var result = await TrainerService.RegisterTrainerAsync(registerDto);
 
@@ -165,7 +177,7 @@
                 return;
             }
 
-            // Short delay to ensure DB is updated
+           
             await Task.Delay(500); 
             await LoadTrainers();
 

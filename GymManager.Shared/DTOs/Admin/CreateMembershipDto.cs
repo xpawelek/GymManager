@@ -12,7 +12,7 @@ namespace GymManager.Shared.DTOs.Admin
         [Required(ErrorMessage = "Membership type ID is required.")]
         [Range(1, int.MaxValue, ErrorMessage = "Membership type ID must be a positive number.")]
         public int MembershipTypeId { get; set; }
-
+      
         [Required(ErrorMessage = "Start date is required.")]
         [DataType(DataType.Date)]
         public DateTime StartDate { get; set; }

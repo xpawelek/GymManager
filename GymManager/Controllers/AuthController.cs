@@ -116,7 +116,7 @@ public class AuthController : ControllerBase
 
     private async Task<IActionResult> RegisterMemberInternal(RegisterMemberDto dto)
     {
-        if (User.Identity?.IsAuthenticated == true ||
+        if (User.Identity?.IsAuthenticated == true &&
             User.IsInRole(RoleConstants.Member))
         {
             return Forbid("Logged-in members cannot create new accounts.");

@@ -24,6 +24,7 @@ public partial class AdminMembershipMapper
     [MapperIgnoreSource(nameof(Entities.Membership.MembershipTypeId))]
     [MapProperty("Member.Id", "MemberId")]
     [MapProperty("MembershipType.Id", "MembershipTypeId")]
+    [MapProperty("MembershipType.Name", "TypeName")]
     public partial ReadMembershipDto ToReadDto(Entities.Membership membership);
     //GET ALL
     public partial List<ReadMembershipDto> ToReadDtoList(List<Entities.Membership> memberships);

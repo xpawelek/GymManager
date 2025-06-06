@@ -48,11 +48,11 @@ namespace GymManager.Controllers
             }
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("{memberId}")]
         [Authorize(Roles = RoleConstants.Admin)]
-        public async Task<IActionResult> GetById(int id)
+        public async Task<IActionResult> GetByMemberId(int memberId)
         {
-            var dto = await _admin.GetByIdAsync(id);
+            var dto = await _admin.GetByMemberIdAsync(memberId);
             return dto == null ? NotFound() : Ok(dto);
         }
 
@@ -67,7 +67,7 @@ namespace GymManager.Controllers
                         var dto = JsonSerializer
                             .Deserialize<AdminCreateDto>(raw.ToString()!)!;
                         var r = await _admin.CreateAsync(dto);
-                        return CreatedAtAction(nameof(GetById), new { id = r.Id }, r);
+                        return CreatedAtAction(nameof(GetByMemberId), new { id = r.Id }, r);
                     }
                 case RoleConstants.Member:
                     {
