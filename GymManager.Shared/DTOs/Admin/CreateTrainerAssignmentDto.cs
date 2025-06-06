@@ -1,15 +1,22 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
 
-namespace GymManager.Shared.DTOs.Admin;
-
-public class CreateTrainerAssignmentDto
+namespace GymManager.Shared.DTOs.Admin
 {
-    [Required]
-    public int TrainerId { get; set; }
+    public class CreateTrainerAssignmentDto
+    {
+        [Required(ErrorMessage = "Trainer ID is required.")]
+        [Range(1, int.MaxValue, ErrorMessage = "Trainer ID must be a positive number.")]
+        public int TrainerId { get; set; }
 
-    [Required]
-    public int MemberId { get; set; }
-    public DateTime? StartDate { get; set; }
-    public DateTime? EndDate { get; set; }
-    
+        [Required(ErrorMessage = "Member ID is required.")]
+        [Range(1, int.MaxValue, ErrorMessage = "Member ID must be a positive number.")]
+        public int MemberId { get; set; }
+
+        [DataType(DataType.Date)]
+        public DateTime? StartDate { get; set; }
+
+        [DataType(DataType.Date)]
+        public DateTime? EndDate { get; set; }
+    }
 }

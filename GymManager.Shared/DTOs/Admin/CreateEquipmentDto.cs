@@ -1,19 +1,25 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
-namespace GymManager.Shared.DTOs.Admin;
-
-public class CreateEquipmentDto
+namespace GymManager.Shared.DTOs.Admin
 {
-    [Required]
-    [StringLength(50)]
-    public string Name { get; set; } = string.Empty;
+    public class CreateEquipmentDto
+    {
+        [Required(ErrorMessage = "Equipment name is required.")]
+        [StringLength(50, ErrorMessage = "Name must be at most 50 characters.")]
+        public string Name { get; set; } = string.Empty;
 
-    [Required]
-    [StringLength(300)]
-    public string Description { get; set; } = string.Empty;
+        [Required(ErrorMessage = "Description is required.")]
+        [StringLength(300, ErrorMessage = "Description must be at most 300 characters.")]
+        public string Description { get; set; } = string.Empty;
 
-    [StringLength(300)] public string? Notes { get; set; }
+        [StringLength(300, ErrorMessage = "Notes must be at most 300 characters.")]
+        public string? Notes { get; set; }
 
-    [Range(0, int.MaxValue)]
-    public int Quantity { get; set; }
+        [Required(ErrorMessage = "Photo path is required.")]
+        public string PhotoPath { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Quantity is required.")]
+        [Range(0, int.MaxValue, ErrorMessage = "Quantity must be 0 or more.")]
+        public int Quantity { get; set; }
+    }
 }

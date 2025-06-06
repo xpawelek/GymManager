@@ -1,9 +1,10 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace GymManager.Shared.DTOs.Trainer;
-
-public class UpdateSelfMessageDto
+namespace GymManager.Shared.DTOs.Trainer
 {
-    [StringLength(1000)]
-    public string? MessageContent { get; set; }
+    public class UpdateSelfMessageDto
+    {
+        [StringLength(1000, ErrorMessage = "Message content must be at most 1000 characters.")]
+        public string? MessageContent { get; set; }
+    }
 }

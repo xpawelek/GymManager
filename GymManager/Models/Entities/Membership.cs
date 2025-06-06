@@ -13,8 +13,8 @@ public class Membership
 
     [Required] public Member Member { get; set; }  // -> dto get: chcemy
     
-        [Required]
-        public int MembershipTypeId { get; set; }  // -> dto get: nie chcemy
+    [Required]
+    public int MembershipTypeId { get; set; }  // -> dto get: nie chcemy
     
     [Required]
     public MembershipType MembershipType { get; set; }  // -> dto get: chcemy
@@ -23,7 +23,7 @@ public class Membership
     public DateTime StartDate { get; set; }  // -> dto get: nie chcemy
     
     [Required]
-    public DateTime? EndDate { get; set; }  // -> dto get: nie chcemy
+    public DateTime EndDate { get; set; }  // -> dto get: nie chcemy
     
     public bool IsActive { get; set; }  // -> dto get: chcemy
 }
