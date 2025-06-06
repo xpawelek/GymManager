@@ -1,0 +1,411 @@
+﻿@using System.Text
+@using System.Text.Json
+@using System.ComponentModel.DataAnnotations
+@using GymManager.Client.Services
+@using GymManager.Shared.DTOs.Admin
+@using GymManager.Shared.DTOs.Member
+@inject MemberService MemberService
+@inject MembershipService MembershipService
+@inject MembershipTypeService MembershipTypeService
+@inject IJSRuntime JS
+
+<div class="card shadow-sm p-4">
+    <h3 class="mb-4 text-danger">Manage Members</h3>
+
+    <div class="mb-3 d-flex justify-content-between align-items-center">
+        <input type="text" class="form-control w-50" placeholder="Search..." @bind="_search" />
+        <button class="btn btn-danger" @onclick="ShowCreateForm">Add New Member</button>
+    </div>
+
+    @if (_showForm)
+    {
+        <EditForm id="memberForm" Model="@_registerDto" OnValidSubmit="SaveMember">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <div class="card p-3 bg-light mb-4">
+                <h5>@(_editId == null ? "Add Member" : "Edit Member")</h5>
+
+                <input class="form-control mb-1" placeholder="First Name" @bind="_registerDto.FirstName" />
+                <ValidationMessage class="text-danger" For="@(() => _registerDto.FirstName)" />
+
+                <input class="form-control mb-1" placeholder="Last Name" @bind="_registerDto.LastName" />
+                <ValidationMessage For="@(() => _registerDto.LastName)" />
+
+                <input class="form-control mb-1" placeholder="Email" @bind="_registerDto.Email" />
+                <ValidationMessage For="@(() => _registerDto.Email)" />
+
+                @if (_editId == null)
+                {
+                    <input class="form-control mb-1" type="password" placeholder="Password" @bind="_registerDto.Password" />
+                    <ValidationMessage For="@(() => _registerDto.Password)" />
+                }
+
+                <input class="form-control mb-1" type="date" @bind="_registerDto.DateOfBirth" />
+                <ValidationMessage For="@(() => _registerDto.DateOfBirth)" />
+
+                <input class="form-control mb-1" placeholder="Phone Number" @bind="_registerDto.PhoneNumber" />
+                <ValidationMessage For="@(() => _registerDto.PhoneNumber)" />
+
+                @if (!string.IsNullOrWhiteSpace(_errorMessage))
+                {
+                    <div class="alert alert-danger mt-2">@_errorMessage</div>
+                }
+
+                <div class="d-flex justify-content-end mt-3">
+                    <button class="btn btn-secondary me-2" @onclick="CancelForm" type="button">Cancel</button>
+                    <button class="btn btn-primary" type="submit">Save</button>
+                </div>
+            </div>
+        </EditForm>
+    }
+
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Date of Birth</th>
+            <th>Phone</th>
+            <th>Card</th>
+            <th style="width: 150px;">Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (var member in FilteredMembers)
+        {
+            <tr class="@(member.Id == _selectedMemberId ? "table-primary" : "")" @onclick="() => SelectedMember(member.Id)">
+                <td>@member.FirstName @member.LastName</td>
+                <td>@member.Email</td>
+                <td>@member.DateOfBirth.ToShortDateString()</td>
+                <td>@member.PhoneNumber</td>
+                <td>@member.MembershipCardNumber</td>
+                <td>
+                    <button class="btn btn-sm btn-outline-dark me-2" @onclick="() => StartEdit(member)" @onclick:stopPropagation>Edit</button>
+                    <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteMember(member.Id)" @onclick:stopPropagation>Delete</button>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+
+    @if (_selectedMemberId.HasValue)
+    {
+        var selected = _members.FirstOrDefault(m => m.Id == _selectedMemberId.Value);
+        if (selected is not null)
+        {
+            <div id="member-details" class="card mt-4 p-5 border shadow-sm">
+                <h4 class="mb-3 text-primary">
+                    Modify Member: @selected.FirstName @selected.LastName – @selected.Email
+                </h4>
+
+                <div class="m-3 mb-4 mt-4">
+                    <h5 class="text-secondary">Membership</h5>
+
+                    @if (_selectedMemberMembership != null && !_showMembershipForm)
+                    {
+                        <div class="p-2">
+                            <p>Membership Type: <strong>@_selectedMemberMembership.TypeName</strong></p>
+                            <p>Status: <strong class="@GetStatusColor(_selectedMemberMembership.EndDate!.Value)">
+                                @(_selectedMemberMembership.EndDate >= DateTime.Now ? "Active" : "Expired")
+                            </strong></p>
+                            <p>Start: @_selectedMemberMembership.StartDate.ToString("dd.MM.yyyy HH:mm")</p>
+                            <p>End: @_selectedMemberMembership.EndDate?.ToString("dd.MM.yyyy HH:mm")</p>
+
+                            <button class="btn btn-sm btn-outline-primary me-2" @onclick="EditMembership">Update</button>
+                            <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteMembership(_selectedMemberMembership.Id)">Delete</button>
+                        </div>
+                    }
+                    else
+                    {
+                        @if (!_showMembershipForm)
+                        {
+                            <div class="p-3 bg-light rounded border">
+                                <p class="text-muted mb-2">No active membership.</p>
+                                <button class="btn btn-sm btn-outline-primary" @onclick="() => _showMembershipForm = true">
+                                    Create Membership
+                                </button>
+                            </div>
+                        }
+                    }
+                </div>
+                @if (_showMembershipForm)
+                {
+                    <EditForm class="mx-3" Model="@_newMembership" OnValidSubmit="SaveMembership">
+                        <DataAnnotationsValidator />
+                        <ValidationSummary />
+
+                        <div class="mb-3">
+                            <label class="form-label">Membership Type</label>
+                            <select class="form-select" @bind="_newMembership.MembershipTypeId">
+                                <option value="">-- Select type --</option>
+                                @foreach (var type in _membershipTypes)
+                                {
+                                    <option value="@type.Id">@type.Name</option>
+                                }
+                            </select>
+                            <ValidationMessage For="@(() => _newMembership.MembershipTypeId)" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Start Date</label>
+                            <InputDate class="form-control" @bind-Value="_newMembership.StartDate" />
+                            <ValidationMessage For="@(() => _newMembership.StartDate)" />
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2">
+                            <button class="btn btn-secondary btn-sm" type="button" @onclick="CancelCreateMembership">Cancel</button>
+                            <button class="btn btn-primary btn-sm" type="submit">
+                                @(_selectedMemberMembership == null ? "Create" : "Update")
+                            </button>
+                        </div>
+                    </EditForm>
+                }
+                @if (_selectedMemberMembership != null)
+                {
+                    <div class="m-3 mb-4">
+                        <h5 class="text-secondary">Trainer Assignment</h5>
+                        <div class="p-2">
+                            <p>Assigned Trainer: <em>[not loaded yet]</em></p>
+                            <button class="btn btn-sm btn-outline-primary">Change Trainer</button>
+                        </div>
+                    </div>
+
+                    <div class="m-3 mb-4">
+                        <h5 class="text-secondary">Messages with Trainers</h5>
+                        <div class="p-2">
+                            <p><em>Message threads will be shown here per trainer.</em></p>
+                            <button class="btn btn-sm btn-outline-secondary">View Messages</button>
+                        </div>
+                    </div>
+
+                    <div class="m-3 mb-4">
+                        <h5 class="text-secondary">Personal Trainings</h5>
+                        <div class="p-2">
+                            <p><em>Training sessions and notes appear here.</em></p>
+                            <button class="btn btn-sm btn-outline-info">Show Sessions</button>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    }
+
+</div>
+
+@code {
+    private List<ReadMemberDto> _members = new();
+    private string _search = "";
+    private RegisterMemberDto _registerDto = new();
+    private int? _editId = null;
+    private bool _showForm = false;
+    private string _errorMessage = "";
+    private int? _selectedMemberId = null;
+    private ReadMembershipDto? _selectedMemberMembership;
+    private CreateMembershipDto _newMembership = new();
+    private List<Shared.DTOs.Member.ReadMembershipTypeDto> _membershipTypes = new();
+    private bool _showMembershipForm = false;
+    
+    private IEnumerable<ReadMemberDto> FilteredMembers =>
+        string.IsNullOrWhiteSpace(_search)
+            ? _members
+            : _members.Where(m =>
+                m.FirstName.Contains(_search, StringComparison.OrdinalIgnoreCase) ||
+                m.LastName.Contains(_search, StringComparison.OrdinalIgnoreCase) ||
+                m.Email.Contains(_search, StringComparison.OrdinalIgnoreCase) ||
+                m.MembershipCardNumber.Contains(_search, StringComparison.OrdinalIgnoreCase));
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadMembers();
+        _membershipTypes = await MembershipTypeService.GetAllAsync() ?? new();
+    }
+
+    private async Task LoadMembers()
+    {
+        _members = await MemberService.GetAllAdminAsync() ?? new();
+    }
+
+    private void ShowCreateForm()
+    {
+        _registerDto = new RegisterMemberDto();
+        _editId = null;
+        _showForm = true;
+        _errorMessage = "";
+        _selectedMemberId = null;
+    }
+
+    private void CancelForm()
+    {
+        _registerDto = new RegisterMemberDto();
+        _editId = null;
+        _showForm = false;
+        _errorMessage = "";
+    }
+
+    private void CancelDetails()
+    {
+        _selectedMemberId = null;
+    }
+
+    private async void StartEdit(ReadMemberDto member)
+    {
+        _registerDto = new RegisterMemberDto
+        {
+            FirstName = member.FirstName,
+            LastName = member.LastName,
+            Email = member.Email,
+            PhoneNumber = member.PhoneNumber,
+            DateOfBirth = member.DateOfBirth
+        };
+        _editId = member.Id;
+        _showForm = true;
+        _errorMessage = "";
+        CancelDetails();
+        
+        StateHasChanged(); 
+        await Task.Delay(50);
+        
+        await JS.InvokeVoidAsync("scrollToElement", "memberForm");
+    }
+
+    private async Task SaveMember()
+    {
+        if (_editId == null)
+        {
+            var response = await MemberService.RegisterMemberAsync(_registerDto);
+            if (string.IsNullOrWhiteSpace(response))
+            {
+                _errorMessage = "Failed to register member.";
+                return;
+            }
+
+            await LoadMembers();
+            CancelForm();
+        }
+        else
+        {
+            var updateDto = new UpdateMemberDto
+            {
+                FirstName = _registerDto.FirstName,
+                LastName = _registerDto.LastName,
+                PhoneNumber = _registerDto.PhoneNumber,
+                DateOfBirth = _registerDto.DateOfBirth
+            };
+
+            await MemberService.PatchAdminAsync(_editId.Value, updateDto);
+            await LoadMembers();
+            CancelForm();
+        }
+    }
+
+    private async Task DeleteMember(int id)
+    {
+        await MemberService.DeleteAdminAsync(id);
+        await LoadMembers();
+    }
+    
+    private async Task DeleteMembership(int id)
+    {
+        await MembershipService.DeleteAsync(id);
+        
+        _selectedMemberMembership = null;
+        StateHasChanged(); 
+    }
+
+    private async void SelectedMember(int id)
+    {
+        CancelForm();
+        _selectedMemberId = id;
+
+        if (_selectedMemberId.HasValue)
+        {
+            try
+            {
+                _selectedMemberMembership = await MembershipService.GetByMemberIdAsync(_selectedMemberId.Value);
+            }
+            catch(HttpRequestException)
+            {
+                _selectedMemberMembership = null;
+            }
+        }
+        
+        StateHasChanged(); 
+        await Task.Delay(100);
+        await JS.InvokeVoidAsync("scrollToElement", "member-details");
+    }
+    
+    private string GetStatusColor(DateTime endDate)
+    {
+        return endDate >= DateTime.Today ? "text-success" : "text-danger";
+    }
+    
+    private async Task SaveMembership()
+    {
+        if (_selectedMemberId is null)
+            return;
+
+        _newMembership.MemberId = _selectedMemberId.Value;
+
+        try
+        {
+            if (_selectedMemberMembership is null)
+            {
+                var created = await MembershipService.CreateAsAdminAsync(_newMembership);
+                if (created is not null)
+                {
+                    _selectedMemberMembership = created;
+                }
+            }
+            else
+            {
+                var updateDto = new Shared.DTOs.Admin.UpdateMembershipDto
+                {
+                    MembershipTypeId = _newMembership.MembershipTypeId
+                };
+                
+                await MembershipService.PatchAdminAsync(_selectedMemberMembership.Id, updateDto);
+                _selectedMemberMembership = await MembershipService.GetByMemberIdAsync(_selectedMemberId.Value);
+            }
+            _showMembershipForm = false;
+            _newMembership = new CreateMembershipDto { StartDate = DateTime.Now };
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error creating membership: {ex.Message}");
+        }
+    }
+    
+    private void EditMembership()
+    {
+        if (_selectedMemberMembership == null)
+            return;
+
+        _newMembership = new CreateMembershipDto
+        {
+            MemberId = _selectedMemberMembership.MemberId,
+            MembershipTypeId = _selectedMemberMembership.MembershipTypeId,
+            StartDate = _selectedMemberMembership.StartDate
+        };
+
+        _showMembershipForm = true;
+    }
+    
+    private void CancelCreateMembership()
+    {
+        _showMembershipForm = false;
+        _newMembership = new CreateMembershipDto
+        {
+            StartDate = DateTime.Now
+        };
+    }
+}
+
+<script>
+    window.scrollToElement = function (id) {
+        const element = document.getElementById(id);
+        if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    };
+</script>

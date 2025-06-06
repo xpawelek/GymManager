@@ -29,6 +29,19 @@ namespace GymManager.Client.Services
         {
             return await _http.GetFromJsonAsync<ReadMemberDto>($"api/members/{id}");
         }
+        
+        
+        // [POST] /api/auth/admin/register-member
+        // Admin
+        public async Task<string?> RegisterMemberAsync(RegisterMemberDto dto)
+        {
+            var response = await _http.PostAsJsonAsync("api/auth/admin/register-member", dto);
+
+            if (!response.IsSuccessStatusCode)
+                return null;
+
+            return await response.Content.ReadAsStringAsync(); 
+        }
 
         // [PATCH] /api/members/{id}
         // Admin

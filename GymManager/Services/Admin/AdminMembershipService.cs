@@ -28,16 +28,16 @@ namespace GymManager.Services.Admin
             return _mapper.ToReadDtoList(list);
         }
 
-        public async Task<ReadMembershipDto> GetByIdAsync(int id)
+        public async Task<ReadMembershipDto> GetByMemberIdAsync(int memberId)
         {
             var entity = await _context.Memberships
                 .Include(m=>m.MembershipType)
                 .Include(m => m.Member)
-                .FirstOrDefaultAsync(m => m.Id == id);
+                .FirstOrDefaultAsync(m => m.MemberId == memberId && m.IsActive);
 
             if (entity == null)
             {
-                throw new Exception($"Membership with id {id} does not exist");
+                throw new Exception($"Member with id {memberId} does not have active membership");
             }
             return _mapper.ToReadDto(entity!);
         }

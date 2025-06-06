@@ -8,11 +8,11 @@
 @inject TrainerService TrainerService
 
 <div class="card shadow-sm p-4">
-    <h3 class="mb-4" style="color: #1b6ce0;">Manage Trainers</h3>
+    <h3 class="mb-4 text-danger">Manage Trainers</h3>
 
     <div class="mb-3 d-flex justify-content-between align-items-center">
         <input type="text" class="form-control w-50" placeholder="Search..." @bind="search" />
-        <button class="btn btn-primary" @onclick="ShowCreateForm">Add New Trainer</button>
+        <button class="btn btn-danger" @onclick="ShowCreateForm">Add New Trainer</button>
     </div>
 
     @if (showForm)
@@ -177,7 +177,7 @@
                 return;
             }
 
-            // Short delay to ensure DB is updated
+           
             await Task.Delay(500); 
             await LoadTrainers();
 

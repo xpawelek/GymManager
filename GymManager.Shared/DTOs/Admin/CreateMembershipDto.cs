@@ -11,8 +11,7 @@ namespace GymManager.Shared.DTOs.Admin
         [Required]
         public int MembershipTypeId { get; set; }
 
-        [Required]
-        public DateTime StartDate { get; set; }
+        [Required] public DateTime StartDate { get; set; } = DateTime.Now;
 
         public DateTime? EndDate { get; set; }
         public bool? IsActive { get; set; }
