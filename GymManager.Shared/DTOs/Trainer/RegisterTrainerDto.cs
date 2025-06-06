@@ -8,6 +8,6 @@ public class RegisterTrainerDto
     public String Password { get; set; }
     public String PhoneNumber { get; set; }
     public string Description { get; set; } //konieczne dodajac?
-    public string PhotoPath { get; set; } //konieczne dodajac?
+    public string? PhotoPath { get; set; } //konieczne dodajac?
 
 }

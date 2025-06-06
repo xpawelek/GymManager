@@ -1,0 +1,226 @@
+﻿@using GymManager.Shared.DTOs.Admin
+@using GymManager.Client.Services
+@using GymManager.Shared.DTOs.Trainer
+@using Microsoft.AspNetCore.Components.Forms
+@using ReadTrainerDto = GymManager.Shared.DTOs.Admin.ReadTrainerDto
+@inject TrainerService TrainerService
+
+<div class="card shadow-sm p-4">
+    <h3 class="mb-4" style="color: #1b6ce0;">Manage Trainers</h3>
+
+    <div class="mb-3 d-flex justify-content-between align-items-center">
+        <input type="text" class="form-control w-50" placeholder="Search..." @bind="search" />
+        <button class="btn btn-primary" @onclick="ShowCreateForm">Add New Trainer</button>
+    </div>
+
+    @if (showForm)
+    {
+        <div class="card p-3 bg-light mb-4">
+            <h5>@(editId == null ? "Add Trainer" : "Edit Trainer")</h5>
+
+            <input class="form-control mb-2" placeholder="First Name" @bind="trainerDto.FirstName" />
+            <input class="form-control mb-2" placeholder="Last Name" @bind="trainerDto.LastName" />
+            <input class="form-control mb-2" placeholder="Email" @bind="trainerDto.Email" />
+            <input class="form-control mb-2" placeholder="Phone" @bind="trainerDto.PhoneNumber" />
+            <textarea class="form-control mb-2" placeholder="Description" @bind="trainerDto.Description"></textarea>
+            <InputFile class="form-control mb-2" OnChange="OnFileSelected" />
+
+            <div class="d-flex justify-content-end">
+                <button class="btn btn-secondary me-2" @onclick="CancelForm">Cancel</button>
+                <button class="btn btn-primary" @onclick="SaveTrainer">Save</button>
+            </div>
+        </div>
+    }
+
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Description</th>
+                <th>Photo</th>
+                <th style="width: 150px;">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var trainer in FilteredTrainers)
+            {
+                <tr>
+                    <td>@trainer.FirstName @trainer.LastName</td>
+                    <td>@trainer.Email</td>
+                    <td>@trainer.PhoneNumber</td>
+                    <td>@trainer.Description</td>
+                    <td>
+                        @if (!string.IsNullOrEmpty(trainer.PhotoPath))
+                        {
+                            <button class="btn btn-sm btn-outline-primary" @onclick="() => ShowPhoto(trainer.PhotoPath)">
+                                <i class="fa-solid fa-eye"></i>
+                            </button>
+                        }
+                    </td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-dark me-2" @onclick="() => StartEdit(trainer)">Edit</button>
+                        <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteTrainer(trainer.Id)">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@if (showPhotoModal && !string.IsNullOrEmpty(photoToShow))
+{
+    <div class="modal show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.55);">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content text-center p-3 border border-1 border-dark shadow"
+                 style="background-color: rgba(255, 255, 255, 0.1); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-radius: 1rem;">
+                <img src="@photoToShow"/>
+                <button class="btn btn-danger mt-3" @onclick="ClosePhoto">Close</button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<ReadTrainerDto> trainers = new();
+    private string search = "";
+    private string? photoToShow;
+    private bool showPhotoModal = false;
+    private CreateTrainerDto trainerDto = new();
+    private int? editId = null;
+    private bool showForm = false;
+    private IBrowserFile? selectedFile;
+
+    private IEnumerable<ReadTrainerDto> FilteredTrainers =>
+        string.IsNullOrWhiteSpace(search)
+            ? trainers
+            : trainers.Where(t =>
+                t.FirstName.Contains(search, StringComparison.OrdinalIgnoreCase) ||
+                t.LastName.Contains(search, StringComparison.OrdinalIgnoreCase) ||
+                t.Email.Contains(search, StringComparison.OrdinalIgnoreCase) ||
+                t.Description.Contains(search, StringComparison.OrdinalIgnoreCase));
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadTrainers();
+    }
+
+    private async Task LoadTrainers()
+    {
+        trainers = await TrainerService.GetAllAdminAsync() ?? new();
+    }
+
+    private void ShowCreateForm()
+    {
+        trainerDto = new CreateTrainerDto();
+        editId = null;
+        showForm = true;
+    }
+
+    private void CancelForm()
+    {
+        trainerDto = new CreateTrainerDto();
+        editId = null;
+        showForm = false;
+    }
+
+    private void StartEdit(ReadTrainerDto trainer)
+    {
+        trainerDto = new CreateTrainerDto
+        {
+            FirstName = trainer.FirstName,
+            LastName = trainer.LastName,
+            Email = trainer.Email,
+            PhoneNumber = trainer.PhoneNumber,
+            Description = trainer.Description
+        };
+        editId = trainer.Id;
+        showForm = true;
+    }
+
+    
+    private async Task SaveTrainer()
+    {
+        if (string.IsNullOrWhiteSpace(trainerDto.FirstName) || string.IsNullOrWhiteSpace(trainerDto.LastName))
+            return;
+
+        if (editId == null)
+        {
+            var registerDto = new RegisterTrainerDto
+            {
+                FirstName = trainerDto.FirstName,
+                LastName = trainerDto.LastName,
+                Email = trainerDto.Email,
+                PhoneNumber = trainerDto.PhoneNumber,
+                Description = trainerDto.Description,
+                Password = "Trainer123!"
+            };
+
+            var result = await TrainerService.RegisterTrainerAsync(registerDto);
+
+            if (string.IsNullOrWhiteSpace(result))
+            {
+                Console.WriteLine("Failed to register trainer.");
+                return;
+            }
+
+            // Short delay to ensure DB is updated
+            await Task.Delay(500); 
+            await LoadTrainers();
+
+            var newTrainer = trainers.FirstOrDefault(t => t.Email == trainerDto.Email);
+            if (newTrainer != null && selectedFile != null)
+            {
+                await TrainerService.UploadPhotoAdminAsync(newTrainer.Id, selectedFile);
+                selectedFile = null;
+            }
+        }
+        else
+        {
+            var update = new UpdateTrainerDto
+            {
+                FirstName = trainerDto.FirstName,
+                LastName = trainerDto.LastName,
+                Email = trainerDto.Email,
+                PhoneNumber = trainerDto.PhoneNumber,
+                Description = trainerDto.Description
+            };
+
+            await TrainerService.UpdateAdminAsync(editId.Value, update);
+
+            if (selectedFile != null)
+            {
+                await TrainerService.UploadPhotoAdminAsync(editId.Value, selectedFile);
+                selectedFile = null;
+            }
+        }
+
+        await LoadTrainers();
+        CancelForm();
+    }
+
+
+    private async Task DeleteTrainer(int id)
+    {
+        await TrainerService.DeleteAdminAsync(id);
+        await LoadTrainers();
+    }
+
+    private void OnFileSelected(InputFileChangeEventArgs e)
+    {
+        selectedFile = e.File;
+    }
+
+    private void ShowPhoto(string photoPath)
+    {
+        photoToShow = photoPath;
+        showPhotoModal = true;
+    }
+
+    private void ClosePhoto()
+    {
+        showPhotoModal = false;
+        photoToShow = null;
+    }
+}
