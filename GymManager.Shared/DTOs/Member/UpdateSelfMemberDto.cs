@@ -1,19 +1,20 @@
-﻿using System.ComponentModel;
+﻿using System;
 using System.ComponentModel.DataAnnotations;
 
-namespace GymManager.Shared.DTOs.Member;
-
-public class UpdateSelfMemberDto
+namespace GymManager.Shared.DTOs.Member
 {
-    [StringLength(50)]
-    public string? FirstName { get; set; } 
-    
-    [StringLength(50)]
-    public string? LastName { get; set; }
-    
-    public DateTime? DateOfBirth { get; set; } 
-    
-    [StringLength(15)]
-    [Phone]
-    public string? PhoneNumber { get; set; } 
+    public class UpdateSelfMemberDto
+    {
+        [StringLength(50, ErrorMessage = "First name must be at most 50 characters.")]
+        public string? FirstName { get; set; }
+
+        [StringLength(50, ErrorMessage = "Last name must be at most 50 characters.")]
+        public string? LastName { get; set; }
+
+        [DataType(DataType.Date)]
+        public DateTime? DateOfBirth { get; set; }
+
+        [RegularExpression(@"^\d{9}$", ErrorMessage = "Phone number must be exactly 9 digits.")]
+        public string? PhoneNumber { get; set; }
+    }
 }
