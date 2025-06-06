@@ -1,20 +1,19 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.Runtime.InteropServices.JavaScript;
 
-namespace GymManager.Shared.DTOs.Admin;
-
-public class CreateServiceRequestDto
+namespace GymManager.Shared.DTOs.Admin
 {
-    [Required]
-    [StringLength(50)]
-    public string ServiceProblemTitle { get; set; }
-    
-    [Required]
-    [StringLength(250)]
-    public string ProblemNote {get; set;}
-    
-    public DateTime RequestDate { get; set; }
-    public string? ImagePath { get; set; }
-    
-    public int? EquipmentId { get; set; }
+    public class CreateServiceRequestDto
+    {
+        [Required(ErrorMessage = "Service title is required.")]
+        [StringLength(50, ErrorMessage = "Service title must be at most 50 characters.")]
+        public string ServiceProblemTitle { get; set; }
+
+        [Required(ErrorMessage = "Problem note is required.")]
+        [StringLength(250, ErrorMessage = "Problem note must be at most 250 characters.")]
+        public string ProblemNote { get; set; }
+
+        public string? ImagePath { get; set; }
+
+        public int? EquipmentId { get; set; }
+    }
 }
