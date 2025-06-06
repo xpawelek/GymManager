@@ -79,6 +79,11 @@ builder.Services.AddHttpClient<WorkoutNoteService>(client =>
     client.BaseAddress = new Uri("http://localhost:5119/");
 }).AddHttpMessageHandler<AuthHeaderHandler>();
 
+builder.Services.AddScoped(sp => new HttpClient
+{
+    BaseAddress = new Uri("http://localhost:5119/")
+});
+
 builder.Logging.SetMinimumLevel(LogLevel.Information);
 
 var host = builder.Build();

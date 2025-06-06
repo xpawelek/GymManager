@@ -1,0 +1,70 @@
+﻿@page "/progress"
+@inject HttpClient Http
+
+@using GymManager.Client.Components
+@using GymManager.Client.Services
+
+<Navbar />
+<Banner />
+<ClientInfo />
+
+<section class="py-5 bg-light text-dark">
+    <div class="container">
+        <h2 class="mb-5 text-center" style="font-size: 2.75rem; font-weight: 600;">
+            Progress <span style="color: #e01b1b">Gallery</span>
+        </h2>
+
+        <p class="text-center fst-italic text-muted mb-5" style="font-size: 1.2rem;">
+            "Success doesn’t come from what you do occasionally, it comes from what you do consistently." ~Marie Forleo
+        </p>
+
+        @if (photos == null)
+        {
+            <p>Loading...</p>
+        }
+        else if (!photos.Any())
+        {
+            <p class="text-center">No public progress photos available.</p>
+        }
+        else
+        {
+            <div class="row row-cols-1 row-cols-md-3 g-4">
+                @foreach (var photo in photos)
+                {
+                    <div class="col">
+                        <div class="card shadow h-100">
+                            <img src="@photo.ImagePath" class="card-img-top" alt="Progress photo" style="height: 300px; object-fit: cover;" />
+                            <div class="card-body">
+                                <h5 class="card-title">@photo.FirstName</h5>
+                                <p class="card-text"><strong>Date:</strong> @photo.Date.ToShortDateString()</p>
+                                @if (!string.IsNullOrWhiteSpace(photo.Comment))
+                                {
+                                    <p class="card-text"><em>@photo.Comment</em></p>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</section>
+
+<Footer />
+
+@code {
+    private List<ProgressPhotoDto>? photos;
+
+    protected override async Task OnInitializedAsync()
+    {
+        photos = await Http.GetFromJsonAsync<List<ProgressPhotoDto>>("api/progress-photos/public");
+    }
+
+    public class ProgressPhotoDto
+    {
+        public string ImagePath { get; set; } = string.Empty;
+        public string? Comment { get; set; }
+        public string FirstName { get; set; } = string.Empty;
+        public DateTime Date { get; set; }
+    }
+}
