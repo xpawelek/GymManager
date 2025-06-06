@@ -4,13 +4,12 @@ namespace GymManager.Shared.DTOs.Trainer;
 
 public class CreateSelfMessageDto
 {
-    [Required]
-    [StringLength(1000)]
+    [Required(ErrorMessage = "Message content is required.")]
+    [StringLength(1000, ErrorMessage = "Message content must be at most 1000 characters.")]
     public string MessageContent { get; set; }
     
     [Required]
     public DateTime Date { get; set; } = DateTime.Now;
 
-    [Required]
     public int MemberId { get; set; }
 }

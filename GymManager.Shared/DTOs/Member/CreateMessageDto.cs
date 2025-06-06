@@ -1,16 +1,17 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace GymManager.Shared.DTOs.Member;
-
-public class CreateMessageDto
+namespace GymManager.Shared.DTOs.Member
 {
-    [Required]
-    [StringLength(1000)]
-    public string MessageContent { get; set; }
-    
-    [Required]
-    public DateTime Date { get; set; } = DateTime.Now;
+    public class CreateMessageDto
+    {
+        [Required(ErrorMessage = "Message content is required.")]
+        [StringLength(1000, ErrorMessage = "Message content must be at most 1000 characters.")]
+        public string MessageContent { get; set; } = string.Empty;
 
-    [Required]
-    public int TrainerId { get; set; }
+        [Required(ErrorMessage = "Message date is required.")]
+        [DataType(DataType.DateTime)]
+        public DateTime Date { get; set; } = DateTime.Now;
+
+        public int TrainerId { get; set; }
+    }
 }

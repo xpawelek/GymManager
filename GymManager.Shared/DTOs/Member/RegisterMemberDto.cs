@@ -1,19 +1,8 @@
 ﻿namespace GymManager.Shared.DTOs.Member;
 
 using System.ComponentModel.DataAnnotations;
+using GymManager.Shared.Validation;
 
-public class NotInFutureAttribute : ValidationAttribute
-{
-    public override bool IsValid(object? value)
-    {
-        if (value is DateTime dateValue)
-        {
-            return dateValue.Date < DateTime.Today;
-        }
-
-        return true;
-    }
-}
 public class RegisterMemberDto
 {
     [Required(ErrorMessage = "First name is required.")]

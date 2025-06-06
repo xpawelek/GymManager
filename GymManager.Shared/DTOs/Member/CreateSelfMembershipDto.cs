@@ -1,9 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace GymManager.Shared.DTOs.Member;
-
-public class CreateSelfMembershipDto
+namespace GymManager.Shared.DTOs.Member
 {
-    [Required]
-    public int MembershipTypeId { get; set; }  
+    public class CreateSelfMembershipDto
+    {
+        public int MembershipTypeId { get; set; }
+    }
 }

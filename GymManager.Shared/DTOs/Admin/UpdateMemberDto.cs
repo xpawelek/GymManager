@@ -1,19 +1,22 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
+using GymManager.Shared.Validation;
 
-namespace GymManager.Shared.DTOs.Admin;
-
-public class UpdateMemberDto
+namespace GymManager.Shared.DTOs.Admin
 {
-    [StringLength(50)]
-    public string? FirstName { get; set; } 
-    
-    [StringLength(50)]
-    public string? LastName { get; set; } 
-    
-    
-    public DateTime? DateOfBirth { get; set; } 
-    
-    [StringLength(15)]
-    [Phone]
-    public string? PhoneNumber { get; set; } 
+    public class UpdateMemberDto
+    {
+        [StringLength(50, ErrorMessage = "First name must be at most 50 characters.")]
+        public string? FirstName { get; set; }
+
+        [StringLength(50, ErrorMessage = "Last name must be at most 50 characters.")]
+        public string? LastName { get; set; }
+
+        [DataType(DataType.Date)]
+        [NotInFuture(ErrorMessage = "Date of birth must be in the past.")]
+        public DateTime? DateOfBirth { get; set; }
+
+        [RegularExpression(@"^\d{9}$", ErrorMessage = "Phone number must be exactly 9 digits.")]
+        public string? PhoneNumber { get; set; }
+    }
 }

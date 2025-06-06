@@ -1,9 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace GymManager.Shared.DTOs.Member;
-
-public class CreateTrainerAssignmentDto
+namespace GymManager.Shared.DTOs.Member
 {
-    [Required]
-    public int TrainerId { get; set; }
+    public class CreateTrainerAssignmentDto
+    {
+        public int TrainerId { get; set; }
+    }
 }
