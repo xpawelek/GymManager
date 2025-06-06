@@ -37,6 +37,18 @@ namespace GymManager.Client.Services
             return await _http.GetFromJsonAsync<ReadMembershipDto>("api/memberships");
         }
 
+        public async Task<ReadSelfMembershipDto?> GetMyActiveMembershipAsync()
+        {
+            try
+            {
+                return await _http.GetFromJsonAsync<ReadSelfMembershipDto>("api/memberships");
+            }
+            catch (HttpRequestException)
+            {
+                return null;
+            }
+        }
+
         // [GET] /api/memberships/{id}
         // Admin
         public async Task<ReadMembershipDto?> GetByIdAsync(int id)

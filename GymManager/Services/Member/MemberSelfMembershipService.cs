@@ -44,11 +44,11 @@ namespace GymManager.Services.Member
             var entity = _mapper.ToEntity(selfMembershipDto);
             entity.MemberId = memberId;
 
-            var entityInDb = await _context.Memberships.FirstOrDefaultAsync(m => m.MemberId == entity.MemberId);
+            var entityInDb = await _context.Memberships.FirstOrDefaultAsync(m => m.MemberId == entity.MemberId && m.IsActive);
 
             if (entityInDb != null)
             {
-                throw new Exception($"Membership already exists");
+                throw new Exception($"Active membership already exists");
             }
 
             var type = await _context.MembershipTypes.FirstOrDefaultAsync(t => t.Id == entity.MembershipTypeId);
@@ -74,6 +74,8 @@ namespace GymManager.Services.Member
         {
             var memberId = await GetCurrentMemberId();
             var entity = await _context.Memberships
+                .Include(m => m.Member)
+                .Include(m => m.MembershipType)
                 .FirstOrDefaultAsync(m => m.MemberId == memberId && m.IsActive);
 
             if (entity == null)

@@ -11,7 +11,5 @@ public class CreateSelfMessageDto
     [Required]
     public DateTime Date { get; set; } = DateTime.Now;
 
-    [Required(ErrorMessage = "Member ID is required.")]
-    [Range(1, int.MaxValue, ErrorMessage = "Member ID must be a positive number.")]
     public int MemberId { get; set; }
 }

@@ -18,8 +18,6 @@ namespace GymManager.Shared.DTOs.Trainer
         [DataType(DataType.DateTime)]
         public DateTime WorkoutStartTime { get; set; }
 
-        [Required(ErrorMessage = "Member ID is required.")]
-        [Range(1, int.MaxValue, ErrorMessage = "Member ID must be a positive number.")]
         public int MemberId { get; set; }
     }
 }
