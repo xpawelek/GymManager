@@ -2,6 +2,7 @@
 @using GymManager.Client.Services
 @inject AuthStateService AuthState
 @inject NavigationManager Navigation
+@inject MembershipService MembershipService
 @inject ILocalStorageService LocalStorage
 
 <nav class="navbar navbar-expand-lg navbar-dark px-3 navbar_style">
@@ -11,15 +12,25 @@
             PrimeFit
         </a>
 
+        @if (AuthState.UserRole == "Member" && hasActiveMembership)
+        {
+            <span class="text-danger ms-4 fw-semibold" style="font-size: 0.95rem;">
+                <i class="fa-regular fa-clock me-1 fa-spin"></i> @expirationMessage
+            </span>
+        }
+
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar" aria-controls="mainNavbar" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
 
         <div class="collapse navbar-collapse justify-content-end" id="mainNavbar">
             <ul class="navbar-nav mb-3 mb-lg-0 me-4 px-2 py-2">
-                <li class="nav-item">
-                    <a class="nav-link nav_text" href="/offers">Offers</a>
-                </li>
+                @if (AuthState.UserRole != "Member" || !hasActiveMembership)
+                {
+                    <li class="nav-item">
+                        <a class="nav-link nav_text" href="/offers">Offers</a>
+                    </li>
+                }
                 <li class="nav-item">
                     <a class="nav-link nav_text" href="/equipment">Equipment</a>
                 </li>
@@ -55,9 +66,29 @@
 
 @code
 {
-    protected override void OnInitialized()
+    private bool hasActiveMembership;
+    private string? expirationMessage;
+
+    protected override async Task OnInitializedAsync()
     {
         AuthState.OnChange += StateHasChanged;
+
+        if (AuthState.IsLoggedIn && AuthState.UserRole == "Member")
+        {
+            var membership = await MembershipService.GetMyActiveMembershipAsync();
+
+            if (membership != null && membership.EndDate.HasValue && membership.EndDate > DateTime.Now)
+            {
+                hasActiveMembership = true;
+
+                var timeLeft = membership.EndDate.Value - DateTime.Now;
+
+                expirationMessage = timeLeft.TotalHours < 24
+                    ? $"Your pass expires in {Math.Ceiling(timeLeft.TotalHours)} hours"
+                    : $"Your pass expires in {Math.Ceiling(timeLeft.TotalDays)} days";
+            }
+
+        }
     }
 
     private async Task Logout()
