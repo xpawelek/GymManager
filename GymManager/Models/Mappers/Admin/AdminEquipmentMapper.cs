@@ -10,6 +10,7 @@ public partial class AdminEquipmentMapper
     //POST
     [MapperIgnoreTarget(nameof(Equipment.Id))]
     [MapperIgnoreTarget(nameof(Equipment.ServiceRequests))]
+    [MapperIgnoreTarget(nameof(Equipment.PhotoPath))]
     public partial Equipment ToEntity(CreateEquipmentDto dto);
     // GET ONE
     public partial ReadEquipmentDto ToReadDto(Equipment equipment);
