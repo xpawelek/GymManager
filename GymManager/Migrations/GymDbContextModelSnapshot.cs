@@ -109,8 +109,7 @@ namespace GymManager.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime?>("EndDate")
-                        .IsRequired()
+                    b.Property<DateTime>("EndDate")
                         .HasColumnType("datetime2");
 
                     b.Property<bool>("IsActive")
@@ -253,8 +252,8 @@ namespace GymManager.Migrations
                     b.Property<int?>("EquipmentId")
                         .HasColumnType("int");
 
-                    b.Property<string>("ImagePath")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<bool>("IsResolved")
+                        .HasColumnType("bit");
 
                     b.Property<string>("ProblemNote")
                         .IsRequired()
@@ -691,11 +690,9 @@ namespace GymManager.Migrations
 
             modelBuilder.Entity("GymManager.Models.Entities.ServiceRequest", b =>
                 {
-                    b.HasOne("GymManager.Models.Entities.Equipment", "Equipment")
+                    b.HasOne("GymManager.Models.Entities.Equipment", null)
                         .WithMany("ServiceRequests")
                         .HasForeignKey("EquipmentId");
-
-                    b.Navigation("Equipment");
                 });
 
             modelBuilder.Entity("GymManager.Models.Entities.Trainer", b =>

@@ -1,5 +1,4 @@
 ﻿using System.Security.Claims;
-using System.Text.Json;
 using GymManager.Models.Identity;
 using GymManager.Services.Admin;
 using GymManager.Services.Member;
@@ -13,93 +12,85 @@ using AdminUpdateDto = GymManager.Shared.DTOs.Admin.UpdateServiceRequestDto;
 using MemberCreateDto = GymManager.Shared.DTOs.Member.CreateServiceRequestDto;
 using TrainerCreateDto = GymManager.Shared.DTOs.Trainer.CreateServiceRequestDto;
 
-namespace GymManager.Controllers
+namespace GymManager.Controllers;
+
+[ApiController]
+[Route("api/service-requests")]
+[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+public class ServiceRequestsController : ControllerBase
 {
-    [ApiController]
-    [Route("api/service-requests")]
-    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
-    public class ServiceRequestsController : ControllerBase
+    private readonly AdminServiceRequestService _admin;
+    private readonly MemberServiceRequestService _member;
+    private readonly TrainerServiceRequestService _trainer;
+
+    public ServiceRequestsController(
+        AdminServiceRequestService admin,
+        MemberServiceRequestService member,
+        TrainerServiceRequestService trainer)
     {
-        private readonly AdminServiceRequestService _admin;
-        private readonly MemberServiceRequestService _member;
-        private readonly TrainerServiceRequestService _trainer;
+        _admin = admin;
+        _member = member;
+        _trainer = trainer;
+    }
 
-        public ServiceRequestsController(
-            AdminServiceRequestService admin,
-            MemberServiceRequestService member,
-            TrainerServiceRequestService trainer)
-        {
-            _admin = admin;
-            _member = member;
-            _trainer = trainer;
-        }
+    private string Role => User.FindFirstValue(ClaimTypes.Role)!;
 
-        private string Role => User.FindFirstValue(ClaimTypes.Role)!;
+    // get - admin
 
-        // GET all – tylko Admin
-        [HttpGet]
-        [Authorize(Roles = RoleConstants.Admin)]
-        public async Task<IActionResult> GetAll()
-        {
-            var list = await _admin.GetAllAsync();
-            return Ok(list);
-        }
+    [HttpGet]
+    [Authorize(Roles = RoleConstants.Admin)]
+    public async Task<IActionResult> GetAll()
+    {
+        var list = await _admin.GetAllAsync();
+        return Ok(list);
+    }
 
-        // GET by id – tylko Admin
-        [HttpGet("{id}")]
-        [Authorize(Roles = RoleConstants.Admin)]
-        public async Task<IActionResult> GetById(int id)
-        {
-            var dto = await _admin.GetByIdAsync(id);
-            return dto == null ? NotFound() : Ok(dto);
-        }
+    [HttpGet("{id}")]
+    [Authorize(Roles = RoleConstants.Admin)]
+    public async Task<IActionResult> GetById(int id)
+    {
+        var dto = await _admin.GetByIdAsync(id);
+        return dto is null ? NotFound() : Ok(dto);
+    }
 
-        // POST – Admin/Member/Trainer mogą zgłaszać
-        [HttpPost]
-        [Authorize(Roles = RoleConstants.Admin + "," + RoleConstants.Member + "," + RoleConstants.Trainer)]
-        public async Task<IActionResult> Create([FromBody] object rawDto)
-        {
-            switch (Role)
-            {
-                case RoleConstants.Admin:
-                    {
-                        var dto = JsonSerializer.Deserialize<AdminCreateDto>(rawDto.ToString()!)!;
-                        var r = await _admin.CreateAsync(dto);
-                        return CreatedAtAction(nameof(GetById), new { id = r.Id }, r);
-                    }
-                case RoleConstants.Member:
-                    {
-                        var dto = JsonSerializer.Deserialize<MemberCreateDto>(rawDto.ToString()!)!;
-                        var r = await _member.CreateAsync(dto);
-                        return Accepted(new { message = "Your request has been accepted." });
-                    }
-                case RoleConstants.Trainer:
-                    {
-                        var dto = JsonSerializer.Deserialize<TrainerCreateDto>(rawDto.ToString()!)!;
-                        var r = await _trainer.CreateAsync(dto);
-                        return Accepted(new { message = "Your request has been accepted." });
-                    }
-                default:
-                    return Forbid();
-            }
-        }
+    // put/delete - admin
 
-        // PATCH – tylko Admin
-        [HttpPatch("{id}")]
-        [Authorize(Roles = RoleConstants.Admin)]
-        public async Task<IActionResult> Patch(int id, [FromBody] AdminUpdateDto dto)
-        {
-            var ok = await _admin.PatchAsync(id, dto);
-            return ok ? NoContent() : NotFound();
-        }
+    [HttpPatch("{id}/toggle")]
+    [Authorize(Roles = RoleConstants.Admin)]
+    public async Task<IActionResult> ToggleResolved(int id)
+    {
+        var ok = await _admin.ToggleResolvedAsync(id);
+        return ok ? NoContent() : NotFound();
+    }
 
-        // DELETE – tylko Admin
-        [HttpDelete("{id}")]
-        [Authorize(Roles = RoleConstants.Admin)]
-        public async Task<IActionResult> Delete(int id)
-        {
-            var ok = await _admin.DeleteAsync(id);
-            return ok ? NoContent() : NotFound();
-        }
+    [HttpPatch("{id}")]
+    [Authorize(Roles = RoleConstants.Admin)]
+    public async Task<IActionResult> Patch(int id, [FromBody] AdminUpdateDto dto)
+    {
+        var ok = await _admin.PatchAsync(id, dto);
+        return ok ? NoContent() : NotFound();
+    }
+
+    [HttpDelete("{id}")]
+    [Authorize(Roles = RoleConstants.Admin)]
+    public async Task<IActionResult> Delete(int id)
+    {
+        var ok = await _admin.DeleteAsync(id);
+        return ok ? NoContent() : NotFound();
+    }
+
+    // post member/trainer
+
+    [HttpPost("member")]
+    [Authorize(Roles = $"{RoleConstants.Member},{RoleConstants.Trainer}")]
+    public async Task<IActionResult> CreateAsMember([FromBody] MemberCreateDto dto)
+    {
+        if (string.IsNullOrWhiteSpace(dto.ServiceProblemTitle) || string.IsNullOrWhiteSpace(dto.ProblemNote))
+            return BadRequest(new { message = "Missing required fields." });
+
+        var ok = await _member.CreateAsync(dto);
+        return ok
+            ? Accepted(new { message = "Your request has been accepted." })
+            : BadRequest(new { message = "Something went wrong." });
     }
 }
