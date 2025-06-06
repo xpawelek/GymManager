@@ -9,14 +9,12 @@ namespace GymManager.Shared.DTOs.Member
         [DataType(DataType.DateTime)]
         public DateTime StartTime { get; set; }
 
-        [Required(ErrorMessage = "Trainer ID is required.")]
-        [Range(1, int.MaxValue, ErrorMessage = "Trainer ID must be a positive number.")]
         public int TrainerId { get; set; }
 
         [StringLength(500, ErrorMessage = "Description must be at most 500 characters.")]
         public string? Description { get; set; }
 
-        [Required(ErrorMessage = "Group session flag is required.")]
+        //[Required(ErrorMessage = "Group session flag is required.")]
         public bool IsGroupSession { get; set; }
 
         public int? MemberId { get; set; }
