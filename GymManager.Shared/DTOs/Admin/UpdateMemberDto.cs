@@ -1,21 +1,9 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
+using GymManager.Shared.Validation;
 
 namespace GymManager.Shared.DTOs.Admin
 {
-    public class NotInFutureAttribute : ValidationAttribute
-    {
-        public override bool IsValid(object? value)
-        {
-            if (value is DateTime dateValue)
-            {
-                return dateValue.Date < DateTime.Today;
-            }
-
-            return true;
-        }
-    }
-
     public class UpdateMemberDto
     {
         [StringLength(50, ErrorMessage = "First name must be at most 50 characters.")]

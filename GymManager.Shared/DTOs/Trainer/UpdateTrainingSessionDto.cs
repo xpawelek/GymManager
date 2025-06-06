@@ -1,9 +1,10 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace GymManager.Shared.DTOs.Trainer;
-
-public class UpdateTrainingSessionDto
+namespace GymManager.Shared.DTOs.Trainer
 {
-    [StringLength(500)]
-    public string? Description { get; set; }
+    public class UpdateTrainingSessionDto
+    {
+        [StringLength(500, ErrorMessage = "Description must be at most 500 characters.")]
+        public string? Description { get; set; }
+    }
 }

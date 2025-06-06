@@ -12,6 +12,9 @@ namespace GymManager.Shared.DTOs.Admin
         [StringLength(250, ErrorMessage = "Problem note must be at most 250 characters.")]
         public string ProblemNote { get; set; }
 
+        [DataType(DataType.DateTime)]
+        public DateTime RequestDate { get; set; } = DateTime.Now;
+
         public string? ImagePath { get; set; }
 
         public int? EquipmentId { get; set; }
