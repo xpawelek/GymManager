@@ -14,7 +14,6 @@ namespace GymManager.Shared.DTOs.Member
         [StringLength(500, ErrorMessage = "Comment must be at most 500 characters.")]
         public string Comment { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Image path is required.")]
         public string ImagePath { get; set; } = string.Empty;
 
         public bool IsPublic { get; set; } = false;

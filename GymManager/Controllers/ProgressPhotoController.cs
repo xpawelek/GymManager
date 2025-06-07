@@ -55,24 +55,22 @@ namespace GymManager.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> GetPublic()
         {
-            if (!User.Identity.IsAuthenticated)
+            var role = User.FindFirstValue(ClaimTypes.Role);
+
+            if (string.IsNullOrEmpty(role))
             {
-                return Ok(await _member.GetAllPublic()); 
+                return Ok(await _member.GetAllPublic());
             }
-            
-            switch (Role)
+
+            return role switch
             {
-                case RoleConstants.Admin:
-                    return Ok(await _admin.GetAllPublic());
-                case RoleConstants.Member:
-                    return Ok(await _member.GetAllPublic());
-                case RoleConstants.Trainer:
-                    return Ok(await _trainer.GetAllPublic());
-                default:
-                    return Forbid();
-            }
+                RoleConstants.Admin => Ok(await _admin.GetAllPublic()),
+                RoleConstants.Member => Ok(await _member.GetAllPublic()),
+                RoleConstants.Trainer => Ok(await _trainer.GetAllPublic()),
+                _ => Forbid()
+            };
         }
-        
+
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
@@ -98,6 +96,31 @@ namespace GymManager.Controllers
         {
             var r = await _member.CreateAsync(dto);
             return CreatedAtAction(nameof(GetById), new { id = r.Id }, r);
+        }
+
+        [HttpPost("upload-photo")]
+        [Authorize(Roles = "Member")]
+        public async Task<IActionResult> UploadPhoto([FromForm] IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+                return BadRequest("No file uploaded");
+
+            var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
+            Directory.CreateDirectory(uploadsFolder);
+
+            var uniqueName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
+            var path = Path.Combine(uploadsFolder, uniqueName);
+
+            using (var stream = new FileStream(path, FileMode.Create))
+            {
+                await file.CopyToAsync(stream);
+            }
+
+            var relativePath = $"/uploads/{uniqueName}";
+            var baseUrl = $"{Request.Scheme}://{Request.Host}";
+            var fullUrl = $"{baseUrl.TrimEnd('/')}/{relativePath.TrimStart('/')}";
+
+            return Ok(new { path = fullUrl });
         }
 
         [HttpPatch("{id}")]

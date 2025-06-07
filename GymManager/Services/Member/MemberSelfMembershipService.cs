@@ -38,6 +38,24 @@ namespace GymManager.Services.Member
             return member.Id;
         }
 
+        public async Task<int> GetMemberIdAsync(string userId)
+        {
+            var member = await _context.Members
+                .FirstOrDefaultAsync(m => m.UserId == userId);
+
+            if (member == null)
+                throw new Exception("Member not found");
+
+            return member.Id;
+        }
+
+        public async Task<bool> HasOrHadAnyMembershipAsync()
+        {
+            var memberId = await GetCurrentMemberId();
+            return await _context.Memberships
+                .AnyAsync(m => m.MemberId == memberId);
+        }
+
         public async Task<ReadSelfMembershipDto> CreateSelfMembership(CreateSelfMembershipDto selfMembershipDto)
         {
             var memberId = await GetCurrentMemberId();

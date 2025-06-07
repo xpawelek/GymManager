@@ -1,6 +1,11 @@
 ﻿@page "/progress"
 @inject HttpClient Http
+@inject AuthStateService AuthState
+@inject ProgressPhotoService ProgressService
+@inject MembershipService MembershipService
+@inject MemberService MemberService
 
+@using GymManager.Shared.DTOs.Member;
 @using GymManager.Client.Components
 @using GymManager.Client.Services
 
@@ -14,7 +19,60 @@
             Progress <span style="color: #e01b1b">Gallery</span>
         </h2>
 
-        <p class="text-center fst-italic text-muted mb-5" style="font-size: 1.2rem;">
+        @if (AuthState.UserRole == "Member" && hasOrHadMembership)
+        {
+            <div class="text-center mb-4">
+                <button class="btn btn-danger" @onclick="ToggleUploadForm">Brag about your achievements</button>
+            </div>
+        }
+
+        @if (showUploadForm)
+        {
+            <div class="border border-danger p-4 rounded mb-4">
+                <EditForm Model="uploadModel" OnValidSubmit="HandleUpload">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary />
+
+                    @if (!string.IsNullOrEmpty(errorMessage))
+                    {
+                        <p class="text-danger">@errorMessage</p>
+                    }
+
+                    <div class="mb-3">
+                        <InputFile OnChange="OnFileSelected" />
+                    </div>
+
+                    <div class="mb-3">
+                        <InputTextArea class="form-control" @bind-Value="uploadModel.Comment" placeholder="Optional comment..." />
+                    </div>
+
+                    <div class="form-check mb-3">
+                        <InputCheckbox class="form-check-input" @bind-Value="uploadModel.IsPublic" />
+                        <label class="form-check-label">Make public</label>
+                    </div>
+
+                    <button class="btn btn-success" type="submit">Upload</button>
+                </EditForm>
+            </div>
+        }
+
+        @if (editPhotoId != null)
+        {
+            <div class="border border-primary p-4 rounded mb-4">
+                <h5>Edit Progress Photo</h5>
+                <InputTextArea class="form-control mb-2" @bind-Value="editPhotoDto.Comment" placeholder="Update comment..." />
+                <div class="form-check mb-3">
+                    <InputCheckbox class="form-check-input" @bind-Value="editPhotoDto.IsPublic" />
+                    <label class="form-check-label">Make public</label>
+                </div>
+                <div class="d-flex justify-content-end">
+                    <button class="btn btn-secondary me-2" @onclick="CancelEdit">Cancel</button>
+                    <button class="btn btn-primary" @onclick="SaveEdit">Save Changes</button>
+                </div>
+            </div>
+        }
+
+        <p class="text-center fst-italic text-muted mb-5 mt-4" style="font-size: 1.2rem;">
             "Success doesn’t come from what you do occasionally, it comes from what you do consistently." ~Marie Forleo
         </p>
 
@@ -24,7 +82,7 @@
         }
         else if (!photos.Any())
         {
-            <p class="text-center">No public progress photos available.</p>
+            <p class="text-center">You haven't uploaded any progress photos yet.</p>
         }
         else
         {
@@ -33,18 +91,31 @@
                 {
                     <div class="col">
                         <div class="card shadow h-100">
-                            <img src="@photo.ImagePath" class="card-img-top" alt="Progress photo" style="height: 300px; object-fit: cover;" />
+                            <img src="@photo.ImagePath" class="card-img-top" />
                             <div class="card-body">
-                                <h5 class="card-title">@photo.FirstName</h5>
                                 <p class="card-text"><strong>Date:</strong> @photo.Date.ToShortDateString()</p>
+
                                 @if (!string.IsNullOrWhiteSpace(photo.Comment))
                                 {
                                     <p class="card-text"><em>@photo.Comment</em></p>
+                                }
+
+                                <p class="card-text">
+                                    <strong>Public:</strong> @(photo.IsPublic ? "Yes" : "No")
+                                </p>
+
+                                @if (AuthState.UserRole == "Member" && photo.MemberId == currentMemberId)
+                                {
+                                    <div class="mt-3 d-flex justify-content-between">
+                                        <button class="btn btn-sm btn-outline-primary" @onclick="(() => EditPhoto(photo))">Edit</button>
+                                        <button class="btn btn-sm btn-outline-danger" @onclick="(() => DeletePhoto(photo.Id))">Delete</button>
+                                    </div>
                                 }
                             </div>
                         </div>
                     </div>
                 }
+
             </div>
         }
     </div>
@@ -53,18 +124,118 @@
 <Footer />
 
 @code {
-    private List<ProgressPhotoDto>? photos;
+    private List<ReadProgressPhotoDto>? photos;
+    private bool showUploadForm = false;
+    private CreateProgressPhotoDto uploadModel = new();
+    private IBrowserFile? selectedFile;
+    private string? errorMessage;
+    private bool hasOrHadMembership;
+    private int currentMemberId;
+    private UpdateProgressPhotoDto editPhotoDto = new();
+    private int? editPhotoId = null;
 
     protected override async Task OnInitializedAsync()
     {
-        photos = await Http.GetFromJsonAsync<List<ProgressPhotoDto>>("api/progress-photos/public");
+        Console.WriteLine("UserRole: " + AuthState.UserRole);
+
+        if (AuthState.UserRole == "Member")
+        {
+            try
+            {
+                hasOrHadMembership = await MembershipService.HasOrHadAnyMembershipAsync();
+            }
+            catch
+            {
+                hasOrHadMembership = false;
+            }
+
+            var mine = await ProgressService.GetMineAsync() ?? new();
+            var publicPhotos = await ProgressService.GetPublicAsync() ?? new();
+
+            photos = mine.UnionBy(publicPhotos, p => p.Id).ToList();
+
+            try
+            {
+                var profile = await MemberService.GetSelfAsync();
+                currentMemberId = profile.Id;
+            }
+            catch
+            {
+                currentMemberId = -1;
+            }
+        }
+        else
+        {
+            photos = await ProgressService.GetPublicAsync();
+            currentMemberId = -1;
+        }
     }
 
-    public class ProgressPhotoDto
+    private void ToggleUploadForm() => showUploadForm = !showUploadForm;
+
+    private void OnFileSelected(InputFileChangeEventArgs e) => selectedFile = e.File;
+
+    private async Task HandleUpload()
     {
-        public string ImagePath { get; set; } = string.Empty;
-        public string? Comment { get; set; }
-        public string FirstName { get; set; } = string.Empty;
-        public DateTime Date { get; set; }
+        if (selectedFile == null)
+        {
+            errorMessage = "Image is required.";
+            return;
+        }
+
+        var path = await ProgressService.UploadFileAsync(selectedFile);
+        if (path is null)
+        {
+            errorMessage = "Image upload failed.";
+            return;
+        }
+
+        uploadModel.ImagePath = path;
+        await ProgressService.CreateAsMemberAsync(uploadModel);
+        errorMessage = null;
+        showUploadForm = false;
+        uploadModel = new();
+        selectedFile = null;
+
+        await OnInitializedAsync();
+    }
+
+    private async Task DeletePhoto(int id)
+    {
+        var success = await ProgressService.DeleteAsync(id);
+        if (success)
+        {
+            photos = photos?.Where(p => p.Id != id).ToList();
+            StateHasChanged();
+        }
+    }
+
+    private void EditPhoto(ReadProgressPhotoDto photo)
+    {
+        editPhotoId = photo.Id;
+        editPhotoDto = new UpdateProgressPhotoDto
+            {
+                Comment = photo.Comment,
+                IsPublic = photo.IsPublic
+            };
+    }
+
+    private void CancelEdit()
+    {
+        editPhotoId = null;
+        editPhotoDto = new();
+    }
+
+    private async Task SaveEdit()
+    {
+        if (editPhotoId == null) return;
+
+        var success = await ProgressService.PatchAsMemberAsync(editPhotoId.Value, editPhotoDto);
+        if (success)
+        {
+            editPhotoId = null;
+            editPhotoDto = new();
+            await OnInitializedAsync();
+        }
     }
 }

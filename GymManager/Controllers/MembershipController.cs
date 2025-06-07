@@ -56,6 +56,19 @@ namespace GymManager.Controllers
             return dto == null ? NotFound() : Ok(dto);
         }
 
+        [HttpGet("has-or-had")]
+        [Authorize(Roles = RoleConstants.Member)]
+        public async Task<IActionResult> HasOrHadAny()
+        {
+            var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userIdStr == null)
+                return Unauthorized();
+
+            var userId = Guid.Parse(userIdStr);
+            var has = await _member.HasOrHadAnyMembershipAsync();
+            return Ok(has);
+        }
+
         [HttpPost]
         [Authorize(Roles = RoleConstants.Admin + "," + RoleConstants.Member)]
         public async Task<IActionResult> Create([FromBody] object raw)
