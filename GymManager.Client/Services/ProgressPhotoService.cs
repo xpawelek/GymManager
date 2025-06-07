@@ -5,11 +5,11 @@ using System.Text.Json;
 using GymManager.Shared.DTOs.Admin;
 using GymManager.Shared.DTOs.Member;
 using GymManager.Shared.DTOs.Trainer;
+using Microsoft.AspNetCore.Components.Forms;
 
 using MReadDto = GymManager.Shared.DTOs.Member.ReadProgressPhotoDto;
 using AReadDto = GymManager.Shared.DTOs.Admin.ReadProgressPhotoDto;
 using AUpdateDto = GymManager.Shared.DTOs.Admin.UpdateProgressPhotoDto;
-
 
 namespace GymManager.Client.Services
 {
@@ -23,36 +23,39 @@ namespace GymManager.Client.Services
         }
 
         // [GET] /api/progress-photos
-        // Admin / Member / Trainer
-        public async Task<List<object>?> GetAllAsync()
+        // Admin / Trainer
+        public async Task<List<AReadDto>?> GetAllAsync()
         {
-            return await _http.GetFromJsonAsync<List<object>>("api/progress-photos");
+            return await _http.GetFromJsonAsync<List<AReadDto>>("api/progress-photos");
+        }
+
+        // [GET] /api/progress-photos (member)
+        public async Task<List<MReadDto>?> GetMineAsync()
+        {
+            return await _http.GetFromJsonAsync<List<MReadDto>>("api/progress-photos");
         }
 
         // [GET] /api/progress-photos/public
         // Public + wszystkie role
-        public async Task<List<object>?> GetPublicAsync()
+        public async Task<List<MReadDto>?> GetPublicAsync()
         {
-            return await _http.GetFromJsonAsync<List<object>>("api/progress-photos/public");
+            return await _http.GetFromJsonAsync<List<MReadDto>>("api/progress-photos/public");
         }
 
         // [GET] /api/progress-photos/{id}
-        // Admin / Member / Trainer
-        public async Task<object?> GetByIdAsync(int id)
+        public async Task<MReadDto?> GetByIdAsync(int id)
         {
-            return await _http.GetFromJsonAsync<object>($"api/progress-photos/{id}");
+            return await _http.GetFromJsonAsync<MReadDto>($"api/progress-photos/{id}");
         }
 
         // [POST] /api/progress-photos
-        // Member
         public async Task<MReadDto?> CreateAsMemberAsync(CreateProgressPhotoDto dto)
         {
             var response = await _http.PostAsJsonAsync("api/progress-photos", dto);
             return await response.Content.ReadFromJsonAsync<MReadDto>();
         }
 
-        // [PATCH] /api/progress-photos/{id}
-        // Admin
+        // [PATCH] /api/progress-photos/{id} (admin)
         public async Task<bool> PatchAsAdminAsync(int id, AUpdateDto dto)
         {
             var json = JsonSerializer.Serialize(dto);
@@ -60,8 +63,7 @@ namespace GymManager.Client.Services
             return response.IsSuccessStatusCode;
         }
 
-        // [PATCH] /api/progress-photos/{id}
-        // Member
+        // [PATCH] /api/progress-photos/{id} (member)
         public async Task<bool> PatchAsMemberAsync(int id, GymManager.Shared.DTOs.Member.UpdateProgressPhotoDto dto)
         {
             var json = JsonSerializer.Serialize(dto);
@@ -70,11 +72,39 @@ namespace GymManager.Client.Services
         }
 
         // [DELETE] /api/progress-photos/{id}
-        // Admin / Member
         public async Task<bool> DeleteAsync(int id)
         {
             var response = await _http.DeleteAsync($"api/progress-photos/{id}");
             return response.IsSuccessStatusCode;
+        }
+
+        // [POST] /api/progress-photos/upload-photo
+        public async Task<string?> UploadFileAsync(IBrowserFile file)
+        {
+            try
+            {
+                var content = new MultipartFormDataContent();
+                var fileContent = new StreamContent(file.OpenReadStream(10 * 1024 * 1024));
+                content.Add(fileContent, "file", file.Name);
+
+                var response = await _http.PostAsync("api/progress-photos/upload-photo", content);
+                if (!response.IsSuccessStatusCode)
+                    return null;
+
+                var result = await response.Content.ReadFromJsonAsync<Dictionary<string, string>>();
+                return result?["path"];
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Upload error: {ex.Message}");
+                return null;
+            }
+        }
+
+        public async Task<MReadDto?> CreateFromUploadedAsync(CreateProgressPhotoDto dto)
+        {
+            var response = await _http.PostAsJsonAsync("api/progress-photos", dto);
+            return await response.Content.ReadFromJsonAsync<MReadDto>();
         }
     }
 }

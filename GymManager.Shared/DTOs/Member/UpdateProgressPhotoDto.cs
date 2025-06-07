@@ -9,6 +9,6 @@ namespace GymManager.Shared.DTOs.Member
 
         public string? ImagePath { get; set; }
 
-        public bool? IsPublic { get; set; }
+        public bool IsPublic { get; set; }
     }
 }

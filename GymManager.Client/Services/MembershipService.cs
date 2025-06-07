@@ -55,6 +55,13 @@ namespace GymManager.Client.Services
             }
         }
 
+        // [get] czy ma/mial karnet aktywny
+        public async Task<bool> HasOrHadAnyMembershipAsync()
+        {
+            var result = await _http.GetFromJsonAsync<bool>("api/memberships/has-or-had");
+            return result;
+        }
+
         // [POST] /api/memberships
         // Admin / Member
         public async Task<ReadMembershipDto?> CreateAsAdminAsync(CreateMembershipDto dto)

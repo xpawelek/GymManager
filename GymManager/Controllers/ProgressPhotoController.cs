@@ -100,6 +100,31 @@ namespace GymManager.Controllers
             return CreatedAtAction(nameof(GetById), new { id = r.Id }, r);
         }
 
+        [HttpPost("upload-photo")]
+        [Authorize(Roles = "Member")]
+        public async Task<IActionResult> UploadPhoto([FromForm] IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+                return BadRequest("No file uploaded");
+
+            var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
+            Directory.CreateDirectory(uploadsFolder);
+
+            var uniqueName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
+            var path = Path.Combine(uploadsFolder, uniqueName);
+
+            using (var stream = new FileStream(path, FileMode.Create))
+            {
+                await file.CopyToAsync(stream);
+            }
+
+            var relativePath = $"/uploads/{uniqueName}";
+            var baseUrl = $"{Request.Scheme}://{Request.Host}";
+            var fullUrl = $"{baseUrl.TrimEnd('/')}/{relativePath.TrimStart('/')}";
+
+            return Ok(new { path = fullUrl });
+        }
+
         [HttpPatch("{id}")]
         public async Task<IActionResult> Patch(int id, [FromBody] object raw)
         {

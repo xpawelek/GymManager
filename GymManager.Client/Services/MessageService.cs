@@ -8,7 +8,6 @@ using GymManager.Shared.DTOs.Trainer;
 using MReadDto = GymManager.Shared.DTOs.Member.ReadSelfMessageDto;
 using TReadDto = GymManager.Shared.DTOs.Trainer.ReadSelfMessageDto;
 
-
 namespace GymManager.Client.Services
 {
     public class MessageService
@@ -21,17 +20,31 @@ namespace GymManager.Client.Services
         }
 
         // [GET] /api/messages
-        // Admin / Member / Trainer
-        public async Task<List<object>?> GetAllAsync()
+        // Member
+        public async Task<List<MReadDto>?> GetAllAsMemberAsync()
         {
-            return await _http.GetFromJsonAsync<List<object>>("api/messages");
+            return await _http.GetFromJsonAsync<List<MReadDto>>("api/messages");
+        }
+
+        // [GET] /api/messages
+        // Trainer
+        public async Task<List<TReadDto>?> GetAllAsTrainerAsync()
+        {
+            return await _http.GetFromJsonAsync<List<TReadDto>>("api/messages");
         }
 
         // [GET] /api/messages/{id}
-        // Admin / Member / Trainer
-        public async Task<object?> GetByIdAsync(int id)
+        // Member
+        public async Task<MReadDto?> GetByIdAsMemberAsync(int id)
         {
-            return await _http.GetFromJsonAsync<object>($"api/messages/{id}");
+            return await _http.GetFromJsonAsync<MReadDto>($"api/messages/{id}");
+        }
+
+        // [GET] /api/messages/{id}
+        // Trainer
+        public async Task<TReadDto?> GetByIdAsTrainerAsync(int id)
+        {
+            return await _http.GetFromJsonAsync<TReadDto>($"api/messages/{id}");
         }
 
         // [POST] /api/messages
