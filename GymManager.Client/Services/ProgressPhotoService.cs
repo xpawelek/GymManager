@@ -41,6 +41,12 @@ namespace GymManager.Client.Services
         {
             return await _http.GetFromJsonAsync<List<MReadDto>>("api/progress-photos/public");
         }
+        
+        // [get] dla trainera
+        public async Task<List<MReadDto>?> GetAssignedMembersPhotosAsync()
+        {
+            return await _http.GetFromJsonAsync<List<MReadDto>>("api/progress-photos/assigned-members");
+        }
 
         // [GET] /api/progress-photos/{id}
         public async Task<MReadDto?> GetByIdAsync(int id)

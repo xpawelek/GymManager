@@ -164,10 +164,15 @@
                 currentMemberId = -1;
             }
         }
+        else if (AuthState.UserRole == "Trainer")
+        {
+            photos = await ProgressService.GetAssignedMembersPhotosAsync() ?? new();
+            currentMemberId = -1; //trener nie potrzebuje swojego id
+        }
         else
         {
             photos = await ProgressService.GetPublicAsync();
-            currentMemberId = -1;
+            currentMemberId = -1; //brak wlasnych zdjec
         }
     }
 
