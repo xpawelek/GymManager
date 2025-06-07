@@ -41,16 +41,35 @@ namespace GymManager.Services.Trainer
         public async Task<List<ReadProgressPhotoDto>> GetAllAsync()
         {
             var trainerId = await GetCurrentTrainerIdAsync();
+
             var memberIds = await _context.TrainerAssignments
-                .Where(ta => ta.TrainerId == trainerId && ta.IsActive)
+                .Where(ta => ta.TrainerId == trainerId)
                 .Select(ta => ta.MemberId)
+                .Distinct()
                 .ToListAsync();
 
             var list = await _context.ProgressPhotos
-                .Where(p => p.IsPublic && memberIds.Contains(p.MemberId))
+                .Where(p => p.IsPublic || memberIds.Contains(p.MemberId))
                 .ToListAsync();
 
             return _mapper.ToReadDtoList(list);
+        }
+
+        public async Task<List<ReadProgressPhotoDto>> GetAssignedMembersPhotosAsync()
+        {
+            var trainerId = await GetCurrentTrainerIdAsync();
+
+            var memberIds = await _context.TrainerAssignments
+                .Where(ta => ta.TrainerId == trainerId)
+                .Select(ta => ta.MemberId)
+                .Distinct()
+                .ToListAsync();
+
+            var photos = await _context.ProgressPhotos
+                .Where(p => memberIds.Contains(p.MemberId))
+                .ToListAsync();
+
+            return _mapper.ToReadDtoList(photos);
         }
 
         public async Task<List<ReadProgressPhotoDto>> GetAllPublic()
@@ -71,8 +90,7 @@ namespace GymManager.Services.Trainer
 
             var allowed = await _context.TrainerAssignments
                 .AnyAsync(ta => ta.TrainerId == trainerId
-                              && ta.MemberId == entity.MemberId
-                              && ta.IsActive);
+                              && ta.MemberId == entity.MemberId);
 
             if (!allowed)
                 return null!;

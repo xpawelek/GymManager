@@ -90,6 +90,13 @@ namespace GymManager.Controllers
             }
         }
 
+        [HttpGet("assigned-members")]
+        [Authorize(Roles = RoleConstants.Trainer)]
+        public async Task<IActionResult> GetAssignedMembersPhotos()
+        {
+            return Ok(await _trainer.GetAssignedMembersPhotosAsync());
+        }
+
         [HttpPost]
         [Authorize(Roles = RoleConstants.Member)]
         public async Task<IActionResult> Create([FromBody] MemberCreateDto dto)
