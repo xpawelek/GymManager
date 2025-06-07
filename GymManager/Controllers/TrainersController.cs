@@ -73,6 +73,7 @@ namespace GymManager.Controllers
             {
                 await file.CopyToAsync(stream);
 
+            }
 
             var relativePath = $"/uploads/{fileName}";
             var baseUrl = $"{Request.Scheme}://{Request.Host}";

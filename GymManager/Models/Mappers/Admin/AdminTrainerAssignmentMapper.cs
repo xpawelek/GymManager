@@ -15,7 +15,8 @@ public partial class AdminTrainerAssignmentMapper
     public partial TrainerAssignments ToEntity(CreateTrainerAssignmentDto dto);
     // GET ONE
     [MapperIgnoreSource(nameof(TrainerAssignments.Member))]
-    [MapperIgnoreSource(nameof(TrainerAssignments.Trainer))]
+    [MapProperty("Trainer.FirstName", "TrainerFirstName")]
+    [MapProperty("Trainer.LastName", "TrainerSecondName")]
     public partial ReadTrainerAssignmentDto ToReadDto(TrainerAssignments trainerAssignments);
     //GET ALL
     public partial List<ReadTrainerAssignmentDto> ToReadDtoList(List<TrainerAssignments> trainerAssignments);

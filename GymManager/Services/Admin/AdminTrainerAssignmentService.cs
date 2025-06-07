@@ -24,9 +24,11 @@ namespace GymManager.Services.Admin
             return _mapper.ToReadDtoList(list);
         }
 
-        public async Task<ReadTrainerAssignmentDto?> GetByIdAsync(int id)
+        public async Task<ReadTrainerAssignmentDto?> GetByMemberIdAsync(int id)
         {
-            var e = await _context.TrainerAssignments.FindAsync(id);
+            var e = await _context.TrainerAssignments
+                .Include(t => t.Trainer)
+                .FirstOrDefaultAsync(a => a.MemberId == id && a.IsActive == true);
             return e is null ? null : _mapper.ToReadDto(e);
         }
 

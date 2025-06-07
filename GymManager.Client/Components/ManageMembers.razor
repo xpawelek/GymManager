@@ -4,9 +4,16 @@
 @using GymManager.Client.Services
 @using GymManager.Shared.DTOs.Admin
 @using GymManager.Shared.DTOs.Member
+@using CreateTrainerAssignmentDto = GymManager.Shared.DTOs.Admin.CreateTrainerAssignmentDto
+@using ReadTrainerDto = GymManager.Shared.DTOs.Admin.ReadTrainerDto
+@using ReadTrainingSessionDto = GymManager.Shared.DTOs.Admin.ReadTrainingSessionDto
+@using UpdateTrainingSessionDto = GymManager.Shared.DTOs.Admin.UpdateTrainingSessionDto
 @inject MemberService MemberService
 @inject MembershipService MembershipService
 @inject MembershipTypeService MembershipTypeService
+@inject TrainerAssignmentService TrainerAssignmentService
+@inject TrainerService TrainerService
+@inject TrainingSessionService TrainingSessionService
 @inject IJSRuntime JS
 
 <div class="card shadow-sm p-4">
@@ -163,15 +170,69 @@
                 }
                 @if (_selectedMemberMembership != null)
                 {
-                    <div class="m-3 mb-4">
-                        <h5 class="text-secondary">Trainer Assignment</h5>
-                        <div class="p-2">
-                            <p>Assigned Trainer: <em>[not loaded yet]</em></p>
-                            <button class="btn btn-sm btn-outline-primary">Change Trainer</button>
-                        </div>
-                    </div>
 
-                    <div class="m-3 mb-4">
+                    <div class="m-3 mb-4 mt-4">
+                        <h5 class="text-secondary">Trainer Assignment</h5>
+
+                        @if (_selectedMemberTrainerAssignemnt != null)
+                        {
+                            <div class="p-2">
+                                <p>Assigned Trainer:
+                                    <strong>@_selectedMemberTrainerAssignemnt.TrainerFirstName @_selectedMemberTrainerAssignemnt.TrainerSecondName</strong>
+                                </p>
+                                <p>Status:
+                                    <strong class="text-success">
+                                        @(_selectedMemberTrainerAssignemnt.IsActive ? "Active" : "Inactive")
+                                    </strong>
+                                </p>
+                                <p>Start: @_selectedMemberTrainerAssignemnt.StartDate?.ToString("dd.MM.yyyy HH:mm")</p>
+                                <p>End: @_selectedMemberTrainerAssignemnt.EndDate?.ToString("dd.MM.yyyy HH:mm")</p>
+
+                                <button class="btn btn-sm btn-outline-primary me-2" @onclick="EditAssignment">Change Trainer</button>
+                                <button class="btn btn-sm btn-outline-danger"  @onclick="() => DeleteAssignment(_selectedMemberTrainerAssignemnt.Id)">Delete</button>
+                            </div>
+                        }
+                        else
+                        {
+                            @if (!_showAssignmentForm)
+                            {
+                                <div class="p-3 bg-light rounded border">
+                                    <p class="text-muted mb-2">No trainer assignment.</p>
+                                    <button class="btn btn-sm btn-outline-primary" @onclick="InitializeCreateAssignment">
+                                        Assign trainer
+                                    </button>
+                                </div>
+                            }
+                        }
+                    </div>
+                    @if (_showAssignmentForm)
+                    {
+                        <EditForm class="mx-3" Model="@_newAssignment" OnValidSubmit="SaveAssignment">
+                            <DataAnnotationsValidator />
+                            <ValidationSummary />
+                            <p>id membera : @_selectedMemberId.Value</p>
+                            <div class="mb-3">
+                                <label class="form-label">Trainer</label>
+                                <select class="form-select" @bind="_newAssignment.TrainerId">
+                                    <option value="">-- Select type --</option>
+                                    @foreach (var type in _trainers)
+                                    {
+                                        <option value="@type.Id">@type.FirstName @type.LastName</option>
+                                    }
+                                </select>
+                                <ValidationMessage For="@(() => _newAssignment.TrainerId)" />
+                            </div>
+
+                            <div class="d-flex justify-content-end gap-2">
+                                <button class="btn btn-secondary btn-sm" type="button" @onclick="CancelCreateAssignment">Cancel</button>
+                                <button class="btn btn-primary btn-sm" type="submit">
+                                    @(_selectedMemberTrainerAssignemnt == null ? "Create" : "Update")
+                                </button>
+                            </div>
+                        </EditForm>
+                    }
+                    
+                    <div class="m-3 mb-4" style="display: none">
                         <h5 class="text-secondary">Messages with Trainers</h5>
                         <div class="p-2">
                             <p><em>Message threads will be shown here per trainer.</em></p>
@@ -204,7 +265,12 @@
     private ReadMembershipDto? _selectedMemberMembership;
     private CreateMembershipDto _newMembership = new();
     private List<Shared.DTOs.Member.ReadMembershipTypeDto> _membershipTypes = new();
+    private List<ReadTrainerDto> _trainers = new();
     private bool _showMembershipForm = false;
+    private ReadTrainerAssignmentDto? _selectedMemberTrainerAssignemnt;
+    private bool _showAssignmentForm = new();
+    private CreateTrainerAssignmentDto _newAssignment = new();
+    private List<ReadTrainingSessionDto> _personalTrainings = new();
     
     private IEnumerable<ReadMemberDto> FilteredMembers =>
         string.IsNullOrWhiteSpace(_search)
@@ -219,6 +285,7 @@
     {
         await LoadMembers();
         _membershipTypes = await MembershipTypeService.GetAllAsync() ?? new();
+        _trainers = await TrainerService.GetAllAdminAsync() ?? new List<ReadTrainerDto>();
     }
 
     private async Task LoadMembers()
@@ -240,6 +307,8 @@
         _registerDto = new RegisterMemberDto();
         _editId = null;
         _showForm = false;
+        _showAssignmentForm = false;
+        _showMembershipForm = false;
         _errorMessage = "";
     }
 
@@ -312,6 +381,14 @@
         _selectedMemberMembership = null;
         StateHasChanged(); 
     }
+    
+    private async Task DeleteAssignment(int id)
+    {
+        await TrainerAssignmentService.DeleteAdminAsync(id);
+
+        _selectedMemberTrainerAssignemnt = null;
+        StateHasChanged(); 
+    }
 
     private async void SelectedMember(int id)
     {
@@ -327,6 +404,15 @@
             catch(HttpRequestException)
             {
                 _selectedMemberMembership = null;
+            }
+
+            try
+            {
+                _selectedMemberTrainerAssignemnt = await TrainerAssignmentService.GetByMemberIdAdminAsync(_selectedMemberId.Value);
+            }
+            catch (HttpRequestException)
+            {
+                _selectedMemberTrainerAssignemnt = null;
             }
         }
         
@@ -375,6 +461,50 @@
             Console.WriteLine($"Error creating membership: {ex.Message}");
         }
     }
+
+    private async Task SaveAssignment()
+    {
+        if (_selectedMemberId is null || _selectedMemberMembership is null)
+        {
+            return;
+        }
+
+        _newAssignment.MemberId = _selectedMemberId.Value;
+        _newAssignment.StartDate = _selectedMemberMembership.StartDate;
+
+        try
+        {
+            if (_selectedMemberTrainerAssignemnt is null)
+            {
+                var created = await TrainerAssignmentService.CreateAdminAsync(_newAssignment);
+                
+                if (created is not null)
+                {
+                    _selectedMemberTrainerAssignemnt = created; 
+                }
+            }
+            else
+            {
+                var updateDto = new UpdateTrainerAssignmentsDto
+                {
+                    TrainerId = _newAssignment.TrainerId
+                };
+
+                await TrainerAssignmentService.PatchAdminAsync(_selectedMemberTrainerAssignemnt.Id, updateDto);
+                _selectedMemberTrainerAssignemnt = await TrainerAssignmentService.GetByMemberIdAdminAsync(_selectedMemberId.Value);
+            }
+
+            _showAssignmentForm = false;
+            _newAssignment = new CreateTrainerAssignmentDto();
+            SelectedMember(_selectedMemberId.Value);
+            StateHasChanged(); 
+            
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error creating trainer assignment: {ex.Message}");
+        }
+    }
     
     private void EditMembership()
     {
@@ -390,6 +520,21 @@
 
         _showMembershipForm = true;
     }
+
+    private void EditAssignment()
+    {
+        if (_selectedMemberTrainerAssignemnt == null)
+            return;
+
+        _newAssignment = new CreateTrainerAssignmentDto()
+        {
+            MemberId = _selectedMemberTrainerAssignemnt.MemberId,
+            TrainerId = _selectedMemberTrainerAssignemnt.TrainerId,
+            StartDate = _selectedMemberTrainerAssignemnt.StartDate
+        };
+
+        _showAssignmentForm = true;
+    }
     
     private void CancelCreateMembership()
     {
@@ -398,6 +543,31 @@
         {
             StartDate = DateTime.Now
         };
+    }
+    
+    private void CancelCreateAssignment()
+    {
+        _showAssignmentForm = false;
+        _newAssignment = new CreateTrainerAssignmentDto();
+    }
+    
+    private void InitializeCreateAssignment()
+    {
+        if (_selectedMemberId is null)
+            return;
+
+        _newAssignment = new CreateTrainerAssignmentDto
+        {
+            MemberId = _selectedMemberId.Value,
+            StartDate = _selectedMemberMembership?.StartDate
+        };
+
+        _showAssignmentForm = true;
+    }
+    
+    private async Task LoadPersonalTrainings()
+    {
+       
     }
 }
 

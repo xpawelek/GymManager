@@ -29,7 +29,7 @@ namespace GymManager.Client.Services
 
         // [GET] /api/trainer-assignments/{id}
         // Admin
-        public async Task<ReadTrainerAssignmentDto?> GetByIdAdminAsync(int id)
+        public async Task<ReadTrainerAssignmentDto?> GetByMemberIdAdminAsync(int id)
         {
             return await _http.GetFromJsonAsync<ReadTrainerAssignmentDto>($"api/trainer-assignments/{id}");
         }
@@ -39,8 +39,12 @@ namespace GymManager.Client.Services
         public async Task<ReadTrainerAssignmentDto?> CreateAdminAsync(ACreateDto dto)
         {
             var response = await _http.PostAsJsonAsync("api/trainer-assignments", dto);
-            return await response.Content.ReadFromJsonAsync<ReadTrainerAssignmentDto>();
+            return response.IsSuccessStatusCode ? await response.Content.ReadFromJsonAsync<ReadTrainerAssignmentDto>() 
+                : null;
         }
+
+        
+        
 
         // [PATCH] /api/trainer-assignments/{id}
         // Admin
