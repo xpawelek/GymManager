@@ -37,11 +37,11 @@ namespace GymManager.Controllers
         public async Task<IActionResult> GetAllAdmin()
             => Ok(await _admin.GetAllAsync());
 
-        [HttpGet("{id}")]
+        [HttpGet("{memberId}")]
         [Authorize(Roles = RoleConstants.Admin)]
-        public async Task<IActionResult> GetByIdAdmin(int id)
+        public async Task<IActionResult> GetByIdAdmin(int memberId)
         {
-            var dto = await _admin.GetByIdAsync(id);
+            var dto = await _admin.GetByMemberIdAsync(memberId);
             return dto == null ? NotFound() : Ok(dto);
         }
 

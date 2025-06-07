@@ -72,7 +72,7 @@ namespace GymManager.Client.Services
             if (!response.IsSuccessStatusCode)
             {
                 var content = await response.Content.ReadAsStringAsync();
-                Console.WriteLine("CreateAsMemberAsync failed: " + content); // lub loguj w inny sposób
+                Console.WriteLine("CreateAsMemberAsync failed: " + content); 
                 return null;
             }
 
