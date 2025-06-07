@@ -55,24 +55,22 @@ namespace GymManager.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> GetPublic()
         {
-            if (!User.Identity.IsAuthenticated)
+            var role = User.FindFirstValue(ClaimTypes.Role);
+
+            if (string.IsNullOrEmpty(role))
             {
-                return Ok(await _member.GetAllPublic()); 
+                return Ok(await _member.GetAllPublic());
             }
-            
-            switch (Role)
+
+            return role switch
             {
-                case RoleConstants.Admin:
-                    return Ok(await _admin.GetAllPublic());
-                case RoleConstants.Member:
-                    return Ok(await _member.GetAllPublic());
-                case RoleConstants.Trainer:
-                    return Ok(await _trainer.GetAllPublic());
-                default:
-                    return Forbid();
-            }
+                RoleConstants.Admin => Ok(await _admin.GetAllPublic()),
+                RoleConstants.Member => Ok(await _member.GetAllPublic()),
+                RoleConstants.Trainer => Ok(await _trainer.GetAllPublic()),
+                _ => Forbid()
+            };
         }
-        
+
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {

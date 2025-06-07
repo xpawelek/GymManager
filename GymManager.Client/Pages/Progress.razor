@@ -136,12 +136,24 @@
 
     protected override async Task OnInitializedAsync()
     {
-        Console.WriteLine(AuthState.UserRole);
-        hasOrHadMembership = await MembershipService.HasOrHadAnyMembershipAsync();
+        Console.WriteLine("UserRole: " + AuthState.UserRole);
 
         if (AuthState.UserRole == "Member")
         {
-            photos = await ProgressService.GetMineAsync();
+            try
+            {
+                hasOrHadMembership = await MembershipService.HasOrHadAnyMembershipAsync();
+            }
+            catch
+            {
+                hasOrHadMembership = false;
+            }
+
+            var mine = await ProgressService.GetMineAsync() ?? new();
+            var publicPhotos = await ProgressService.GetPublicAsync() ?? new();
+
+            photos = mine.UnionBy(publicPhotos, p => p.Id).ToList();
+
             try
             {
                 var profile = await MemberService.GetSelfAsync();
@@ -155,6 +167,7 @@
         else
         {
             photos = await ProgressService.GetPublicAsync();
+            currentMemberId = -1;
         }
     }
 
