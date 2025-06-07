@@ -1,0 +1,187 @@
+﻿@using GymManager.Client.Services
+@using GymManager.Shared.DTOs.Admin
+@inject TrainerService TrainerService
+@inject TrainingSessionService TrainingSessionService
+
+<div class="card shadow-sm p-4">
+    <h3 class="mb-4 text-danger">Manage Group Training Sessions</h3>
+
+    <div class="mb-3 d-flex justify-content-between align-items-center">
+        <input type="text" class="form-control w-50" placeholder="Search..." @bind="_search" />
+        <button class="btn btn-danger" @onclick="ShowCreateForm">Add New Session</button>
+    </div>
+
+    @if (_showForm)
+    {
+        <EditForm Model="_sessionDto" OnValidSubmit="SaveSession">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <div class="card p-3 bg-light mb-4">
+                <h5>@(_editId == null ? "Add Session" : "Edit Session")</h5>
+
+                <div class="mb-3">
+                    <label class="form-label">Description</label>
+                    <input class="form-control" @bind="_sessionDto.Description" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Trainer</label>
+                    <select class="form-select" @bind="_sessionDto.TrainerId">
+                        <option value="">-- Select Trainer --</option>
+                        @foreach (var trainer in _trainers)
+                        {
+                            <option value="@trainer.Id">@trainer.FirstName @trainer.LastName</option>
+                        }
+                    </select>
+                    <ValidationMessage For="@(() => _sessionDto.TrainerId)" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Start Time</label>
+                    <input type="datetime-local" class="form-control" @bind="_sessionDto.StartTime" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Duration (minutes)</label>
+                    <input type="number" class="form-control" @bind="_sessionDto.DurationInMinutes" />
+                </div>
+
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" id="isGroup" @bind="_sessionDto.IsGroupSession" disabled />
+                    <label class="form-check-label" for="isGroup">Is Group Session</label>
+                </div>
+
+                <div class="d-flex justify-content-end">
+                    <button class="btn btn-secondary me-2" @onclick="CancelForm">Cancel</button>
+                    <button class="btn btn-danger">Save</button>
+                </div>
+            </div>
+        </EditForm>
+    }
+
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Trainer ID</th>
+                <th>Description</th>
+                <th>Start</th>
+                <th>Duration</th>
+                <th style="width: 150px;">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var session in FilteredSessions)
+            {
+                <tr>
+                    <td>@session.TrainerId</td>
+                    <td>@session.Description</td>
+                    <td>@session.StartTime.ToString("dd.MM.yyyy HH:mm")</td>
+                    <td>@session.DurationInMinutes</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-dark me-2" @onclick="() => StartEdit(session)">Edit</button>
+                        <button class="btn btn-sm btn-outline-danger" @onclick="() => Delete(session.Id)">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@code {
+    private List<ReadTrainingSessionDto> _allSessions = new();
+    private string _search = "";
+    private CreateTrainingSessionDto _sessionDto = new();
+    private int? _editId = null;
+    private bool _showForm = false;
+    private List<ReadTrainerDto> _trainers = new();
+
+    private IEnumerable<ReadTrainingSessionDto> FilteredSessions =>
+        string.IsNullOrWhiteSpace(_search)
+            ? _allSessions
+            : _allSessions.Where(s =>
+                (s.Description?.Contains(_search, StringComparison.OrdinalIgnoreCase) ?? false)
+                || s.TrainerId.ToString().Contains(_search));
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadSessions();
+        _trainers = await TrainerService.GetAllAdminAsync() ?? new();
+    }
+
+    private async Task LoadSessions()
+    {
+        _allSessions = await TrainingSessionService.GetAllAdminAsync() ?? new();
+    }
+
+    private void ShowCreateForm()
+    {
+        _sessionDto = new CreateTrainingSessionDto
+        {
+            IsGroupSession = true,
+            StartTime = DateTime.Now.AddDays(1),
+            DurationInMinutes = 60
+        };
+        _editId = null;
+        
+        _showForm = true;
+    }
+
+    private void CancelForm()
+    {
+        _sessionDto = new CreateTrainingSessionDto();
+        _editId = null;
+        _showForm = false;
+    }
+
+    private void StartEdit(ReadTrainingSessionDto s)
+    {
+        _sessionDto = new CreateTrainingSessionDto
+        {
+            TrainerId = s.TrainerId,
+            Description = s.Description,
+            StartTime = s.StartTime,
+            DurationInMinutes = s.DurationInMinutes,
+            IsGroupSession = true
+        };
+        _editId = s.Id;
+        _showForm = true;
+    }
+
+    private async Task SaveSession()
+    {
+        try
+        {
+            if (_editId == null)
+            {
+                await TrainingSessionService.CreateAdminAsync(_sessionDto);
+            }
+            else
+            {
+                var update = new UpdateTrainingSessionDto
+                {
+                    TrainerId = _sessionDto.TrainerId,
+                    StartTime = _sessionDto.StartTime,
+                    Description = _sessionDto.Description
+                };
+
+                await TrainingSessionService.PatchAdminAsync(_editId.Value, update);
+            }
+            
+            CancelForm();
+            StateHasChanged();
+            await LoadSessions();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Error while saving session: " + ex.Message);
+        }
+    }
+
+
+    private async Task Delete(int id)
+    {
+        await TrainingSessionService.DeleteAdminAsync(id);
+        await LoadSessions();
+    }
+}

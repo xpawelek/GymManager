@@ -30,6 +30,12 @@
                     <li class="nav-item">
                         <button class="nav-link @GetTabClass("members")" @onclick='() => SelectTab("members")'>Members</button>
                     </li>
+                    <li class="nav-item">
+                        <button class="nav-link @GetTabClass("members")" @onclick='() => SelectTab("trainings")'>Trainings</button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link @GetTabClass("members")" @onclick='() => SelectTab("progress")'>Members' progress</button>
+                    </li>
                 </ul>
 
                 @if (selectedTab == "equipment")
@@ -43,6 +49,14 @@
                 else if (selectedTab == "members")
                 {   
                     <ManageMembers/>
+                }
+                else if (selectedTab == "trainings")
+                {
+                    <ManageTrainingSessions/>
+                }
+                else if (selectedTab == "progress")
+                {
+                    <ManageProgressPhotos/>
                 }
             </div>
         }

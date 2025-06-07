@@ -9,12 +9,13 @@ namespace GymManager.Shared.DTOs.Admin
         [Range(1, int.MaxValue, ErrorMessage = "Trainer ID must be a positive number.")]
         public int TrainerId { get; set; }
 
+        [Required(ErrorMessage = "Description is required.")]
         [StringLength(500, ErrorMessage = "Description must be at most 500 characters.")]
         public string? Description { get; set; }
 
         [Required(ErrorMessage = "Start time is required.")]
         [DataType(DataType.DateTime)]
-        public DateTime StartTime { get; set; }
+        public DateTime StartTime { get; set; } = DateTime.Now;
 
         [Required(ErrorMessage = "Duration is required.")]
         [Range(1, 1440, ErrorMessage = "Duration must be between 1 and 1440 minutes.")]
