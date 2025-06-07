@@ -1,4 +1,5 @@
-﻿using GymManager.Services.Admin;
+﻿using GymManager.Exceptions;
+using GymManager.Services.Admin;
 using GymManager.Services.Member;
 using GymManager.Services.Trainer;
 using GymManager.Models.Identity;
@@ -44,14 +45,34 @@ namespace GymManager.Controllers
             var dto = await _admin.GetByIdAsync(id);
             return dto == null ? NotFound() : Ok(dto);
         }
+        
+        [HttpGet("member/{memberId}/personal")]
+        [Authorize(Roles = RoleConstants.Admin)]
+        public async Task<IActionResult> GetPersonalForMember(int memberId)
+        {
+            var result = await _admin.GetByMemberIdAsync(memberId);
+            return Ok(result);
+        }
 
         [HttpPost]
         [Authorize(Roles = RoleConstants.Admin)]
         public async Task<IActionResult> CreateAdmin([FromBody] AdminCreateDto dto)
         {
-            var result = await _admin.CreateAsync(dto);
-            return CreatedAtAction(nameof(GetByIdAdmin), new { id = result.Id }, result);
+            try
+            {
+                var result = await _admin.CreateAsync(dto);
+                return CreatedAtAction(nameof(GetByIdAdmin), new { id = result.Id }, result);
+            }
+            catch (UserFacingException ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = "An unexpected error occurred." });
+            }
         }
+
         
         [HttpPost("self")]
         [Authorize(Roles = RoleConstants.Member)]

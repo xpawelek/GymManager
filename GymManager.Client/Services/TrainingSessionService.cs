@@ -5,7 +5,7 @@ using System.Text.Json;
 using GymManager.Shared.DTOs.Admin;
 using GymManager.Shared.DTOs.Member;
 using GymManager.Shared.DTOs.Trainer;
-
+using Microsoft.AspNetCore.Mvc;
 using ACreateDto = GymManager.Shared.DTOs.Admin.CreateTrainingSessionDto;
 using AUpdateDto = GymManager.Shared.DTOs.Admin.UpdateTrainingSessionDto;
 using AReadDto = GymManager.Shared.DTOs.Admin.ReadTrainingSessionDto;
@@ -36,9 +36,17 @@ namespace GymManager.Client.Services
 
         // [GET] /api/training-sessions/{id}
         // admin
-        public async Task<AReadDto?> GetByIdAdminAsync(int id)
+        public async Task<AReadDto?> GetByIdAdminAsync(int memberId)
         {
-            return await _http.GetFromJsonAsync<AReadDto>($"api/training-sessions/{id}");
+            return await _http.GetFromJsonAsync<AReadDto>($"api/training-sessions/{memberId}");
+        }
+        
+        // [GET] /api/training-sessions/member/{memberId}/personal
+        // admin
+        public async Task<List<AReadDto>?> GetPersonalSessionsForMemberAsync(int memberId)
+        {
+            return await _http.GetFromJsonAsync<List<AReadDto>>(
+                $"api/training-sessions/member/{memberId}/personal");
         }
 
         // [POST] /api/training-sessions
@@ -46,8 +54,36 @@ namespace GymManager.Client.Services
         public async Task<AReadDto?> CreateAdminAsync(ACreateDto dto)
         {
             var response = await _http.PostAsJsonAsync("api/training-sessions", dto);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var content = await response.Content.ReadAsStringAsync();
+                
+                if (!string.IsNullOrWhiteSpace(content) && content.Trim().StartsWith("{"))
+                {
+                    try
+                    {
+                        using var doc = JsonDocument.Parse(content);
+                        if (doc.RootElement.TryGetProperty("error", out var errorElement))
+                        {
+                            throw new Exception(errorElement.GetString());
+                        }
+                    }
+                    catch
+                    {
+                        throw new Exception(content);
+                    }
+                }
+                
+                throw new Exception(content);
+            }
+
             return await response.Content.ReadFromJsonAsync<AReadDto>();
         }
+
+
+
+
 
         // [PATCH] /api/training-sessions/{id}
         // admin

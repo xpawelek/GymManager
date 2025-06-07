@@ -13,46 +13,51 @@
 
     @if (_showForm)
     {
-        <div class="card p-3 bg-light mb-4">
-            <h5>@(_editId == null ? "Add Session" : "Edit Session")</h5>
+        <EditForm Model="_sessionDto" OnValidSubmit="SaveSession">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
 
-            <div class="mb-3">
-                <label class="form-label">Description</label>
-                <input class="form-control" @bind="_sessionDto.Description" />
-            </div>
+            <div class="card p-3 bg-light mb-4">
+                <h5>@(_editId == null ? "Add Session" : "Edit Session")</h5>
 
-            <div class="mb-3">
-                <label class="form-label">Trainer</label>
-                <select class="form-select" @bind="_sessionDto.TrainerId">
-                    <option value="">-- Select Trainer --</option>
-                    @foreach (var trainer in _trainers)
-                    {
-                        <option value="@trainer.Id">@trainer.FirstName @trainer.LastName</option>
-                    }
-                </select>
-                <ValidationMessage For="@(() => _sessionDto.TrainerId)" />
-            </div>
+                <div class="mb-3">
+                    <label class="form-label">Description</label>
+                    <input class="form-control" @bind="_sessionDto.Description" />
+                </div>
 
-            <div class="mb-3">
-                <label class="form-label">Start Time</label>
-                <input type="datetime-local" class="form-control" @bind="_sessionDto.StartTime" />
-            </div>
+                <div class="mb-3">
+                    <label class="form-label">Trainer</label>
+                    <select class="form-select" @bind="_sessionDto.TrainerId">
+                        <option value="">-- Select Trainer --</option>
+                        @foreach (var trainer in _trainers)
+                        {
+                            <option value="@trainer.Id">@trainer.FirstName @trainer.LastName</option>
+                        }
+                    </select>
+                    <ValidationMessage For="@(() => _sessionDto.TrainerId)" />
+                </div>
 
-            <div class="mb-3">
-                <label class="form-label">Duration (minutes)</label>
-                <input type="number" class="form-control" @bind="_sessionDto.DurationInMinutes" />
-            </div>
+                <div class="mb-3">
+                    <label class="form-label">Start Time</label>
+                    <input type="datetime-local" class="form-control" @bind="_sessionDto.StartTime" />
+                </div>
 
-            <div class="form-check mb-3">
-                <input class="form-check-input" type="checkbox" id="isGroup" @bind="_sessionDto.IsGroupSession" disabled />
-                <label class="form-check-label" for="isGroup">Is Group Session</label>
-            </div>
+                <div class="mb-3">
+                    <label class="form-label">Duration (minutes)</label>
+                    <input type="number" class="form-control" @bind="_sessionDto.DurationInMinutes" />
+                </div>
 
-            <div class="d-flex justify-content-end">
-                <button class="btn btn-secondary me-2" @onclick="CancelForm">Cancel</button>
-                <button class="btn btn-danger" @onclick="SaveSession">Save</button>
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" id="isGroup" @bind="_sessionDto.IsGroupSession" disabled />
+                    <label class="form-check-label" for="isGroup">Is Group Session</label>
+                </div>
+
+                <div class="d-flex justify-content-end">
+                    <button class="btn btn-secondary me-2" @onclick="CancelForm">Cancel</button>
+                    <button class="btn btn-danger">Save</button>
+                </div>
             </div>
-        </div>
+        </EditForm>
     }
 
     <table class="table table-striped">
@@ -118,6 +123,7 @@
             DurationInMinutes = 60
         };
         _editId = null;
+        
         _showForm = true;
     }
 
@@ -161,15 +167,17 @@
 
                 await TrainingSessionService.PatchAdminAsync(_editId.Value, update);
             }
-
-            await LoadSessions();
+            
             CancelForm();
+            StateHasChanged();
+            await LoadSessions();
         }
         catch (Exception ex)
         {
             Console.WriteLine("Error while saving session: " + ex.Message);
         }
     }
+
 
     private async Task Delete(int id)
     {

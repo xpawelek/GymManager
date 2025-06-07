@@ -15,7 +15,7 @@ namespace GymManager.Shared.DTOs.Admin
 
         [Required(ErrorMessage = "Start time is required.")]
         [DataType(DataType.DateTime)]
-        public DateTime StartTime { get; set; }
+        public DateTime StartTime { get; set; } = DateTime.Now;
 
         [Required(ErrorMessage = "Duration is required.")]
         [Range(1, 1440, ErrorMessage = "Duration must be between 1 and 1440 minutes.")]

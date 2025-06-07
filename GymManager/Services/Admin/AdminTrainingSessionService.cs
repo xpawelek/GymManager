@@ -1,4 +1,5 @@
 ﻿using GymManager.Data;
+using GymManager.Exceptions;
 using GymManager.Shared.DTOs.Admin;
 using GymManager.Models.Entities;
 using GymManager.Models.Mappers.Admin;
@@ -21,10 +22,20 @@ namespace GymManager.Services.Admin
 
         public async Task<List<ReadTrainingSessionDto>> GetAllAsync()
         {
-            var list = await _context.TrainingSessions.ToListAsync();
+            var list = await _context.TrainingSessions.Include(t => t.Trainer).ToListAsync();
             return _mapper.ToReadDtoList(list);
         }
+        
+        public async Task<List<ReadTrainingSessionDto>> GetByMemberIdAsync(int id)
+        {
+            var sessions = await _context.TrainingSessions
+                .Include(s => s.Trainer)
+                .Where(s => s.MemberId == id && s.StartTime >= DateTime.Now)
+                .OrderBy(s => s.StartTime)
+                .ToListAsync();
 
+            return _mapper.ToReadDtoList(sessions);
+        }
         public async Task<ReadTrainingSessionDto?> GetByIdAsync(int id)
         {
             var e = await _context.TrainingSessions.FindAsync(id);
@@ -37,7 +48,7 @@ namespace GymManager.Services.Admin
 
             if (e.StartTime < DateTime.Now)
             {
-                throw new Exception("You cannot create a training session in past");
+                throw new UserFacingException("You cannot create a training session in past");
             }
             
             var trainerTimeConflict = await _context.TrainingSessions.AnyAsync(a =>
@@ -47,19 +58,19 @@ namespace GymManager.Services.Admin
 
             if (trainerTimeConflict)
             {
-                throw new Exception("Trainer has other session during that time");
+                throw new UserFacingException("Trainer has other session during that time");
             }
             
             if (e.IsGroupSession && e.MemberId != null)
             {
-                throw new Exception("You cannot create a group session");
+                throw new UserFacingException("You cannot create a group session");
             }
 
             if (!e.IsGroupSession)
             {
                 if (e.MemberId == null)
                 { 
-                    throw new Exception("You have to choose a member for individual training session");
+                    throw new UserFacingException("You have to choose a member for individual training session");
                 }
                 else
                 {
@@ -70,20 +81,20 @@ namespace GymManager.Services.Admin
 
                     if (!assignment)
                     {
-                        throw new Exception("Trainer and member does not have an active assignment.");
+                        throw new UserFacingException("Trainer and member does not have an active assignment.");
                     }
                     
                     var getMembership = await _context.Memberships
                         .FirstOrDefaultAsync(m => m.MemberId == e.MemberId && m.IsActive);
 
                     if (getMembership == null)
-                        throw new Exception("No active membership found.");
+                        throw new UserFacingException("No active membership found.");
 
                     var getMembershipType = await _context.MembershipTypes
                         .FindAsync(getMembership.MembershipTypeId);
 
                     if (getMembershipType == null)
-                        throw new Exception("Membership type not found.");
+                        throw new UserFacingException("Membership type not found.");
 
                     var userMembershipStartDate = getMembership.StartDate;
                     var daysDifference = (DateTime.Now - userMembershipStartDate).Days;
@@ -104,7 +115,7 @@ namespace GymManager.Services.Admin
 
                     if (countCurrent >= getMembershipType.PersonalTrainingsPerMonth)
                     {
-                        throw new Exception("You have reached your personal training limit for this membership period.");
+                        throw new UserFacingException("You have reached your personal training limit for this membership period.");
                     }
                 }
 

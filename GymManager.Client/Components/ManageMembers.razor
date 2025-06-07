@@ -210,7 +210,6 @@
                         <EditForm class="mx-3" Model="@_newAssignment" OnValidSubmit="SaveAssignment">
                             <DataAnnotationsValidator />
                             <ValidationSummary />
-                            <p>id membera : @_selectedMemberId.Value</p>
                             <div class="mb-3">
                                 <label class="form-label">Trainer</label>
                                 <select class="form-select" @bind="_newAssignment.TrainerId">
@@ -240,13 +239,114 @@
                         </div>
                     </div>
 
-                    <div class="m-3 mb-4">
+                    <div class="m-3 mb-4 mt-4">
                         <h5 class="text-secondary">Personal Trainings</h5>
-                        <div class="p-2">
-                            <p><em>Training sessions and notes appear here.</em></p>
-                            <button class="btn btn-sm btn-outline-info">Show Sessions</button>
-                        </div>
+
+                        @if (_personalTrainings.Any())
+                        {
+                            <div class="p-2">
+                                <table class="table table-striped">
+                                    <thead>
+                                    <tr>
+                                        <th>Trainer</th>
+                                        <th>Start</th>
+                                        <th>Duration</th>
+                                        <th>Description</th>
+                                        <th style="width: 150px;">Actions</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    @foreach (var session in _personalTrainings)
+                                    {
+                                        <tr>
+                                            <td>@session.TrainerFirstName @session.TrainerSecondName</td>
+                                            <td>@session.StartTime.ToString("dd.MM.yyyy HH:mm")</td>
+                                            <td>@session.DurationInMinutes min</td>
+                                            <td>@session.Description</td>
+                                            <td>
+                                                <button class="btn btn-sm btn-outline-danger"
+                                                        @onclick="() => DeleteTraining(session.Id)">Delete</button>
+                                            </td>
+                                        </tr>
+                                    }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="p-2">
+                                <p class="text-muted"><em>No personal training sessions.</em></p>
+                            </div>
+                        }
+
+                        @if (_showTrainingForm)
+                        {
+                            @if (!string.IsNullOrWhiteSpace(_trainingError) && _trainingError.ToString().Split(":")[1].Split('"')[1] != "An unexpected error occurred.")
+                            {
+                                <div class="alert alert-danger">
+                                    @_trainingError.ToString().Split(":")[1].Split('"')[1]
+                                </div>
+                            }
+                            <EditForm class="card p-4 bg-light border rounded shadow-sm" Model="@_newTraining" OnValidSubmit="SaveTraining">
+                                <DataAnnotationsValidator />
+                                <ValidationSummary />
+
+                                <h5 class="mb-4 text-primary">Create Personal Training</h5>
+
+                                <div class="row g-3 mb-3">
+                                    <div class="col-md-4">
+                                        <label for="trainerSelect" class="form-label">Trainer</label>
+                                        <select id="trainerSelect" class="form-select" @bind="_newTraining.TrainerId">
+                                            <option value="">-- Select Trainer --</option>
+                                            @foreach (var trainer in _trainers)
+                                            {
+                                                <option value="@trainer.Id">@trainer.FirstName @trainer.LastName</option>
+                                            }
+                                        </select>
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <label for="startTimeInput" class="form-label">Start Time</label>
+                                        <input id="startTimeInput"
+                                               type="datetime-local"
+                                               class="form-control"
+                                               @bind="_newTraining.StartTime" />
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <label for="durationInput" class="form-label">Duration (minutes)</label>
+                                        <InputNumber id="durationInput"
+                                                     class="form-control"
+                                                     @bind-Value="_newTraining.DurationInMinutes" />
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="descriptionInput" class="form-label">Description</label>
+                                    <input id="descriptionInput"
+                                           class="form-control"
+                                           placeholder="Describe the session..."
+                                           @bind="_newTraining.Description" />
+                                </div>
+
+                                <div class="d-flex justify-content-end gap-2">
+                                    <button class="btn btn-success" type="submit">Create</button>
+                                    <button class="btn btn-secondary" type="button" @onclick="CancelCreateTraining">Cancel</button>
+                                </div>
+                            </EditForm>
+
+                        }
+                        else
+                        {
+                            <div class="p-2">
+                                <button class="btn btn-sm btn-outline-primary" @onclick="InitializeCreateTraining">
+                                    Add Personal Training
+                                </button>
+                            </div>
+                        }
                     </div>
+
                 }
             </div>
         }
@@ -271,6 +371,13 @@
     private bool _showAssignmentForm = new();
     private CreateTrainerAssignmentDto _newAssignment = new();
     private List<ReadTrainingSessionDto> _personalTrainings = new();
+    private bool _showPersonalTrainings = false;
+    private int? _editTrainingId = null;
+    private UpdateTrainingSessionDto _updateTraining = new();
+    private Shared.DTOs.Admin.CreateTrainingSessionDto _newTraining = new();
+    private bool _showTrainingForm = false;
+    private string _trainingError = "";
+
     
     private IEnumerable<ReadMemberDto> FilteredMembers =>
         string.IsNullOrWhiteSpace(_search)
@@ -309,7 +416,9 @@
         _showForm = false;
         _showAssignmentForm = false;
         _showMembershipForm = false;
+        _showTrainingForm = false;
         _errorMessage = "";
+        _trainingError = "";
     }
 
     private void CancelDetails()
@@ -414,6 +523,17 @@
             {
                 _selectedMemberTrainerAssignemnt = null;
             }
+            
+            try
+            {
+                var trainings = await TrainingSessionService.GetPersonalSessionsForMemberAsync(_selectedMemberId.Value);
+                _personalTrainings = trainings ?? new List<ReadTrainingSessionDto>();
+            }
+            catch (HttpRequestException)
+            {
+                _personalTrainings = new List<ReadTrainingSessionDto>();
+            }
+            
         }
         
         StateHasChanged(); 
@@ -565,10 +685,78 @@
         _showAssignmentForm = true;
     }
     
-    private async Task LoadPersonalTrainings()
+    private void InitializeCreateTraining()
     {
-       
+        if (_selectedMemberId == null)
+            return;
+
+        _newTraining = new Shared.DTOs.Admin.CreateTrainingSessionDto
+        {
+            MemberId = _selectedMemberId,
+            IsGroupSession = false,
+            StartTime = DateTime.Now,
+            DurationInMinutes = 120
+        };
+        _showTrainingForm = true;
     }
+
+    private void CancelCreateTraining()
+    {
+        _newTraining = new Shared.DTOs.Admin.CreateTrainingSessionDto();
+        _showTrainingForm = false;
+    }
+
+    private async Task SaveTraining()
+    {
+        if (_selectedMemberId is null)
+            return;
+
+        try
+        {
+            _newTraining.MemberId = _selectedMemberId;
+            _newTraining.IsGroupSession = false;
+
+            ReadTrainingSessionDto? created = null;
+
+            try
+            {
+                created = await TrainingSessionService.CreateAdminAsync(_newTraining);
+            }
+            catch (Exception ex)
+            {
+                _trainingError = ex.Message;
+                Console.WriteLine("Create training error: " + ex.Message);
+            }
+            
+            var updatedList = await TrainingSessionService.GetPersonalSessionsForMemberAsync(_selectedMemberId.Value);
+            _personalTrainings = updatedList ?? new();
+            
+            _newTraining = new Shared.DTOs.Admin.CreateTrainingSessionDto
+            {
+                DurationInMinutes = 120
+            };
+            _showTrainingForm = false;
+
+            StateHasChanged();
+        }
+        catch (Exception finalEx)
+        {
+            Console.WriteLine("Unexpected fatal error: " + finalEx.Message);
+        }
+    }
+
+
+
+    private async Task DeleteTraining(int id)
+    {
+        var deleted = await TrainingSessionService.DeleteAdminAsync(id);
+        if (deleted)
+        {
+            _personalTrainings = _personalTrainings.Where(p => p.Id != id).ToList();
+            StateHasChanged();
+        }
+    }
+
 }
 
 <script>
