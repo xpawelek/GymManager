@@ -9,6 +9,7 @@ namespace GymManager.Shared.DTOs.Admin
         [Range(1, int.MaxValue, ErrorMessage = "Trainer ID must be a positive number.")]
         public int TrainerId { get; set; }
 
+        [Required(ErrorMessage = "Description is required.")]
         [StringLength(500, ErrorMessage = "Description must be at most 500 characters.")]
         public string? Description { get; set; }
 

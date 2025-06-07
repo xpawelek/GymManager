@@ -14,9 +14,10 @@ public partial class AdminTrainingSessionMapper
     [MapperIgnoreTarget(nameof(TrainingSession.Id))]
     public partial TrainingSession ToEntity(CreateTrainingSessionDto dto);
     // GET ONE
-    [MapperIgnoreSource(nameof(TrainingSession.Trainer))]
     [MapperIgnoreSource(nameof(TrainingSession.Member))]
     [MapperIgnoreSource(nameof(TrainingSession.WorkoutNote))]
+    [MapProperty("Trainer.FirstName", "TrainerFirstName")]
+    [MapProperty("Trainer.LastName", "TrainerSecondName")]
     public partial ReadTrainingSessionDto ToReadDto(TrainingSession trainingSession);
     //GET ALL
     public partial List<ReadTrainingSessionDto> ToReadDtoList(List<TrainingSession> trainingSessions);
