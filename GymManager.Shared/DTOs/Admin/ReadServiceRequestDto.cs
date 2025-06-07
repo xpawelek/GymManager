@@ -3,10 +3,8 @@
 public class ReadServiceRequestDto
 {
     public int Id { get; set; }
-    public string ServiceProblemTitle { get; set; }
-    public string ProblemNote {get; set;}
-    public string? ImagePath { get; set; }
-    
+    public string ServiceProblemTitle { get; set; } = string.Empty;
+    public string ProblemNote { get; set; } = string.Empty;
     public DateTime RequestDate { get; set; }
-    public int? EquipmentId { get; set; }
+    public bool IsResolved { get; set; }
 }
