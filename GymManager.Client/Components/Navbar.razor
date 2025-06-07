@@ -25,6 +25,18 @@
 
         <div class="collapse navbar-collapse justify-content-end" id="mainNavbar">
             <ul class="navbar-nav mb-3 mb-lg-0 me-4 px-2 py-2">
+                @if (AuthState.UserRole != "Admin")
+                {
+                    <li class="nav-item">
+                        <a class="nav-link nav_text" href="/requests">Requests</a>
+                    </li>
+                }
+                else
+                {
+                    <li class="nav-item">
+                        <a class="nav-link nav_text" href="/manage-requests">Manage requests</a>
+                    </li>
+                }
                 @if (AuthState.UserRole != "Member" || !hasActiveMembership)
                 {
                     <li class="nav-item">

@@ -1,0 +1,86 @@
+﻿@page "/manage-requests"
+@inject ServiceRequestService RequestService
+
+@using GymManager.Client.Components
+@using GymManager.Client.Services
+@using GymManager.Shared.DTOs.Admin
+
+<Navbar />
+
+<section class="py-5 bg-light text-dark">
+    <div class="container">
+        <h2 class="mb-4 text-center" style="font-size: 2.75rem; font-weight: 600;">
+            Manage <span style="color: #e01b1b">Requests</span>
+        </h2>
+
+        @if (requests == null)
+        {
+            <p class="text-center">Loading requests...</p>
+        }
+        else if (!requests.Any())
+        {
+            <p class="text-center">No service requests found.</p>
+        }
+        else
+        {
+            <div class="row row-cols-1 row-cols-md-2 g-4">
+                @foreach (var req in requests)
+                {
+                    <div class="col">
+                        <div class="card shadow-sm border-@GetStatusBorder(req)">
+                            <div class="card-body">
+                                <h5 class="card-title">@req.ServiceProblemTitle</h5>
+                                <p class="card-text">@req.ProblemNote</p>
+                                <p class="text-muted">Date: @req.RequestDate.ToString("g")</p>
+
+                                <div class="d-flex justify-content-between align-items-center mt-3">
+                                    <span class="badge bg-@GetStatusColor(req)">
+                                        @(req.IsResolved ? "Resolved" : "Pending")
+                                    </span>
+                                    <div class="form-check">
+                                        <input type="checkbox"
+                                               class="form-check-input"
+                                               id="check-@req.Id"
+                                               checked="@req.IsResolved"
+                                               @onchange="async _ => await ToggleStatusAsync(req)" />
+                                        <label class="form-check-label ms-1" for="check-@req.Id">Done</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</section>
+
+<Footer />
+
+@code {
+    private List<ReadServiceRequestDto>? requests;
+
+    protected override async Task OnInitializedAsync()
+    {
+        requests = await RequestService.GetAllAsync();
+        if (requests is not null)
+        {
+            requests = requests
+                .OrderBy(r => r.IsResolved) // pending first, done last
+                .ToList();
+        }
+    }
+
+    private async Task ToggleStatusAsync(ReadServiceRequestDto req)
+    {
+        var success = await RequestService.ToggleResolvedAsync(req.Id);
+        if (success)
+        {
+            req.IsResolved = !req.IsResolved;
+            StateHasChanged();
+        }
+    }
+
+    private string GetStatusColor(ReadServiceRequestDto req) => req.IsResolved ? "success" : "danger";
+    private string GetStatusBorder(ReadServiceRequestDto req) => req.IsResolved ? "success" : "danger";
+}

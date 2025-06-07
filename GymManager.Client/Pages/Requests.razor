@@ -1,0 +1,73 @@
+﻿@page "/requests"
+@inject GymManager.Client.Services.ServiceRequestService RequestService
+@inject GymManager.Client.Services.AuthStateService AuthState
+
+@using GymManager.Client.Components
+@using GymManager.Shared.DTOs.Member
+
+<Navbar />
+<Banner />
+<ClientInfo />
+
+<section class="py-5 bg-light text-dark">
+    <div class="container">
+        <h2 class="mb-4 text-center" style="font-size: 2.75rem; font-weight: 600;">
+            Submit <span style="color: #e01b1b">Request</span>
+        </h2>
+
+        @if (!string.IsNullOrEmpty(successMessage))
+        {
+            <div class="alert alert-success text-center" role="alert">
+                @successMessage
+            </div>
+        }
+
+        <EditForm Model="@newRequest" OnValidSubmit="SubmitRequest">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <div class="mb-3">
+                <input type="text" class="form-control"
+                       placeholder="Problem title..." @bind="newRequest.ServiceProblemTitle" />
+            </div>
+
+            <div class="mb-3">
+                <textarea class="form-control" placeholder="Describe the issue..." rows="4"
+                          @bind="newRequest.ProblemNote"></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-danger" disabled="@isSubmitting">
+                @(isSubmitting ? "Submitting..." : "Submit Request")
+            </button>
+        </EditForm>
+    </div>
+</section>
+
+<Footer />
+
+@code {
+    private CreateServiceRequestDto newRequest = new();
+    private string? successMessage;
+    private bool isSubmitting = false;
+
+    private async Task SubmitRequest()
+    {
+        isSubmitting = true;
+        successMessage = null;
+        bool success;
+
+        success = await RequestService.CreateAsMemberAsync(newRequest);
+
+        if (success)
+        {
+            successMessage = "Request submitted successfully.";
+            newRequest = new();
+        }
+        else
+        {
+            successMessage = "Something went wrong. Please try again.";
+        }
+
+        isSubmitting = false;
+    }
+}
