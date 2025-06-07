@@ -2,33 +2,27 @@
 using GymManager.Shared.DTOs.Member;
 using GymManager.Models.Mappers.Member;
 using GymManager.Models.Mappers.Admin;
-using Microsoft.AspNetCore.Mvc;
 
-namespace GymManager.Services.Member
+namespace GymManager.Services.Member;
+
+public class MemberServiceRequestService
 {
-    public class MemberServiceRequestService
+    private readonly GymDbContext _context;
+    private readonly MemberServiceRequestMapper _mapper;
+
+    public MemberServiceRequestService(
+        GymDbContext context,
+        MemberServiceRequestMapper mapper)
     {
-        private readonly GymDbContext _context;
-        private readonly MemberServiceRequestMapper _createMapper;
-        private readonly AdminServiceRequestMapper _readMapper;
+        _context = context;
+        _mapper = mapper;
+    }
 
-        public MemberServiceRequestService(
-            GymDbContext context,
-            MemberServiceRequestMapper createMapper,
-            AdminServiceRequestMapper readMapper)
-        {
-            _context = context;
-            _createMapper = createMapper;
-            _readMapper = readMapper;
-        }
-
-        public async Task<bool> CreateAsync(CreateServiceRequestDto dto)
-        {
-            dto.RequestDate = DateTime.Now;
-            var e = _createMapper.ToEntity(dto);
-            await _context.ServiceRequests.AddAsync(e);
-            await _context.SaveChangesAsync();
-            return true;
-        }
+    public async Task<bool> CreateAsync(CreateServiceRequestDto dto)
+    {
+        var entity = _mapper.ToEntity(dto);
+        await _context.ServiceRequests.AddAsync(entity);
+        await _context.SaveChangesAsync();
+        return true;
     }
 }

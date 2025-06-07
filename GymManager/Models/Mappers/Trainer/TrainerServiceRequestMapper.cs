@@ -7,27 +7,9 @@ namespace GymManager.Models.Mappers.Trainer;
 [Mapper]
 public partial class TrainerServiceRequestMapper
 {
-    //POST
+    // POST
     [MapperIgnoreTarget(nameof(ServiceRequest.Id))]
-    [MapperIgnoreTarget(nameof(ServiceRequest.ImagePath))]
-    [MapperIgnoreSource(nameof(CreateServiceRequestDto.ImagePath))]
-    [MapperIgnoreSource(nameof(ServiceRequest.RequestDate))]
     [MapperIgnoreTarget(nameof(ServiceRequest.RequestDate))]
-    [MapperIgnoreTarget(nameof(ServiceRequest.Equipment))]
-    [MapperIgnoreTarget(nameof(ServiceRequest.EquipmentId))]
+    [MapperIgnoreTarget(nameof(ServiceRequest.IsResolved))]
     public partial ServiceRequest ToEntity(CreateServiceRequestDto dto);
-    // GET ONE
-    [MapperIgnoreSource(nameof(ServiceRequest.Equipment))]
-    [MapperIgnoreSource(nameof(ServiceRequest.EquipmentId))]
-    public partial ReadServiceRequestDto ToReadDto(ServiceRequest serviceRequest);
-    //GET ALL
-    public partial List<ReadServiceRequestDto> ToReadDtoList(List<ServiceRequest> serviceRequests);
-    //PUT 
-    [MapperIgnoreTarget(nameof(ServiceRequest.Id))]
-    [MapperIgnoreTarget(nameof(ServiceRequest.ImagePath))]
-    [MapperIgnoreSource(nameof(UpdateServiceRequestDto.Image))]
-    [MapperIgnoreTarget(nameof(ServiceRequest.RequestDate))]
-    [MapperIgnoreTarget(nameof(ServiceRequest.Equipment))]
-    [MapperIgnoreTarget(nameof(ServiceRequest.EquipmentId))]
-    public partial void UpdateEntity(UpdateServiceRequestDto dto, ServiceRequest serviceRequest);
 }

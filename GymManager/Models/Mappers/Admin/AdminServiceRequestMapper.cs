@@ -7,22 +7,18 @@ namespace GymManager.Models.Mappers.Admin;
 [Mapper]
 public partial class AdminServiceRequestMapper
 {
-    //POST
+    // POST
     [MapperIgnoreTarget(nameof(ServiceRequest.Id))]
-    [MapperIgnoreTarget(nameof(ServiceRequest.ImagePath))]
-    [MapperIgnoreSource(nameof(CreateServiceRequestDto.ImagePath))]
-    [MapperIgnoreTarget(nameof(ServiceRequest.Equipment))]
     public partial ServiceRequest ToEntity(CreateServiceRequestDto dto);
+
     // GET ONE
-    [MapperIgnoreSource(nameof(ServiceRequest.Equipment))]
     public partial ReadServiceRequestDto ToReadDto(ServiceRequest serviceRequest);
-    //GET ALL
+
+    // GET ALL
     public partial List<ReadServiceRequestDto> ToReadDtoList(List<ServiceRequest> serviceRequests);
-    //PUT 
+
+    // PUT
     [MapperIgnoreTarget(nameof(ServiceRequest.Id))]
-    [MapperIgnoreTarget(nameof(ServiceRequest.ImagePath))]
-    [MapperIgnoreSource(nameof(UpdateServiceRequestDto.Image))]
-    [MapperIgnoreTarget(nameof(ServiceRequest.Equipment))]
     [MapperIgnoreTarget(nameof(ServiceRequest.RequestDate))]
     public partial void UpdateEntity(UpdateServiceRequestDto dto, ServiceRequest serviceRequest);
 }

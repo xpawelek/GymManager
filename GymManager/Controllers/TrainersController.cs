@@ -72,7 +72,6 @@ namespace GymManager.Controllers
             using (var stream = new FileStream(filePath, FileMode.Create))
             {
                 await file.CopyToAsync(stream);
-
             }
 
             var relativePath = $"/uploads/{fileName}";

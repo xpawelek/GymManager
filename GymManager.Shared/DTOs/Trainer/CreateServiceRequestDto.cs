@@ -1,5 +1,4 @@
-﻿using System;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace GymManager.Shared.DTOs.Trainer
 {
@@ -12,11 +11,5 @@ namespace GymManager.Shared.DTOs.Trainer
         [Required(ErrorMessage = "Problem note is required.")]
         [StringLength(250, ErrorMessage = "Problem note must be at most 250 characters.")]
         public string ProblemNote { get; set; } = string.Empty;
-
-        [Required(ErrorMessage = "Service request date is required.")]
-        [DataType(DataType.DateTime)]
-        public DateTime RequestDate { get; set; }
-
-        public string? ImagePath { get; set; }
     }
 }
