@@ -62,5 +62,17 @@ namespace GymManager.Services.Trainer
 
             return _mapper.ToReadDto(entity);
         }
+
+        public async Task<List<ReadSelfTrainerAssignmentDto>> GetAllForMemberAsync(int memberId)
+        {
+            var trainerId = await GetCurrentTrainerIdAsync();
+
+            var assignments = await _context.TrainerAssignments
+                .Where(a => a.TrainerId == trainerId && a.MemberId == memberId)
+                .ToListAsync();
+
+            return _mapper.ToReadDtoList(assignments);
+        }
+
     }
 }

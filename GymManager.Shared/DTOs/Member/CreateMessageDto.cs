@@ -8,7 +8,6 @@ namespace GymManager.Shared.DTOs.Member
         [StringLength(1000, ErrorMessage = "Message content must be at most 1000 characters.")]
         public string MessageContent { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Message date is required.")]
         [DataType(DataType.DateTime)]
         public DateTime Date { get; set; } = DateTime.Now;
 

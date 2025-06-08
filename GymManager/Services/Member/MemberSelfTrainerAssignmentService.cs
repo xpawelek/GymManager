@@ -2,6 +2,7 @@
 using GymManager.Data;
 using GymManager.Shared.DTOs.Member;
 using GymManager.Models.Mappers.Member;
+using Microsoft.EntityFrameworkCore;
 
 namespace GymManager.Services.Member
 {
@@ -31,6 +32,20 @@ namespace GymManager.Services.Member
             await _context.TrainerAssignments.AddAsync(e);
             await _context.SaveChangesAsync();
             return e.Id;
+        }
+
+        public async Task<bool> HasEverBeenAssignedAsync()
+        {
+            var memberId = GetCurrentMemberId();
+            return await _context.TrainerAssignments
+                .AnyAsync(a => a.MemberId == memberId);
+        }
+        public async Task<bool> HasActiveAssignmentAsync()
+        {
+            var memberId = GetCurrentMemberId();
+
+            return await _context.TrainerAssignments
+                .AnyAsync(a => a.MemberId == memberId && a.IsActive);
         }
     }
 }

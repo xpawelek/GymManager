@@ -47,6 +47,13 @@ namespace GymManager.Client.Services
             return await _http.GetFromJsonAsync<TReadDto>($"api/messages/{id}");
         }
 
+        // [get]
+        // trainer
+        public async Task<List<TReadDto>?> GetAllForMemberAsync(int memberId)
+        {
+            return await _http.GetFromJsonAsync<List<TReadDto>>($"api/messages/for-member/{memberId}");
+        }
+
         // [POST] /api/messages
         // Member
         public async Task<MReadDto?> CreateAsMemberAsync(CreateMessageDto dto)
