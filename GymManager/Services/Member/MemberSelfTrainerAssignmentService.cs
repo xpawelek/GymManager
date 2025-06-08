@@ -21,9 +21,41 @@ namespace GymManager.Services.Member
             _mapper = mapper;
             _httpContext = httpContextAccessor;
         }
+        
+        private async Task<int> GetMemberId()
+        {
+            var userIdStr = _httpContext.HttpContext!
+                .User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+
+            var userId = Guid.Parse(userIdStr); 
+
+            var member = await _context.Members
+                .FirstOrDefaultAsync(m => m.UserId == userId.ToString());
+
+            if (member == null)
+                throw new Exception("Member not found");
+
+            return member.Id;
+        }
 
         private int GetCurrentMemberId() =>
             int.Parse(_httpContext.HttpContext!.User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        
+        public async Task<ReadSelfTrainerAssignmentDto> GetOwnAsync()
+        {
+            var memberId = await GetMemberId();
+            var entity = await _context.TrainerAssignments
+                .Include(m => m.Member)
+                .Include(m => m.Trainer)
+                .FirstOrDefaultAsync(a => a.MemberId == memberId && a.IsActive);
+
+            if (entity == null)
+            {
+                throw new Exception("Active assignment not found");
+            }
+            
+            return _mapper.ToReadDto(entity!);
+        }
 
         public async Task<int> CreateAsync(CreateTrainerAssignmentDto dto)
         {

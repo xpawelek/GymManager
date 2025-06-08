@@ -8,8 +8,9 @@ public partial class MemberSelfMembershipMapper
 {
     // GET ONE
     [MapperIgnoreSource(nameof(Entities.Membership.MemberId))]
-    [MapperIgnoreSource(nameof(Entities.Membership.MembershipTypeId))]
     [MapperIgnoreSource(nameof(Entities.Membership.Member))]
+    [MapperIgnoreSource(nameof(Entities.Membership.MembershipTypeId))]
+    [MapProperty("MembershipType.Name", "TypeName")]
     public partial ReadSelfMembershipDto ToReadDto(Entities.Membership membership);
     
     // UPDATE OWN MEMBERSHIP - PUT

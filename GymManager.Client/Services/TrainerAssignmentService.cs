@@ -29,6 +29,13 @@ namespace GymManager.Client.Services
             return await _http.GetFromJsonAsync<List<ReadTrainerAssignmentDto>>("api/trainer-assignments");
         }
 
+        // [GET] /api/trainer-assignments/self
+        // Member
+        public async Task<ReadSelfTrainerAssignmentDto?> GetMemberSelfAsync()
+        {
+            return await _http.GetFromJsonAsync<ReadSelfTrainerAssignmentDto>("api/trainer-assignments/self");
+        }
+        
         // [GET] /api/trainer-assignments/{id}
         // Admin
         public async Task<ReadTrainerAssignmentDto?> GetByMemberIdAdminAsync(int id)

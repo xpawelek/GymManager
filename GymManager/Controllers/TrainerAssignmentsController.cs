@@ -44,6 +44,10 @@ namespace GymManager.Controllers
             var dto = await _admin.GetByMemberIdAsync(memberId);
             return dto == null ? NotFound() : Ok(dto);
         }
+        
+        [HttpGet("self")]
+        [Authorize(Roles = RoleConstants.Member)]
+        public async Task<IActionResult> GetAllMember() => Ok(await _member.GetOwnAsync());
 
         [HttpPost]
         [Authorize(Roles = RoleConstants.Admin)]
