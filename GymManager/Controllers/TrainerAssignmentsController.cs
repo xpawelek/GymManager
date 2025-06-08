@@ -84,5 +84,27 @@ namespace GymManager.Controllers
             var dto = await _trainer.GetByIdAsync(id);
             return dto == null ? NotFound() : Ok(dto);
         }
+
+        [HttpGet("ever-assigned")]
+        [Authorize(Roles = RoleConstants.Member)]
+        public async Task<ActionResult<bool>> HasEverBeenAssigned()
+        {
+            return Ok(await _member.HasEverBeenAssignedAsync());
+        }
+
+        [HttpGet("has-active")]
+        [Authorize(Roles = RoleConstants.Member)]
+        public async Task<ActionResult<bool>> HasActiveAssignment()
+        {
+            return Ok(await _member.HasActiveAssignmentAsync());
+        }
+
+        [HttpGet("for-member/{memberId}")]
+        [Authorize(Roles = RoleConstants.Trainer)]
+        public async Task<IActionResult> GetForMember(int memberId)
+        {
+            var messages = await _trainer.GetAllForMemberAsync(memberId);
+            return Ok(messages);
+        }
     }
 }

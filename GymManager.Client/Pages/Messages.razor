@@ -1,0 +1,58 @@
+﻿@page "/messages"
+
+@inject AuthStateService AuthState
+@inject TrainerAssignmentService AssignmentService
+
+@using GymManager.Client.Services
+@using GymManager.Client.Components
+
+<Navbar />
+<Banner />
+<ClientInfo />
+
+<section class="py-5 bg-white text-dark">
+    <div class="container">
+        <h2 class="mb-5 text-center" style="font-size: 2.75rem; font-weight: 600;">
+            Your <span style="color: #e01b1b">Messages</span>
+        </h2>
+
+        @if (AuthState.UserRole == "Trainer")
+        {
+            <MessagesTrainer />
+        }
+        else if (AuthState.UserRole == "Member")
+        {
+            if (hasEverBeenAssigned)
+            {
+                <MessagesMember />
+            }
+            else
+            {
+                <div class="alert alert-info text-center">
+                    You have never been assigned to a trainer.<br />
+                    <strong>Buy a membership including a personal trainer to start messaging.</strong>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="alert alert-danger text-center">
+                Buy a membership including a personal trainer to start messaging.
+            </div>
+        }
+    </div>
+</section>
+
+<Footer />
+
+@code {
+    private bool hasEverBeenAssigned;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (AuthState.UserRole == "Member")
+        {
+            hasEverBeenAssigned = await AssignmentService.HasEverBeenAssignedAsync();
+        }
+    }
+}

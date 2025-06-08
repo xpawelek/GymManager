@@ -1,0 +1,169 @@
+﻿@page "/messages-trainer"
+@inject MessageService MessageService
+@inject MemberService MemberService
+
+@using GymManager.Client.Services
+@using GymManager.Shared.DTOs.Trainer
+@using GymManager.Shared.DTOs.Admin
+
+@using TReadDto = GymManager.Shared.DTOs.Trainer.ReadSelfMessageDto
+@using ReadMemberDto = GymManager.Shared.DTOs.Admin.ReadMemberDto
+
+<section class="py-5 bg-light">
+    <div class="container">
+        <h2 class="text-center mb-4" style="font-size: 2.5rem;">Assigned Members</h2>
+
+        @if (assignedMembers == null)
+        {
+            <p><em>Loading assigned members...</em></p>
+        }
+        else if (!assignedMembers.Any())
+        {
+            <p class="text-center">You have no assigned members.</p>
+        }
+        else
+        {
+            <div class="row justify-content-center mb-5">
+                <div class="col-md-8">
+                    <ul class="list-group">
+                        @foreach (var m in assignedMembers)
+                        {
+                            <li class="list-group-item list-group-item-action"
+                                style="cursor: pointer;"
+                                @onclick="async () => await SelectMember(m.Id)">
+                                Member ID: <strong>@m.Id</strong> — @m.FirstName @m.LastName
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        }
+
+        @if (selectedMemberId != 0)
+        {
+            <h3 class="text-center mb-4">Messages with Member ID: @selectedMemberId</h3>
+
+            @if (messages == null)
+            {
+                <p><em>Loading messages...</em></p>
+            }
+            else if (!messages.Any())
+            {
+                <p class="text-center">No messages yet. Start the conversation.</p>
+            }
+            else
+            {
+                <div class="d-flex flex-column gap-3 mb-4">
+                    @foreach (var msg in messages.OrderBy(m => m.Date))
+                    {
+                        <div class="card p-3 @(IsMessageFromMember(msg) ? "text-start" : "text-end")"
+                             style="
+                                max-width: 75%;
+                                @(IsMessageFromMember(msg)
+                                    ? "align-self-start; background-color: #f8f9fa;"
+                                    : "align-self-end; background-color: #d8ecff;")">
+                            <p class="mb-2">@msg.MessageContent</p>
+                            <p class="text-muted mb-0"><small>@msg.Date.ToString("g")</small></p>
+
+                            @if (!IsMessageFromMember(msg) && editingMessage?.Id == msg.Id)
+                            {
+                                <div class="mt-2">
+                                    <InputTextArea class="form-control mb-2" @bind-Value="editDto.MessageContent" />
+                                    <div class="d-flex justify-content-end">
+                                        <button class="btn btn-secondary me-2" @onclick="CancelEdit">Cancel</button>
+                                        <button class="btn btn-primary" @onclick="SubmitEdit">Save</button>
+                                    </div>
+                                </div>
+                            }
+                            else if (!IsMessageFromMember(msg) && editingMessage == null)
+                            {
+                                <button class="btn btn-sm btn-outline-primary mt-2" @onclick="() => StartEdit(msg)">Edit</button>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+
+            <div class="card border-danger p-4 rounded">
+                <h5>Send Message</h5>
+                <EditForm Model="@newMessage" OnValidSubmit="SendMessage">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary />
+
+                    <div class="mb-3">
+                        <label>Message Content</label>
+                        <InputTextArea class="form-control" @bind-Value="newMessage.MessageContent" />
+                    </div>
+
+                    <button class="btn btn-danger" type="submit">Send</button>
+                </EditForm>
+            </div>
+        }
+    </div>
+</section>
+
+@code {
+    private List<TReadDto>? messages;
+    private List<ReadMemberDto> assignedMembers = new();
+    private TReadDto? editingMessage;
+
+    private CreateSelfMessageDto newMessage = new();
+    private UpdateSelfMessageDto editDto = new();
+
+    private int selectedMemberId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        assignedMembers = await MemberService.GetAssignedAsync() ?? new();
+    }
+
+    private async Task LoadMessages(int memberId)
+    {
+        var all = await MessageService.GetAllAsTrainerAsync() ?? new();
+        messages = all.Where(m => m.MemberId == memberId).ToList();
+    }
+
+    private void StartEdit(TReadDto msg)
+    {
+        editingMessage = msg;
+        editDto = new UpdateSelfMessageDto { MessageContent = msg.MessageContent };
+    }
+
+    private void CancelEdit()
+    {
+        editingMessage = null;
+        editDto = new();
+    }
+
+    private async Task SubmitEdit()
+    {
+        if (editingMessage == null) return;
+
+        await MessageService.PatchAsTrainerAsync(editingMessage.Id, editDto);
+        await LoadMessages(selectedMemberId);
+        editingMessage = null;
+    }
+
+    private async Task SendMessage()
+    {
+        if (string.IsNullOrWhiteSpace(newMessage.MessageContent))
+            return;
+
+        newMessage.MemberId = selectedMemberId;
+        await MessageService.CreateAsTrainerAsync(newMessage);
+        await LoadMessages(selectedMemberId);
+        newMessage = new CreateSelfMessageDto { MemberId = selectedMemberId };
+    }
+
+    private async Task SelectMember(int id)
+    {
+        selectedMemberId = id;
+        newMessage = new CreateSelfMessageDto { MemberId = id };
+        await LoadMessages(id);
+    }
+
+    private bool IsMessageFromMember(TReadDto msg)
+    {
+        return msg.MemberId == 0;
+    }
+}

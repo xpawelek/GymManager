@@ -4,6 +4,8 @@ using System.Text;
 using System.Text.Json;
 using GymManager.Shared.DTOs.Admin;
 using GymManager.Shared.DTOs.Member;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace GymManager.Client.Services
 {
@@ -34,6 +36,20 @@ namespace GymManager.Client.Services
             return await _http.GetFromJsonAsync<ReadTrainerAssignmentDto>($"api/trainer-assignments/{id}");
         }
 
+        // [get] api/trainer-assignments/ever-assigned
+        // member
+        public async Task<bool> HasEverBeenAssignedAsync()
+        {
+            return await _http.GetFromJsonAsync<bool>("api/trainer-assignments/ever-assigned");
+        }
+
+        // [get] api/trainer-assignments/has-active
+        // member
+        public async Task<bool> HasActiveAssignmentAsync()
+        {
+            return await _http.GetFromJsonAsync<bool>("api/trainer-assignments/has-active");
+        }
+
         // [POST] /api/trainer-assignments
         // Admin
         public async Task<ReadTrainerAssignmentDto?> CreateAdminAsync(ACreateDto dto)
@@ -42,9 +58,6 @@ namespace GymManager.Client.Services
             return response.IsSuccessStatusCode ? await response.Content.ReadFromJsonAsync<ReadTrainerAssignmentDto>() 
                 : null;
         }
-
-        
-        
 
         // [PATCH] /api/trainer-assignments/{id}
         // Admin

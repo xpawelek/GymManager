@@ -30,7 +30,6 @@ namespace GymManager.Client.Services
             return await _http.GetFromJsonAsync<ReadMemberDto>($"api/members/{id}");
         }
         
-        
         // [POST] /api/auth/admin/register-member
         // Admin
         public async Task<string?> RegisterMemberAsync(RegisterMemberDto dto)
@@ -61,14 +60,14 @@ namespace GymManager.Client.Services
 
 
         // [GET] /api/members/self
-        // Członek
+        // member
         public async Task<ReadSelfMemberDto?> GetSelfAsync()
         {
             return await _http.GetFromJsonAsync<ReadSelfMemberDto>("api/members/self");
         }
 
         // [PATCH] /api/members/self
-        // Członek
+        // member
         public async Task<bool> UpdateSelfAsync(UpdateSelfMemberDto dto)
         {
             var response = await _http.PatchAsJsonAsync("api/members/self", dto);
