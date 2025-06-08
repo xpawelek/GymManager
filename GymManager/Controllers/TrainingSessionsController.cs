@@ -87,8 +87,19 @@ namespace GymManager.Controllers
         [Authorize(Roles = RoleConstants.Member)]
         public async Task<IActionResult> CreateMember([FromBody] MemberCreateDto dto)
         {
-            var result = await _member.CreateAsync(dto);
-            return CreatedAtAction(nameof(GetByIdAdmin), new { id = result.Id }, result);
+            try
+            {
+                var result = await _member.CreateAsync(dto);
+                return CreatedAtAction(nameof(GetByIdAdmin), new { id = result.Id }, result);
+            }
+            catch (UserFacingException ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = "An unexpected error occurred." });
+            }
         }
 
         [HttpPatch("{id}")]
@@ -115,7 +126,7 @@ namespace GymManager.Controllers
         [HttpGet("self")]
         [Authorize(Roles = RoleConstants.Member)]
         public async Task<IActionResult> GetAllMember()
-            => Ok(await _member.GetAllPersonalAsync());
+            => Ok(await _member.GetMemberAllPersonalAsync());
 
         [HttpGet("self/{id}")]
         [Authorize(Roles = RoleConstants.Member)]
@@ -124,6 +135,11 @@ namespace GymManager.Controllers
             var dto = await _member.GetByIdAsync(id);
             return dto == null ? NotFound() : Ok(dto);
         }
+
+        [HttpDelete("self/{id}")]
+        [Authorize(Roles = RoleConstants.Member)]
+        public async Task<IActionResult> DeleteOwnMember(int id)  
+            => (await _admin.DeleteAsync(id)) ? NoContent() : NotFound();
 
 
         [HttpGet("me")]

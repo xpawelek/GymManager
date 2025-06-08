@@ -20,7 +20,7 @@ namespace GymManager.Services.Admin
 
         public async Task<List<ReadTrainerAssignmentDto>> GetAllAsync()
         {
-            var list = await _context.TrainerAssignments.ToListAsync();
+            var list = await _context.TrainerAssignments.Include(t => t.Trainer).ToListAsync();
             return _mapper.ToReadDtoList(list);
         }
 

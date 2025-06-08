@@ -1,5 +1,6 @@
 ﻿using System.Security.Claims;
 using GymManager.Data;
+using GymManager.Exceptions;
 using GymManager.Shared.DTOs.Member;
 using GymManager.Models.Entities;
 using GymManager.Models.Mappers.Member;
@@ -45,7 +46,7 @@ namespace GymManager.Services.Member
             return _mapper.ToReadDtoList(list);
         }
         
-        public async Task<List<ReadTrainingSessionDto>> GetAllPersonalAsync()
+        public async Task<List<ReadTrainingSessionDto>> GetMemberAllPersonalAsync()
         {
             var memberId = await GetCurrentMemberId();
 
@@ -60,11 +61,13 @@ namespace GymManager.Services.Member
 
             var list = await _context.TrainingSessions
                 .Include(ts => ts.Trainer)
-                .Where(ts => !ts.IsGroupSession || ts.MemberId == memberId)
+                .Where(ts => !ts.IsGroupSession && ts.MemberId == memberId)
+                .OrderByDescending(ts => ts.StartTime) 
                 .ToListAsync();
 
             return _mapper.ToReadDtoList(list);
         }
+        
         
         public async Task<ReadTrainingSessionDto> CreateAsync(CreateTrainingSessionDto dto)
         {
@@ -72,7 +75,17 @@ namespace GymManager.Services.Member
 
             // Validate basic input
             if (dto.StartTime < DateTime.Now)
-                throw new Exception("You cannot schedule a session in the past");
+                throw new UserFacingException("You cannot schedule a session in the past");
+            
+            var trainerTimeConflict = await _context.TrainingSessions.AnyAsync(a =>
+                a.TrainerId == dto.TrainerId &&
+                dto.StartTime < a.StartTime.AddMinutes(a.DurationInMinutes) &&
+                dto.StartTime.AddMinutes(dto.DurationInMinutes) > a.StartTime);
+
+            if (trainerTimeConflict)
+            {
+                throw new UserFacingException("Trainer has another session during that time");
+            }
 
             var assignment = await _context.TrainerAssignments
                 .Where(a => a.MemberId == memberId &&
@@ -82,7 +95,7 @@ namespace GymManager.Services.Member
                 .FirstOrDefaultAsync();
 
             if (assignment == null)
-                throw new Exception("You don't have a valid trainer assignment for that date");
+                throw new UserFacingException("You don't have a valid trainer assignment for that date");
 
             dto.TrainerId = assignment.TrainerId;
             
@@ -91,13 +104,13 @@ namespace GymManager.Services.Member
                 .FirstOrDefaultAsync(m => m.MemberId == memberId && m.IsActive);
 
             if (membership == null)
-                throw new Exception("You don't have an active membership");
+                throw new UserFacingException("You don't have an active membership");
 
             var membershipType = await _context.MembershipTypes
                 .FindAsync(membership.MembershipTypeId);
 
             if (membershipType == null)
-                throw new Exception("Membership type not found");
+                throw new UserFacingException("Membership type not found");
 
             // limit sesji
             var startDate = membership.StartDate;
@@ -117,7 +130,7 @@ namespace GymManager.Services.Member
                 a.StartTime < cycleEnd);
 
             if (countCurrent >= membershipType.PersonalTrainingsPerMonth)
-                throw new Exception("You’ve reached your personal training session limit for this cycle");
+                throw new UserFacingException("You’ve reached your personal training session limit for this cycle");
 
             var member = await _context.Members.FirstOrDefaultAsync(m => m.Id == memberId);
             var trainer = await _context.Trainers.FirstOrDefaultAsync(t => t.Id == assignment.TrainerId);
@@ -255,6 +268,30 @@ namespace GymManager.Services.Member
             var e = await _context.TrainingSessions.FindAsync(id);
             if (e == null) return null;
             return _mapper.ToReadDto(e);
+        }
+        
+        
+        public async Task<bool> DeleteOwnAsync(int id)
+        {
+            var e = await _context.TrainingSessions.FindAsync(id);
+            if (e == null) return false;
+
+            if (e.MemberId != await GetCurrentMemberId())
+            {
+                throw new Exception("Cannot delete others training session");
+            }
+
+            var workoutNote = await _context.WorkoutNotes
+                .FirstOrDefaultAsync(w => w.TrainingSessionId == id);
+
+            if (workoutNote != null)
+            {
+                _context.WorkoutNotes.Remove(workoutNote);
+            }
+
+            _context.TrainingSessions.Remove(e);
+            await _context.SaveChangesAsync();
+            return true;
         }
     }
 }
