@@ -53,6 +53,15 @@ namespace GymManager.Controllers
             var result = await _admin.GetByMemberIdAsync(memberId);
             return Ok(result);
         }
+        
+        [HttpGet("trainer/{trainerId}")]
+        [Authorize(Roles = RoleConstants.Admin)]
+        public async Task<IActionResult> GetSessionForMember(int trainerId)
+        {
+            var result = await _admin.GetByTrainerIdAsync(trainerId);
+            return Ok(result);
+        }
+
 
         [HttpPost]
         [Authorize(Roles = RoleConstants.Admin)]

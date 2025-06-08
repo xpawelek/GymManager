@@ -36,6 +36,17 @@ namespace GymManager.Services.Admin
 
             return _mapper.ToReadDtoList(sessions);
         }
+        
+        public async Task<List<ReadTrainingSessionDto>> GetByTrainerIdAsync(int id)
+        {
+            var sessions = await _context.TrainingSessions
+                .Include(s => s.Trainer)
+                .Where(s => s.TrainerId == id && s.StartTime >= DateTime.Now)
+                .OrderBy(s => s.StartTime)
+                .ToListAsync();
+
+            return _mapper.ToReadDtoList(sessions);
+        }
         public async Task<ReadTrainingSessionDto?> GetByIdAsync(int id)
         {
             var e = await _context.TrainingSessions.FindAsync(id);
