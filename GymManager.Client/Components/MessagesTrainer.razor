@@ -9,9 +9,9 @@
 @using TReadDto = GymManager.Shared.DTOs.Trainer.ReadSelfMessageDto
 @using ReadMemberDto = GymManager.Shared.DTOs.Admin.ReadMemberDto
 
-<section class="py-5 bg-light">
+<section class="py-0 bg-light">
     <div class="container">
-        <h2 class="text-center mb-4" style="font-size: 2.5rem;">Assigned Members</h2>
+        <h3 class="text-danger text-start mb-4">My Assigned Members</h3>
 
         @if (assignedMembers == null)
         {
@@ -23,25 +23,30 @@
         }
         else
         {
-            <div class="row justify-content-center mb-5">
-                <div class="col-md-8">
-                    <ul class="list-group">
-                        @foreach (var m in assignedMembers)
-                        {
-                            <li class="list-group-item list-group-item-action"
-                                style="cursor: pointer;"
-                                @onclick="async () => await SelectMember(m.Id)">
-                                Member ID: <strong>@m.Id</strong> — @m.FirstName @m.LastName
-                            </li>
-                        }
-                    </ul>
-                </div>
-            </div>
+            <table class="table table-striped mb-5">
+                <thead>
+                    <tr>
+                        <th>Full Name</th>
+                        <th>Member ID</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var m in assignedMembers)
+                    {
+                        <tr style="cursor: pointer;" @onclick="async () => await SelectMember(m.Id)">
+                            <td>@m.FirstName @m.LastName</td>
+                            <td>@m.Id</td>
+                            <td><span class="badge bg-primary">Message</span></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
         }
 
         @if (selectedMemberId != 0)
         {
-            <h3 class="text-center mb-4">Messages with Member ID: @selectedMemberId</h3>
+            <h4 class="mb-4">Messages with Member ID: @selectedMemberId</h4>
 
             @if (messages == null)
             {
