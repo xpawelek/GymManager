@@ -282,14 +282,15 @@
                             </div>
                         }
 
+                        @if (!string.IsNullOrWhiteSpace(_trainingError) && _trainingError.ToString().Split(":")[1].Split('"')[1] != "An unexpected error occurred.")
+                        {
+                            <div class="alert alert-danger">
+                                @_trainingError.ToString().Split(":")[1].Split('"')[1]
+                            </div>
+                        }
+                        
                         @if (_showTrainingForm)
                         {
-                            @if (!string.IsNullOrWhiteSpace(_trainingError) && _trainingError.ToString().Split(":")[1].Split('"')[1] != "An unexpected error occurred.")
-                            {
-                                <div class="alert alert-danger">
-                                    @_trainingError.ToString().Split(":")[1].Split('"')[1]
-                                </div>
-                            }
                             <EditForm class="card p-4 bg-light border rounded shadow-sm" Model="@_newTraining" OnValidSubmit="SaveTraining">
                                 <DataAnnotationsValidator />
                                 <ValidationSummary />

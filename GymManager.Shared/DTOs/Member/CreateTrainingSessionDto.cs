@@ -17,6 +17,8 @@ namespace GymManager.Shared.DTOs.Member
         //[Required(ErrorMessage = "Group session flag is required.")]
         public bool IsGroupSession { get; set; }
 
+        public int DurationInMinutes { get; set; } = 120;
+
         public int? MemberId { get; set; }
     }
 }
