@@ -41,6 +41,7 @@ namespace GymManager.Services.Member
         {
             var list = await _context.TrainingSessions
                 .Where(ts => ts.IsGroupSession || ts.MemberId == null)
+                .Include(ts => ts.Trainer)
                 .ToListAsync();
             return _mapper.ToReadDtoList(list);
         }
