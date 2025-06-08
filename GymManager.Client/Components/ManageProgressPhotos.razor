@@ -1,5 +1,132 @@
-﻿<h3>ManageProgressPhotos</h3>
+﻿@using GymManager.Client.Services
+@using GymManager.Shared.DTOs.Admin
+@inject ProgressPhotoService ProgressPhotoService
+
+<div class="card shadow-sm p-4">
+    <h3 class="mb-4 text-danger">Manage Progress Photos</h3>
+
+    <div class="mb-3 d-flex justify-content-between align-items-center">
+        <input type="text" class="form-control w-50" placeholder="Search..." @bind="_search" />
+    </div>
+
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Member ID</th>
+                <th>Date</th>
+                <th>Comment</th>
+                <th>Public</th>
+                <th>Photo</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var photo in FilteredPhotos)
+            {
+                <tr>
+                    <td>@photo.MemberId</td>
+                    <td>@photo.Date.ToString("yyyy-MM-dd")</td>
+                    <td>@photo.Comment</td>
+                    <td>
+                        <label class="form-check d-flex align-items-center gap-1">
+                            <input type="checkbox"
+                                   class="form-check-input"
+                                   checked="@photo.IsPublic"
+                                   @onchange="async e => await TogglePublic(photo.Id, !photo.IsPublic)" />
+                            <span class="form-check-label">Public</span>
+                        </label>
+                    </td>
+                    <td>
+                        @if (!string.IsNullOrEmpty(photo.ImagePath))
+                        {
+                            <button class="btn btn-sm btn-outline-primary" @onclick="() => ShowPhoto(photo.ImagePath)">
+                                <i class="fa-solid fa-eye"></i>
+                            </button>
+                        }
+                    </td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-danger" @onclick="() => Delete(photo.Id)">Delete</button>
+                    </td>
+                </tr>
+
+            }
+        </tbody>
+    </table>
+</div>
+
+@if (_showPhotoModal && !string.IsNullOrEmpty(_photoToShow))
+{
+    <div class="modal show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.55);">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content text-center p-3" style="background-color: rgba(255, 255, 255, 0.1); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);">
+                <img src="@_photoToShow" alt="Progress Photo" class="img-fluid rounded" />
+                <button class="btn btn-danger mt-3" @onclick="ClosePhoto">Close</button>
+            </div>
+        </div>
+    </div>
+}
 
 @code {
+    private List<ReadProgressPhotoDto> _allPhotos = new();
+    private string _search = "";
+    private bool _showPhotoModal = false;
+    private string? _photoToShow;
+
+    private IEnumerable<ReadProgressPhotoDto> FilteredPhotos =>
+        string.IsNullOrWhiteSpace(_search)
+            ? _allPhotos
+            : _allPhotos.Where(p =>
+                (p.Comment?.Contains(_search, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                p.MemberId.ToString().Contains(_search));
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadPhotos();
+    }
+
+    private async Task LoadPhotos()
+    {
+        _allPhotos = await ProgressPhotoService.GetAllAsAdminAsync() ?? new();
+    }
+
+    private async Task Delete(int id)
+    {
+        var success = await ProgressPhotoService.DeleteAsync(id);
+        if (success)
+        {
+            _allPhotos = _allPhotos.Where(p => p.Id != id).ToList();
+        }
+    }
+
+    private void ShowPhoto(string path)
+    {
+        _photoToShow = path;
+        _showPhotoModal = true;
+    }
+
+    private void ClosePhoto()
+    {
+        _photoToShow = null;
+        _showPhotoModal = false;
+    }
     
+    private async Task TogglePublic(int id, bool makePublic)
+    {
+        var dto = new UpdateProgressPhotoDto
+        {
+            IsPublic = makePublic
+        };
+
+        var success = await ProgressPhotoService.PatchAsAdminAsync(id, dto);
+
+        if (success)
+        {
+            var updated = _allPhotos.FirstOrDefault(p => p.Id == id);
+            if (updated != null)
+            {
+                updated.IsPublic = makePublic;
+            }
+        }
+    }
+
 }

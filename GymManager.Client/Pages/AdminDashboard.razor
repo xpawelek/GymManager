@@ -22,19 +22,22 @@
 
                 <ul class="nav nav-tabs mb-4">
                     <li class="nav-item">
-                        <button class="nav-link @GetTabClass("equipment")" @onclick='() => SelectTab("equipment")'>Equipment</button>
+                        <button class="nav-link @GetTabClass("members")" @onclick='() => SelectTab("members")'>Members</button>
                     </li>
                     <li class="nav-item">
                         <button class="nav-link @GetTabClass("trainers")" @onclick='() => SelectTab("trainers")'>Trainers</button>
                     </li>
                     <li class="nav-item">
-                        <button class="nav-link @GetTabClass("members")" @onclick='() => SelectTab("members")'>Members</button>
-                    </li>
-                    <li class="nav-item">
                         <button class="nav-link @GetTabClass("members")" @onclick='() => SelectTab("trainings")'>Trainings</button>
                     </li>
                     <li class="nav-item">
-                        <button class="nav-link @GetTabClass("members")" @onclick='() => SelectTab("progress")'>Members' progress</button>
+                        <button class="nav-link @GetTabClass("equipment")" @onclick='() => SelectTab("equipment")'>Equipment</button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link @GetTabClass("members")" @onclick='() => SelectTab("offers")'>Offers</button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link @GetTabClass("members")" @onclick='() => SelectTab("progress")'>Members progress</button>
                     </li>
                 </ul>
 
@@ -57,6 +60,10 @@
                 else if (selectedTab == "progress")
                 {
                     <ManageProgressPhotos/>
+                }
+                else if (selectedTab == "offers")
+                {
+                    <ManageOffers/>
                 }
             </div>
         }

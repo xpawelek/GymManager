@@ -171,7 +171,9 @@
                 @if (_selectedMemberMembership != null)
                 {
 
-                    <div class="m-3 mb-4 mt-4">
+                    @if (_membership?.IncludesPersonalTrainer == true)
+                    {
+                         <div class="m-3 mb-4 mt-4">
                         <h5 class="text-secondary">Trainer Assignment</h5>
 
                         @if (_selectedMemberTrainerAssignemnt != null)
@@ -346,6 +348,7 @@
                             </div>
                         }
                     </div>
+                    }
 
                 }
             </div>
@@ -377,7 +380,7 @@
     private Shared.DTOs.Admin.CreateTrainingSessionDto _newTraining = new();
     private bool _showTrainingForm = false;
     private string _trainingError = "";
-
+    private Shared.DTOs.Member.ReadMembershipTypeDto? _membership;
     
     private IEnumerable<ReadMemberDto> FilteredMembers =>
         string.IsNullOrWhiteSpace(_search)
@@ -391,7 +394,7 @@
     protected override async Task OnInitializedAsync()
     {
         await LoadMembers();
-        _membershipTypes = await MembershipTypeService.GetAllAsync() ?? new();
+        _membershipTypes = await MembershipTypeService.GetAllAsync() ?? new(); 
         _trainers = await TrainerService.GetAllAdminAsync() ?? new List<ReadTrainerDto>();
     }
 
@@ -488,6 +491,7 @@
         await MembershipService.DeleteAsync(id);
         
         _selectedMemberMembership = null;
+        _membership = null;
         StateHasChanged(); 
     }
     
@@ -514,6 +518,8 @@
             {
                 _selectedMemberMembership = null;
             }
+            
+            _membership = _membershipTypes.FirstOrDefault(t => t.Id == _selectedMemberMembership?.MembershipTypeId);
 
             try
             {
@@ -575,6 +581,9 @@
             }
             _showMembershipForm = false;
             _newMembership = new CreateMembershipDto { StartDate = DateTime.Now };
+            
+            SelectedMember(_selectedMemberId.Value);
+            StateHasChanged(); 
         }
         catch (Exception ex)
         {

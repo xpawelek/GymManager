@@ -6,29 +6,31 @@
 @using Microsoft.AspNetCore.Components.Forms
 @using ReadTrainerDto = GymManager.Shared.DTOs.Admin.ReadTrainerDto
 @inject TrainerService TrainerService
+@inject TrainingSessionService TrainingSessionService
+@inject IJSRuntime JS
 
 <div class="card shadow-sm p-4">
     <h3 class="mb-4 text-danger">Manage Trainers</h3>
 
     <div class="mb-3 d-flex justify-content-between align-items-center">
-        <input type="text" class="form-control w-50" placeholder="Search..." @bind="search" />
+        <input type="text" class="form-control w-50" placeholder="Search..." @bind="_search" />
         <button class="btn btn-danger" @onclick="ShowCreateForm">Add New Trainer</button>
     </div>
 
-    @if (showForm)
+    @if (_showForm)
     {
         <div class="card p-3 bg-light mb-4">
-            <h5>@(editId == null ? "Add Trainer" : "Edit Trainer")</h5>
+            <h5>@(_editId == null ? "Add Trainer" : "Edit Trainer")</h5>
 
-            <input class="form-control mb-2" placeholder="First Name" @bind="trainerDto.FirstName" />
-            <input class="form-control mb-2" placeholder="Last Name" @bind="trainerDto.LastName" />
-            <input class="form-control mb-2" placeholder="Email" @bind="trainerDto.Email" />
-            @if (editId == null)
+            <input class="form-control mb-2" placeholder="First Name" @bind="_trainerDto.FirstName" />
+            <input class="form-control mb-2" placeholder="Last Name" @bind="_trainerDto.LastName" />
+            <input class="form-control mb-2" placeholder="Email" @bind="_trainerDto.Email" />
+            @if (_editId == null)
             {
-                <input class="form-control mb-2"  type="password" @bind="assignedPassword" />   
+                <input class="form-control mb-2"  type="password" @bind="_assignedPassword" />   
             }
-            <input class="form-control mb-2" placeholder="Phone" @bind="trainerDto.PhoneNumber" />
-            <textarea class="form-control mb-2" placeholder="Description" @bind="trainerDto.Description"></textarea>
+            <input class="form-control mb-2" placeholder="Phone" @bind="_trainerDto.PhoneNumber" />
+            <textarea class="form-control mb-2" placeholder="Description" @bind="_trainerDto.Description"></textarea>
             <InputFile class="form-control mb-2" OnChange="OnFileSelected" />
 
             <div class="d-flex justify-content-end">
@@ -40,48 +42,107 @@
 
     <table class="table table-striped">
         <thead>
-            <tr>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Phone</th>
-                <th>Description</th>
-                <th>Photo</th>
-                <th style="width: 150px;">Actions</th>
-            </tr>
+        <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Description</th>
+            <th>Photo</th>
+            <th style="width: 150px;">Actions</th>
+        </tr>
         </thead>
         <tbody>
-            @foreach (var trainer in FilteredTrainers)
-            {
-                <tr>
-                    <td>@trainer.FirstName @trainer.LastName</td>
-                    <td>@trainer.Email</td>
-                    <td>@trainer.PhoneNumber</td>
-                    <td>@trainer.Description</td>
-                    <td>
-                        @if (!string.IsNullOrEmpty(trainer.PhotoPath))
-                        {
-                            <button class="btn btn-sm btn-outline-primary" @onclick="() => ShowPhoto(trainer.PhotoPath)">
-                                <i class="fa-solid fa-eye"></i>
-                            </button>
-                        }
-                    </td>
-                    <td>
-                        <button class="btn btn-sm btn-outline-dark me-2" @onclick="() => StartEdit(trainer)">Edit</button>
-                        <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteTrainer(trainer.Id)">Delete</button>
-                    </td>
-                </tr>
-            }
+        @foreach (var trainer in FilteredTrainers)
+        {
+            <tr class="@(trainer.Id == _selectedTrainerId ? "table-primary" : "")" @onclick="() => SelectedTrainer(trainer.Id)">
+                <td>@trainer.FirstName @trainer.LastName</td>
+                <td>@trainer.Email</td>
+                <td>@trainer.PhoneNumber</td>
+                <td>@trainer.Description</td>
+                <td>
+                    @if (!string.IsNullOrEmpty(trainer.PhotoPath))
+                    {
+                        <button class="btn btn-sm btn-outline-primary" @onclick="() => ShowPhoto(trainer.PhotoPath)">
+                            <i class="fa-solid fa-eye"></i>
+                        </button>
+                    }
+                </td>
+                <td>
+                    <button class="btn btn-sm btn-outline-dark me-2" @onclick="() => StartEdit(trainer)">Edit</button>
+                    <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteTrainer(trainer.Id)">Delete</button>
+                </td>
+            </tr>
+        }
         </tbody>
     </table>
+    
+    @if (_selectedTrainerId.HasValue)
+    {
+        var selected = _trainers.FirstOrDefault(m => m.Id == _selectedTrainerId.Value);
+        if (selected is not null)
+        {
+            <div id="trainer-details" class="card mt-4 p-5 border shadow-sm">
+                <h4 class="mb-3 text-primary">
+                    Modify Trainer: @selected.FirstName @selected.LastName – @selected.Email
+                </h4>
+
+                <div class="m-3 mb-4">
+                    <h5 class="text-secondary">Incoming Trainings</h5>
+
+                    @if (_upcomingTrainings.Any())
+                    {
+                        <div class="table-responsive p-2">
+                            <table class="table table-striped">
+                                <thead>
+                                <tr>
+                                    <th>Start Time</th>
+                                    <th>Duration</th>
+                                    <th>Description</th>
+                                    <th style="width: 120px;">Actions</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                @foreach (var session in _upcomingTrainings.Where(p => p.StartTime >= DateTime.Now).OrderBy(p => p.StartTime))
+                                {
+                                    <tr>
+                                        <td>@session.StartTime.ToString("dd.MM.yyyy HH:mm")</td>
+                                        <td>@session.DurationInMinutes min</td>
+                                        <td>@session.Description</td>
+                                        <td>
+                                            <button class="btn btn-sm btn-outline-danger"
+                                                    title="Delete session"
+                                                    @onclick="() => DeleteTraining(session.Id)"
+                                                    >
+                                                Delete
+                                            </button>
+                                        </td>
+                                    </tr>
+                                }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="p-2">
+                            <p class="text-muted"><em>No upcoming training sessions.</em></p>
+                        </div>
+                    }
+                </div>
+
+
+            </div>
+        }
+    }
 </div>
 
-@if (showPhotoModal && !string.IsNullOrEmpty(photoToShow))
+@if (_showPhotoModal && !string.IsNullOrEmpty(_photoToShow))
 {
     <div class="modal show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.55);">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content text-center p-3 border border-1 border-dark shadow"
                  style="background-color: rgba(255, 255, 255, 0.1); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-radius: 1rem;">
-                <img src="@photoToShow"/>
+                <img src="@_photoToShow"/>
                 <button class="btn btn-danger mt-3" @onclick="ClosePhoto">Close</button>
             </div>
         </div>
@@ -89,25 +150,27 @@
 }
 
 @code {
-    private List<ReadTrainerDto> trainers = new();
-    private string search = "";
-    private string? photoToShow;
-    private bool showPhotoModal = false;
-    private CreateTrainerDto trainerDto = new();
-    private int? editId = null;
-    private bool showForm = false;
-    private IBrowserFile? selectedFile;
-    private string assignedPassword = string.Empty;
+    private List<ReadTrainerDto> _trainers = new();
+    private string _search = "";
+    private string? _photoToShow;
+    private bool _showPhotoModal = false;
+    private CreateTrainerDto _trainerDto = new();
+    private int? _editId = null;
+    private bool _showForm = false;
+    private IBrowserFile? _selectedFile;
+    private string _assignedPassword = string.Empty;
+    private int? _selectedTrainerId = null;
+    private List<Shared.DTOs.Admin.ReadTrainingSessionDto> _upcomingTrainings = new();
     
 
     private IEnumerable<ReadTrainerDto> FilteredTrainers =>
-        string.IsNullOrWhiteSpace(search)
-            ? trainers
-            : trainers.Where(t =>
-                t.FirstName.Contains(search, StringComparison.OrdinalIgnoreCase) ||
-                t.LastName.Contains(search, StringComparison.OrdinalIgnoreCase) ||
-                t.Email.Contains(search, StringComparison.OrdinalIgnoreCase) ||
-                t.Description.Contains(search, StringComparison.OrdinalIgnoreCase));
+        string.IsNullOrWhiteSpace(_search)
+            ? _trainers
+            : _trainers.Where(t =>
+                t.FirstName.Contains(_search, StringComparison.OrdinalIgnoreCase) ||
+                t.LastName.Contains(_search, StringComparison.OrdinalIgnoreCase) ||
+                t.Email.Contains(_search, StringComparison.OrdinalIgnoreCase) ||
+                t.Description.Contains(_search, StringComparison.OrdinalIgnoreCase));
 
     protected override async Task OnInitializedAsync()
     {
@@ -116,26 +179,26 @@
 
     private async Task LoadTrainers()
     {
-        trainers = await TrainerService.GetAllAdminAsync() ?? new();
+        _trainers = await TrainerService.GetAllAdminAsync() ?? new();
     }
 
     private void ShowCreateForm()
     {
-        trainerDto = new CreateTrainerDto();
-        editId = null;
-        showForm = true;
+        _trainerDto = new CreateTrainerDto();
+        _editId = null;
+        _showForm = true;
     }
 
     private void CancelForm()
     {
-        trainerDto = new CreateTrainerDto();
-        editId = null;
-        showForm = false;
+        _trainerDto = new CreateTrainerDto();
+        _editId = null;
+        _showForm = false;
     }
 
     private void StartEdit(ReadTrainerDto trainer)
     {
-        trainerDto = new CreateTrainerDto
+        _trainerDto = new CreateTrainerDto
         {
             FirstName = trainer.FirstName,
             LastName = trainer.LastName,
@@ -143,26 +206,26 @@
             PhoneNumber = trainer.PhoneNumber,
             Description = trainer.Description
         };
-        editId = trainer.Id;
-        showForm = true;
+        _editId = trainer.Id;
+        _showForm = true;
     }
 
     
     private async Task SaveTrainer()
     {
-        if (string.IsNullOrWhiteSpace(trainerDto.FirstName) || string.IsNullOrWhiteSpace(trainerDto.LastName))
+        if (string.IsNullOrWhiteSpace(_trainerDto.FirstName) || string.IsNullOrWhiteSpace(_trainerDto.LastName))
             return;
 
-        if (editId == null)
+        if (_editId == null)
         {
             var registerDto = new RegisterTrainerDto
             {
-                FirstName = trainerDto.FirstName,
-                LastName = trainerDto.LastName,
-                Email = trainerDto.Email,
-                PhoneNumber = trainerDto.PhoneNumber,
-                Description = trainerDto.Description,
-                Password = assignedPassword
+                FirstName = _trainerDto.FirstName,
+                LastName = _trainerDto.LastName,
+                Email = _trainerDto.Email,
+                PhoneNumber = _trainerDto.PhoneNumber,
+                Description = _trainerDto.Description,
+                Password = _assignedPassword
             };
 
             var content = new StringContent(JsonSerializer.Serialize(registerDto), Encoding.UTF8, "application/json");
@@ -181,30 +244,30 @@
             await Task.Delay(500); 
             await LoadTrainers();
 
-            var newTrainer = trainers.FirstOrDefault(t => t.Email == trainerDto.Email);
-            if (newTrainer != null && selectedFile != null)
+            var newTrainer = _trainers.FirstOrDefault(t => t.Email == _trainerDto.Email);
+            if (newTrainer != null && _selectedFile != null)
             {
-                await TrainerService.UploadPhotoAdminAsync(newTrainer.Id, selectedFile);
-                selectedFile = null;
+                await TrainerService.UploadPhotoAdminAsync(newTrainer.Id, _selectedFile);
+                _selectedFile = null;
             }
         }
         else
         {
             var update = new UpdateTrainerDto
             {
-                FirstName = trainerDto.FirstName,
-                LastName = trainerDto.LastName,
-                Email = trainerDto.Email,
-                PhoneNumber = trainerDto.PhoneNumber,
-                Description = trainerDto.Description
+                FirstName = _trainerDto.FirstName,
+                LastName = _trainerDto.LastName,
+                Email = _trainerDto.Email,
+                PhoneNumber = _trainerDto.PhoneNumber,
+                Description = _trainerDto.Description
             };
 
-            await TrainerService.UpdateAdminAsync(editId.Value, update);
+            await TrainerService.UpdateAdminAsync(_editId.Value, update);
 
-            if (selectedFile != null)
+            if (_selectedFile != null)
             {
-                await TrainerService.UploadPhotoAdminAsync(editId.Value, selectedFile);
-                selectedFile = null;
+                await TrainerService.UploadPhotoAdminAsync(_editId.Value, _selectedFile);
+                _selectedFile = null;
             }
         }
 
@@ -221,18 +284,65 @@
 
     private void OnFileSelected(InputFileChangeEventArgs e)
     {
-        selectedFile = e.File;
+        _selectedFile = e.File;
     }
 
     private void ShowPhoto(string photoPath)
     {
-        photoToShow = photoPath;
-        showPhotoModal = true;
+        _photoToShow = photoPath;
+        _showPhotoModal = true;
     }
 
     private void ClosePhoto()
     {
-        showPhotoModal = false;
-        photoToShow = null;
+        _showPhotoModal = false;
+        _photoToShow = null;
+    }
+    
+    
+    private async void SelectedTrainer(int id)
+    {
+        CancelForm();
+        _selectedTrainerId = id;
+
+        if (true)
+        {
+            try
+            {
+                if (_selectedTrainerId.HasValue)
+                {
+                    _upcomingTrainings = await TrainingSessionService.GetSessionsForTrainerAsync(_selectedTrainerId.Value)
+                                         ?? new List<Shared.DTOs.Admin.ReadTrainingSessionDto>();   
+                }
+            }
+            catch(HttpRequestException)
+            {
+                _upcomingTrainings = null;
+            }
+        }
+        
+        StateHasChanged(); 
+        await Task.Delay(100);
+        await JS.InvokeVoidAsync("scrollToElement", "trainer-details");
+    }
+    
+    private async Task DeleteTraining(int id)
+    {
+        var deleted = await TrainingSessionService.DeleteAdminAsync(id);
+        if (deleted)
+        {
+            _upcomingTrainings = _upcomingTrainings.Where(p => p.Id != id).ToList();
+            StateHasChanged();
+        }
     }
 }
+
+
+<script>
+    window.scrollToElement = function (id) {
+        const element = document.getElementById(id);
+        if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    };
+</script>
