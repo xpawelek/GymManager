@@ -42,6 +42,7 @@ namespace GymManager.Services.Admin
         {
             var entity = await _context.ProgressPhotos.FindAsync(id);
             if (entity == null) return false;
+            if(dto.Comment == null) dto.Comment = entity.Comment; 
             _mapper.UpdateEntity(dto, entity);
             await _context.SaveChangesAsync();
             return true;

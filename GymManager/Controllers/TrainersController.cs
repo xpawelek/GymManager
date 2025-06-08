@@ -83,7 +83,7 @@ namespace GymManager.Controllers
             return updated ? Ok(fullUrl) : NotFound();
         }
 
-        [HttpPatch("{id}")]
+        [HttpPatch("{id:int}")]
         [Authorize(Roles = RoleConstants.Admin)]
         public async Task<IActionResult> UpdateAdmin(int id, [FromBody] UpdateTrainerDto dto)
             => (await _adminSvc.UpdateAsync(id, dto)) ? NoContent() : NotFound();
