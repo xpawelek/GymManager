@@ -95,6 +95,28 @@ namespace GymManager.Client.Services
         {
             return await _http.GetFromJsonAsync<UserInfo>("api/auth/me");
         }
+        
+        public async Task<bool> ChangePasswordAsync(string currentPassword, string newPassword)
+        {
+            var token = await _localStorage.GetItemAsync<string>("authToken");
+    
+            if (string.IsNullOrWhiteSpace(token))
+                throw new Exception("No token found in local storage.");
+
+            _http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            var dto = new ChangePasswordDto
+            {
+                CurrentPassword = currentPassword,
+                NewPassword = newPassword,
+                ConfirmPassword = newPassword
+            };
+
+            var response = await _http.PostAsJsonAsync("api/auth/change-password", dto);
+            return response.IsSuccessStatusCode;
+        }
+
+
     }
 
     public class LoginResponse

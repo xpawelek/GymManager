@@ -50,7 +50,8 @@ namespace GymManager.Services.Member
         public async Task<ReadSelfWorkoutNoteDto?> GetByIdAsync(int id)
         {
             var mid = await GetCurrentMemberId();
-            var e = await _context.WorkoutNotes.FindAsync(id);
+            var e = await _context.WorkoutNotes
+                .FirstOrDefaultAsync(w => w.TrainingSessionId == id && w.MemberId == mid);
             if (e == null || e.MemberId != mid) return null;
             return _mapper.ToReadDto(e);
         }

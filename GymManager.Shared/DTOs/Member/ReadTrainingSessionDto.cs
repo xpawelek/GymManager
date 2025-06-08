@@ -10,6 +10,7 @@ public class ReadTrainingSessionDto
     public bool IsGroupSession { get; set; }
     public int? MemberId {get; set;}
     
+    public int? TrainingSessionId { get; set; }
     public string TrainerFirstName { get; set; }
     
     public string TrainerSecondName { get; set; }

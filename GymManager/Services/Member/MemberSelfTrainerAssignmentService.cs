@@ -60,7 +60,7 @@ namespace GymManager.Services.Member
         public async Task<int> CreateAsync(CreateTrainerAssignmentDto dto)
         {
             var e = _mapper.ToEntity(dto);
-            e.MemberId = GetCurrentMemberId();
+            e.MemberId = await GetMemberId();
             await _context.TrainerAssignments.AddAsync(e);
             await _context.SaveChangesAsync();
             return e.Id;

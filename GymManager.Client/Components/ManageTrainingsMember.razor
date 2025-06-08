@@ -1,0 +1,186 @@
+﻿@using GymManager.Client.Services
+@using GymManager.Shared.DTOs.Member
+@inject TrainingSessionService TrainingSessionService
+@inject TrainerAssignmentService TrainerAssignmentService
+@inject WorkoutNoteService WorkoutNoteService
+
+<div class="card shadow-sm p-4">
+    <h3 class="mb-4 text-danger">Manage Your Trainings</h3>
+@if (_personalTrainings.Any())
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Trainer</th>
+                <th>Start</th>
+                <th>Duration</th>
+                <th>Description</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var session in _personalTrainings)
+            {
+                <tr class="flex-wrap">
+                    <td class="align-middle">@session.TrainerFirstName @session.TrainerSecondName</td>
+                    <td class="align-middle">@session.StartTime.ToString("dd.MM.yyyy HH:mm")</td>
+                    <td class="align-middle">@session.DurationInMinutes min</td>
+                    <td class="align-middle">@session.Description</td>
+                    <td class="align-middle">
+                        @if (session.StartTime > DateTime.Now)
+                        {
+                            <button class="btn btn-sm btn-danger" @onclick="() => DeleteTraining(session.Id)">Delete</button>
+                        }
+                        else
+                        {
+                            <p>@session.TrainingSessionId</p>
+                            <button class="btn btn-sm btn-primary p-2" @onclick="() => ShowNote(session.Id)">View note</button>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p class="text-muted"><em>No personal training sessions found.</em></p>
+}
+
+<h5 class="mt-4 mb-2 text-secondary">Schedule a Personal Training</h5>
+
+@if (!string.IsNullOrEmpty(_trainingError))
+{
+    <p class="text-danger">@_trainingError.ToString().Split(":")[1].Split('"')[1]</p>
+}
+@if (_memberTrainerAssignemnt is not null)
+{
+    <div class="bg-light p-4 rounded border mt-3">
+        <div class="row g-3 align-items-center mb-3">
+            <div class="col-auto">
+                <label class="col-form-label fw-semibold">Date</label>
+            </div>
+            <div class="col-auto">
+                <input type="date"
+                       class="form-control"
+                       @bind="_selectedDate"
+                       min="@DateTime.Today.ToString("yyyy-MM-dd")" />
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label fw-semibold">Time Slots</label>
+            <div class="d-flex flex-wrap gap-2">
+                @foreach (var hour in Enumerable.Range(8, 11))
+                {
+                    var isSelected = hour == _selectedHour;
+                    <button type="button"
+                            class="btn @(isSelected ? "btn-primary" : "btn-outline-secondary") rounded-pill px-3"
+                            @onclick="@(() => _selectedHour = hour)">
+                        @($"{hour:00}:00")
+                    </button>
+                }
+            </div>
+            <button class="btn btn-success align-content-center px-4 py-2 my-3" @onclick="CreateTraining">Book Session</button>
+        </div>
+    </div>
+    
+    @if (_showNote && _selectedNote is not null)
+    {
+        <div class="card p-4 mt-4 shadow-sm">
+            <h5 class="text-primary mb-3">Workout Notes</h5>
+            <p><strong>Start Time:</strong> @_selectedNote.WorkoutStartTime.ToString("dd.MM.yyyy HH:mm")</p>
+            <p><strong>Weight:</strong> @(_selectedNote.CurrentWeight?.ToString("F1") is null ? "No data" : $"{_selectedNote.CurrentWeight?.ToString("F1")} kg")</p>
+            <p><strong>Height:</strong> @(_selectedNote.CurrentHeight?.ToString("F1") is null ? "No data" : $"{_selectedNote.CurrentHeight?.ToString("F1")} cm")</p>
+            <p><strong>Workout Info:</strong> @(_selectedNote.WorkoutInfo == "" ? "No data" : _selectedNote.WorkoutInfo)</p>
+            <button class="btn btn-outline-secondary mt-2" @onclick="() => _showNote = false">Close</button>
+        </div>
+    }
+
+}
+else
+{
+    <p class="text-muted">Assign a trainer first to book a session.</p>
+}
+</div>
+
+@code {
+    private List<Shared.DTOs.Member.ReadTrainingSessionDto> _personalTrainings = new();
+    private DateTime _selectedDate = DateTime.Today;
+    private int? _selectedHour = null;
+    private string? _trainingError = null;
+    private ReadSelfTrainerAssignmentDto? _memberTrainerAssignemnt;
+    private int _durationInMinutes = 120;
+    private ReadSelfWorkoutNoteDto? _selectedNote;
+    private bool _showNote = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _personalTrainings = await TrainingSessionService.GetAllMemberPersonalAsync() ?? new();
+        _memberTrainerAssignemnt = await TryGet(() => TrainerAssignmentService.GetMemberSelfAsync());
+    }
+
+    private async Task<T?> TryGet<T>(Func<Task<T>> action)
+    {
+        try { return await action(); } catch { return default; }
+    }
+
+    private async Task DeleteTraining(int id)
+    {
+        var deleted = await TrainingSessionService.DeleteMemberAsync(id);
+        if (deleted)
+        {
+            _personalTrainings = _personalTrainings.Where(p => p.Id != id).ToList();
+            StateHasChanged();
+        }
+    }
+
+    private async Task ShowNote(int? sessionId)
+    {
+        if (sessionId == null)
+            return;
+        _selectedNote = await WorkoutNoteService.GetByIdMemberAsync(sessionId.Value);
+        _showNote = _selectedNote is not null;
+    }
+    
+    private async Task CreateTraining()
+    {
+        _trainingError = null;
+
+        if (_selectedHour is null)
+        {
+            _trainingError = "Please select a time slot.";
+            return;
+        }
+
+        if (_memberTrainerAssignemnt is null)
+        {
+            _trainingError = "Trainer not assigned.";
+            return;
+        }
+
+        var selectedDateTime = new DateTime(
+            _selectedDate.Year,
+            _selectedDate.Month,
+            _selectedDate.Day,
+            _selectedHour.Value, 0, 0);
+
+        var createDto = new CreateTrainingSessionDto()
+        {
+            StartTime = selectedDateTime,
+            TrainerId = _memberTrainerAssignemnt.TrainerId,
+            IsGroupSession = false
+        };
+
+        try
+        {
+            await TrainingSessionService.CreateMemberAsync(createDto);
+            _personalTrainings = await TrainingSessionService.GetAllMemberPersonalAsync() ?? new();
+            _selectedHour = null;
+        }
+        catch (Exception ex)
+        {
+            _trainingError = ex.Message;
+        }
+    }
+}

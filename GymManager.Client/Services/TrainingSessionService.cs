@@ -88,11 +88,7 @@ namespace GymManager.Client.Services
 
             return await response.Content.ReadFromJsonAsync<AReadDto>();
         }
-
-
-
-
-
+        
         // [PATCH] /api/training-sessions/{id}
         // admin
         public async Task<bool> PatchAdminAsync(int id, AUpdateDto dto)
@@ -108,12 +104,43 @@ namespace GymManager.Client.Services
             var response = await _http.DeleteAsync($"api/training-sessions/{id}");
             return response.IsSuccessStatusCode;
         }
+        
+        // [DELETE] /api/training-sessions/self/{id}
+        // mebmer
+        public async Task<bool> DeleteMemberAsync(int id)
+        {
+            var response = await _http.DeleteAsync($"api/training-sessions/self/{id}");
+            return response.IsSuccessStatusCode;
+        }
 
         // [POST] /api/training-sessions/self
         // member
         public async Task<MReadDto?> CreateMemberAsync(MCreateDto dto)
         {
             var response = await _http.PostAsJsonAsync("api/training-sessions/self", dto);
+            if (!response.IsSuccessStatusCode)
+            {
+                var content = await response.Content.ReadAsStringAsync();
+                
+                if (!string.IsNullOrWhiteSpace(content) && content.Trim().StartsWith("{"))
+                {
+                    try
+                    {
+                        using var doc = JsonDocument.Parse(content);
+                        if (doc.RootElement.TryGetProperty("error", out var errorElement))
+                        {
+                            throw new Exception(errorElement.GetString());
+                        }
+                    }
+                    catch
+                    {
+                        throw new Exception(content);
+                    }
+                }
+                
+                throw new Exception(content);
+            }
+
             return await response.Content.ReadFromJsonAsync<MReadDto>();
         }
 
