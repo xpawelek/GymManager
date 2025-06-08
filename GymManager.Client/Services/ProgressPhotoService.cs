@@ -28,6 +28,11 @@ namespace GymManager.Client.Services
         {
             return await _http.GetFromJsonAsync<List<object>>("api/progress-photos");
         }
+        
+        public async Task<List<Shared.DTOs.Admin.ReadProgressPhotoDto>?> GetAllAsAdminAsync()
+        {
+            return await _http.GetFromJsonAsync<List<Shared.DTOs.Admin.ReadProgressPhotoDto>>("api/progress-photos");
+        }
 
         // [GET] /api/progress-photos/public
         // Public + wszystkie role

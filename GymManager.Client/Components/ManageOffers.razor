@@ -1,0 +1,217 @@
+﻿@using GymManager.Shared.DTOs.Admin
+@using GymManager.Client.Services
+@inject MembershipTypeService MembershipTypeService
+
+<h3 class="mb-4 text-danger">Manage Offers</h3>
+
+<div class="mb-3 d-flex justify-content-between align-items-center">
+    <input type="text" class="form-control w-50" placeholder="Search..." @bind="_search" />
+    <button class="btn btn-danger" @onclick="ShowCreateForm">Add New Offer</button>
+</div>
+
+@if (_showForm)
+{
+    <EditForm Model="_offerDto" OnValidSubmit="SaveOffer">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="card p-3 bg-light mb-4">
+            <h5>@(_editId == null ? "Add Offer" : "Edit Offer")</h5>
+
+            <label for="name">Name</label>
+            <InputText id="name" class="form-control mb-2" placeholder="Premium Plus" @bind-Value="_offerDto.Name" />
+            <ValidationMessage For="@(() => _offerDto.Name)" />
+
+            <label for="description">Description</label>
+            <InputTextArea id="description" class="form-control mb-2" placeholder="Full access to gym, sauna, and pool." @bind-Value="_offerDto.Description" />
+            <ValidationMessage For="@(() => _offerDto.Description)" />
+
+            <label for="price">Price (PLN)</label>
+            <InputNumber id="price" class="form-control mb-2" placeholder="129.99" @bind-Value="_offerDto.Price" step="0.01" />
+            <ValidationMessage For="@(() => _offerDto.Price)" />
+
+            <label for="duration">Duration (days)</label>
+            <InputNumber id="duration" class="form-control mb-2" placeholder="30" @bind-Value="_offerDto.DurationInDays" />
+            <ValidationMessage For="@(() => _offerDto.DurationInDays)" />
+
+            <div class="form-check mb-2">
+                <InputCheckbox id="includesTrainer" class="form-check-input" @bind-Value="_offerDto.IncludesPersonalTrainer" @onchange="OnIncludesTrainerChanged" />
+                <label class="form-check-label" for="includesTrainer">Includes Personal Trainer</label>
+            </div>
+
+            @if (_offerDto.IncludesPersonalTrainer)
+            {
+                <label for="ptCount">Personal Trainings Per Month</label>
+                <InputNumber id="ptCount" class="form-control mb-2" placeholder="e.g., 4" @bind-Value="_offerDto.PersonalTrainingsPerMonth" />
+                <ValidationMessage For="@(() => _offerDto.PersonalTrainingsPerMonth)" />
+
+                <div class="form-check mb-2">
+                    <InputCheckbox id="allowTrainerSelection" class="form-check-input" @bind-Value="_offerDto.AllowTrainerSelection" />
+                    <label class="form-check-label" for="allowTrainerSelection">Allow Trainer Selection</label>
+                </div>
+
+                <div class="form-check mb-2">
+                    <InputCheckbox id="includesTracking"
+                                   class="form-check-input"
+                                   @bind-Value="_offerDto.IncludesProgressTracking"
+                                   disabled="@_offerDto.IncludesPersonalTrainer" />
+                    <label class="form-check-label" for="includesTracking">Includes Progress Tracking</label>
+                </div>
+
+            }
+
+            <div class="form-check mb-2">
+                <InputCheckbox id="isVisible" class="form-check-input" @bind-Value="_offerDto.IsVisible" />
+                <label class="form-check-label" for="isVisible">Visible on Public Page</label>
+            </div>
+
+            <div class="d-flex justify-content-end">
+                <button class="btn btn-secondary me-2" type="button" @onclick="CancelForm">Cancel</button>
+                <button class="btn btn-danger" type="submit">Save</button>
+            </div>
+        </div>
+    </EditForm>
+}
+
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Price</th>
+            <th>Duration</th>
+            <th>Trainer</th>
+            <th>Tracking</th>
+            <th>Visible</th>
+            <th style="width: 150px;">Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var offer in FilteredOffers)
+        {
+            <tr>
+                <td>@offer.Name</td>
+                <td>@offer.Price.ToString("C")</td>
+                <td>@offer.DurationInDays days</td>
+                <td>@(offer.IncludesPersonalTrainer ? "Yes" : "No")</td>
+                <td>@(offer.IncludesProgressTracking ? "Yes" : "No")</td>
+                <td>@(offer.IsVisible ? "Yes" : "No")</td>
+                <td>
+                    <button class="btn btn-sm btn-outline-dark me-2" @onclick="() => StartEdit(offer)">Edit</button>
+                    <button class="btn btn-sm btn-outline-danger" @onclick="() => Delete(offer.Id)">Delete</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+
+@code {
+    private List<ReadMembershipTypeDto> _allOffers = new();
+    private string _search = "";
+    private CreateMembershipTypeDto _offerDto = new();
+    private int? _editId = null;
+    private bool _showForm = false;
+
+    private IEnumerable<ReadMembershipTypeDto> FilteredOffers =>
+        string.IsNullOrWhiteSpace(_search)
+            ? _allOffers
+            : _allOffers.Where(o =>
+                o.Name.Contains(_search, StringComparison.OrdinalIgnoreCase) ||
+                o.Description.Contains(_search, StringComparison.OrdinalIgnoreCase));
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadOffers();
+    }
+
+    private async Task LoadOffers()
+    {
+        _allOffers = await MembershipTypeService.GetAllAdminAsync() ?? new();
+    }
+
+    private void ShowCreateForm()
+    {
+        _offerDto = new CreateMembershipTypeDto();
+        _editId = null;
+        _showForm = true;
+    }
+
+    private void CancelForm()
+    {
+        _offerDto = new CreateMembershipTypeDto();
+        _editId = null;
+        _showForm = false;
+    }
+
+    private void StartEdit(ReadMembershipTypeDto offer)
+    {
+        _offerDto = new CreateMembershipTypeDto
+        {
+            Name = offer.Name,
+            Description = offer.Description,
+            Price = offer.Price,
+            DurationInDays = offer.DurationInDays,
+            IncludesPersonalTrainer = offer.IncludesPersonalTrainer,
+            PersonalTrainingsPerMonth = offer.PersonalTrainingsPerMonth,
+            AllowTrainerSelection = offer.AllowTrainerSelection,
+            IncludesProgressTracking = offer.IncludesProgressTracking,
+            IsVisible = offer.IsVisible
+        };
+        _editId = offer.Id;
+        _showForm = true;
+    }
+
+    private async Task SaveOffer()
+    {
+        if (string.IsNullOrWhiteSpace(_offerDto.Name)) return;
+
+        if (_editId == null)
+        {
+            await MembershipTypeService.CreateAsync(_offerDto);
+        }
+        else
+        {
+            var updateDto = new UpdateMembershipTypeDto
+            {
+                Name = _offerDto.Name,
+                Description = _offerDto.Description,
+                Price = _offerDto.Price,
+                DurationInDays = _offerDto.DurationInDays,
+                IncludesPersonalTrainer = _offerDto.IncludesPersonalTrainer,
+                PersonalTrainingsPerMonth = _offerDto.PersonalTrainingsPerMonth,
+                AllowTrainerSelection = _offerDto.AllowTrainerSelection,
+                IncludesProgressTracking = _offerDto.IncludesProgressTracking,
+                IsVisible = _offerDto.IsVisible
+            };
+            await MembershipTypeService.PatchAsync(_editId.Value, updateDto);
+        }
+
+        await LoadOffers();
+        CancelForm();
+    }
+
+    private async Task Delete(int id)
+    {
+        await MembershipTypeService.DeleteAsync(id);
+        await LoadOffers();
+    }
+    
+    private void OnIncludesTrainerChanged(ChangeEventArgs e)
+    {
+        bool isChecked = (bool)e.Value!;
+        _offerDto.IncludesPersonalTrainer = isChecked;
+
+        if (isChecked)
+        {
+            _offerDto.IncludesProgressTracking = true;
+        }
+        else
+        {
+            _offerDto.PersonalTrainingsPerMonth = null;
+            _offerDto.AllowTrainerSelection = false;
+            _offerDto.IncludesProgressTracking = false;
+        }
+    }
+
+}

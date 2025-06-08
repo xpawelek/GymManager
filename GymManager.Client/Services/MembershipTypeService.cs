@@ -9,6 +9,7 @@ namespace GymManager.Client.Services
     using AdminCreateDto = GymManager.Shared.DTOs.Admin.CreateMembershipTypeDto;
     using AdminUpdateDto = GymManager.Shared.DTOs.Admin.UpdateMembershipTypeDto;
     using ReadDto = GymManager.Shared.DTOs.Member.ReadMembershipTypeDto;
+    using AdminReadDto = GymManager.Shared.DTOs.Admin.ReadMembershipTypeDto;
 
     public class MembershipTypeService
     {
@@ -39,6 +40,13 @@ namespace GymManager.Client.Services
         {
             return await _http.GetFromJsonAsync<ReadDto>($"api/membership-types/{id}");
         }
+        
+        // Admin version
+        public async Task<List<AdminReadDto>?> GetAllAdminAsync()
+        {
+            return await _http.GetFromJsonAsync<List<AdminReadDto>>("api/membership-types");
+        }
+
 
         // [POST] /api/membership-types
         // Tylko Admin

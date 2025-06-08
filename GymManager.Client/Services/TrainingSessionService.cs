@@ -48,6 +48,14 @@ namespace GymManager.Client.Services
             return await _http.GetFromJsonAsync<List<AReadDto>>(
                 $"api/training-sessions/member/{memberId}/personal");
         }
+        
+        // [GET] /api/training-sessions/trainer/{trainerId}
+        // admin
+        public async Task<List<AReadDto>?> GetSessionsForTrainerAsync(int trainerId)
+        {
+            return await _http.GetFromJsonAsync<List<AReadDto>>(
+                $"api/training-sessions/trainer/{trainerId}");
+        }
 
         // [POST] /api/training-sessions
         // admin
@@ -140,7 +148,7 @@ namespace GymManager.Client.Services
 
         // [GET] /api/training-sessions/me
         // trainer
-        public async Task<List<TReadDto>?> GetAllTrainerAsync()
+        public async Task<List<TReadDto>?> GetAllTrainerAsync<TReadDto>()
         {
             return await _http.GetFromJsonAsync<List<TReadDto>>("api/training-sessions/me");
         }
