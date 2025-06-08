@@ -17,8 +17,9 @@ public partial class MemberTrainingSessionMapper
     public partial TrainingSession ToEntity(CreateTrainingSessionDto dto);
     // GET ONE
     [MapperIgnoreSource(nameof(Entities.TrainingSession.WorkoutNote))]
-    [MapperIgnoreSource(nameof(Entities.TrainingSession.Trainer))]
     [MapperIgnoreSource(nameof(Entities.TrainingSession.Member))]
+    [MapProperty("Trainer.FirstName", "TrainerFirstName")]
+    [MapProperty("Trainer.LastName", "TrainerSecondName")]
     public partial ReadTrainingSessionDto ToReadDto(TrainingSession trainingSession);
     //GET ALL
     public partial List<ReadTrainingSessionDto> ToReadDtoList(List<TrainingSession> trainingSessions);

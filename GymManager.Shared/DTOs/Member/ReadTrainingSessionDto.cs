@@ -9,4 +9,8 @@ public class ReadTrainingSessionDto
     public int DurationInMinutes { get; set; }
     public bool IsGroupSession { get; set; }
     public int? MemberId {get; set;}
+    
+    public string TrainerFirstName { get; set; }
+    
+    public string TrainerSecondName { get; set; }
 }
