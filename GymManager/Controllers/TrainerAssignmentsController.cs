@@ -89,7 +89,14 @@ namespace GymManager.Controllers
         [Authorize(Roles = RoleConstants.Member)]
         public async Task<ActionResult<bool>> HasEverBeenAssigned()
         {
-            return Ok(await _member.HasEverBeenAssignedAsync());
+            try
+            {
+                return Ok(await _member.HasEverBeenAssignedAsync());
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"ERROR: {ex.Message}");
+            }
         }
 
         [HttpGet("has-active")]

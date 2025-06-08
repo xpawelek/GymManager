@@ -164,6 +164,6 @@
 
     private bool IsMessageFromMember(TReadDto msg)
     {
-        return msg.MemberId == 0;
+        return msg.SentByMember;
     }
 }

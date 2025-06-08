@@ -38,8 +38,6 @@ namespace GymManager.Services.Member
             return member.Id;
         }
 
-            
-
         public async Task<List<ReadSelfMessageDto>> GetAllAsync()
         {
             var mid = await GetMemberId();

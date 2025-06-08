@@ -17,7 +17,7 @@ public partial class TrainerSelfMessageMapper
     [MapperIgnoreSource(nameof(Entities.Message.Member))]
     [MapperIgnoreSource(nameof(Entities.Message.Trainer))]
     [MapperIgnoreSource(nameof(Entities.Message.TrainerId))]
-    [MapperIgnoreSource(nameof(Entities.Message.SentByMember))]
+    //[MapperIgnoreSource(nameof(Entities.Message.SentByMember))]
     public partial ReadSelfMessageDto ToReadDto(Entities.Message message);
     //GET ALL
     public partial List<ReadSelfMessageDto> ToReadDtoList(List<Entities.Message> messages);
