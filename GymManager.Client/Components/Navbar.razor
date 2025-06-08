@@ -61,6 +61,18 @@
                         <a class="nav-link nav_text" style="color: #f5b510" href="/admin/dashboard">Dashboard</a>
                     </li>
                 }
+                @if (AuthState.IsLoggedIn && AuthState.UserRole == "Member")
+                {
+                    <li class="nav-item">
+                        <a class="nav-link nav_text" style="color: #f5b510" href="/member/dashboard">Dashboard</a>
+                    </li>
+                }
+                @if (AuthState.IsLoggedIn && AuthState.UserRole == "Trainer")
+                {
+                    <li class="nav-item">
+                        <a class="nav-link nav_text" style="color: #f5b510" href="/trainer/dashboard">Dashboard</a>
+                    </li>
+                }
             </ul>
             
             @if (AuthState.IsLoggedIn)

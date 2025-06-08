@@ -1,5 +1,204 @@
-﻿<h3>ManageProfileMember</h3>
+﻿@using System.ComponentModel.DataAnnotations
+@using GymManager.Client.Services
+@using GymManager.Shared.DTOs.Member
+@using GymManager.Shared.DTOs.Admin
+@inject MemberService MemberService
+@inject TrainerAssignmentService TrainerAssignmentService
+@inject TrainerService TrainerService
+@inject TrainingSessionService TrainingSessionService
+@inject MembershipService MembershipService
+@inject IJSRuntime JS
+
+<div class="card shadow-sm p-4">
+    <h3 class="mb-4 text-danger">Manage Your Profile</h3>
+
+    <EditForm Model="@_updateDto" OnValidSubmit="UpdateProfile">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="mb-2">
+            <label for="firstNameInput" class="form-label">First Name</label>
+            <input id="firstNameInput" class="form-control" placeholder="First Name" @bind="_updateDto.FirstName" />
+            <ValidationMessage For="@(() => _updateDto.FirstName)" />
+        </div>
+
+        <div class="mb-2">
+            <label for="lastNameInput" class="form-label">Last Name</label>
+            <input id="lastNameInput" class="form-control" placeholder="Last Name" @bind="_updateDto.LastName" />
+            <ValidationMessage For="@(() => _updateDto.LastName)" />
+        </div>
+
+        <div class="mb-2">
+            <label for="dobInput" class="form-label">Date of Birth</label>
+            <input id="dobInput" type="date" class="form-control" @bind="_updateDto.DateOfBirth" />
+            <ValidationMessage For="@(() => _updateDto.DateOfBirth)" />
+        </div>
+
+        <div class="mb-2">
+            <label for="phoneInput" class="form-label">Phone Number</label>
+            <input id="phoneInput" class="form-control" placeholder="Phone Number" @bind="_updateDto.PhoneNumber" />
+            <ValidationMessage For="@(() => _updateDto.PhoneNumber)" />
+        </div>
+
+        <button class="btn btn-primary" type="submit">Save</button>
+    </EditForm>
+
+
+    <hr class="my-4" />
+
+    <h5 class="text-secondary">Membership</h5>
+    @if (_memberMembership == null)
+    {
+        <div class="bg-light p-3 rounded border mt-2">
+            <p class="text-muted">No active membership.</p>
+            <button class="btn btn-sm btn-outline-primary" href="/offers">Get Membership</button>
+        </div>
+    }
+    else
+    {
+        <div class="m-3 mb-4">
+                <p>Membership Type: <strong>@_memberMembership.TypeName</strong></p>
+                <p>Status: <strong>
+                        @(_memberMembership.EndDate >= DateTime.Now ? "Active" : "Expired")
+                    </strong></p>
+                <p>Start: @_memberMembership.StartDate.ToString("dd.MM.yyyy HH:mm")</p>
+                <p>End: @_memberMembership.EndDate?.ToString("dd.MM.yyyy HH:mm")</p>
+
+                <button class="btn btn-sm btn-outline-primary me-2">Update</button>
+                <button class="btn btn-sm btn-outline-danger">Delete</button>
+        </div>
+        
+        <h5 class="text-secondary">Trainer Assignment</h5>
+        @if (_memberTrainerAssignemnt == null)
+        {
+            <div class="bg-light p-3 rounded border mt-2">
+                <p class="text-muted">No trainer assigned.</p>
+                <button class="btn btn-sm btn-outline-primary" @onclick="() => _showAssignmentForm = true">Assign Trainer</button>
+            </div>
+
+            @if (_showAssignmentForm)
+            {
+                <EditForm Model="@_newAssignment" OnValidSubmit="AssignTrainer">
+                    <DataAnnotationsValidator />
+                    <div class="mb-3 mt-3">
+                        <label class="form-label">Trainer</label>
+                        <select class="form-select" @bind="_newAssignment.TrainerId">
+                            <option value="">-- Select Trainer --</option>
+                            @foreach (var trainer in _trainers)
+                            {
+                                <option value="@trainer.Id">@trainer.FirstName @trainer.LastName</option>
+                            }
+                        </select>
+                        <ValidationMessage For="@(() => _newAssignment.TrainerId)" />
+                    </div>
+                    <button class="btn btn-primary btn-sm" type="submit">Assign</button>
+                </EditForm>
+            }
+        }
+        else
+        {
+            <div class="m-3 mb-4">
+                <p>Assigned Trainer: <strong>@_memberTrainerAssignemnt.TrainerFirstName @_memberTrainerAssignemnt.TrainerSecondName</strong></p>
+                <p>Status: <strong>@(_memberTrainerAssignemnt.IsActive ? "Active" : "Inactive")</strong></p>
+                <p class="text-muted">To change trainer, please contact the admin.</p>
+            </div>
+        }
+    }
+   
+    <hr class="my-4" />
+
+    <h5 class="text-secondary">Personal Trainings</h5>
+
+    @if (_personalTrainings.Any())
+    {
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Trainer</th>
+                    <th>Start</th>
+                    <th>Duration</th>
+                    <th>Description</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var session in _personalTrainings)
+                {
+                    <tr>
+                        <td>@session.TrainerId</td>
+                        <td>@session.StartTime.ToString("dd.MM.yyyy HH:mm")</td>
+                        <td>@session.DurationInMinutes min</td>
+                        <td>@session.Description</td>
+                        <td>
+                            @if (session.StartTime > DateTime.Now)
+                            {
+                                <button class="btn btn-sm btn-danger" @onclick="() => DeleteTraining(session.Id)">Delete</button>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <p class="text-muted"><em>No personal training sessions found.</em></p>
+    }
+</div>
 
 @code {
-    
+    private ReadSelfMemberDto _member = new();
+    private UpdateSelfMemberDto _updateDto = new();
+    private ReadSelfTrainerAssignmentDto? _memberTrainerAssignemnt;
+    private Shared.DTOs.Member.CreateTrainerAssignmentDto _newAssignment = new();
+    private List<Shared.DTOs.Member.ReadTrainerDto> _trainers = new();
+    private List<Shared.DTOs.Member.ReadTrainingSessionDto> _personalTrainings = new();
+    private bool _showAssignmentForm = false;
+    private ReadSelfMembershipDto? _memberMembership = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _member = await MemberService.GetSelfAsync() ?? new();
+        _updateDto = new UpdateSelfMemberDto
+        {
+            FirstName = _member.FirstName,
+            LastName = _member.LastName,
+            DateOfBirth = _member.DateOfBirth,
+            PhoneNumber = _member.PhoneNumber,
+        };
+
+        _memberMembership = await TryGet(() => MembershipService.GetOwnAsync());
+        _memberTrainerAssignemnt = await TryGet(() => TrainerAssignmentService.GetMemberSelfAsync());
+        _personalTrainings = await TryGet(() => TrainingSessionService.GetAllMemberPersonalAsync()) ?? new();
+        _trainers = await TrainerService.GetAllMemberAsync() ?? new();
+    }
+
+    private async Task<T?> TryGet<T>(Func<Task<T>> action)
+    {
+        try { return await action(); } catch { return default; }
+    }
+
+    private async Task UpdateProfile()
+    {
+        await MemberService.UpdateSelfAsync(_updateDto);
+        _member = await MemberService.GetSelfAsync() ?? new();
+        
+        StateHasChanged(); 
+        await Task.Delay(50);
+        
+        await JS.InvokeVoidAsync("scrollToElement", "memberForm");
+    }
+
+    private async Task AssignTrainer()
+    {
+        await TrainerAssignmentService.CreateSelfAsync(_newAssignment);
+        _memberTrainerAssignemnt = await TrainerAssignmentService.GetMemberSelfAsync();
+        _showAssignmentForm = false;
+    }
+
+    private async Task DeleteTraining(int id)
+    {
+       // await TrainingSessionService.De(id);
+       // _personalTrainings = await TrainingSessionService.GetAllMemberPersonalAsync() ?? new();
+    }
 }
