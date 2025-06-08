@@ -49,13 +49,17 @@ namespace GymManager.Services.Member
         {
             var memberId = await GetCurrentMemberId();
 
-            var hasAssignment = await _context.TrainerAssignments.AnyAsync(a => a.MemberId == memberId);
+            var hasAssignment = await _context.TrainerAssignments
+                .Include(t => t.Trainer)
+                .AnyAsync(a => a.MemberId == memberId);
+            
             if (!hasAssignment)
             {
                 throw new Exception("Member does not have subscription that allows personal trainings");
             }
 
             var list = await _context.TrainingSessions
+                .Include(ts => ts.Trainer)
                 .Where(ts => !ts.IsGroupSession || ts.MemberId == memberId)
                 .ToListAsync();
 
