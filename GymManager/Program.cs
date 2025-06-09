@@ -12,175 +12,185 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using NLog.Web;
 
-var builder = WebApplication.CreateBuilder(args);
+var logger = NLogBuilder.ConfigureNLog("nlog.config").GetCurrentClassLogger();
 
-// Add services to the container.
-builder.Services.AddControllersWithViews();
-builder.Services.AddDbContext<GymDbContext>(options => 
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-builder.Services.AddHttpContextAccessor();
+try
+{
+    var builder = WebApplication.CreateBuilder(args);
 
+    builder.Logging.ClearProviders();
+    builder.Host.UseNLog();
 
-builder.Services.AddScoped<AdminEquipmentService>();
-builder.Services.AddScoped<MemberEquipmentService>();
-builder.Services.AddScoped<TrainerEquipmentService>();
-builder.Services.AddScoped<AdminMemberService>();
-builder.Services.AddScoped<MemberSelfService>();
-builder.Services.AddScoped<TrainerMemberService>();
-builder.Services.AddScoped<AdminMembershipTypeService>();
-builder.Services.AddScoped<MemberMembershipTypeService>();
-builder.Services.AddScoped<TrainerMembershipTypeService>();
-builder.Services.AddScoped<AdminMembershipService>();
-builder.Services.AddScoped<MemberSelfMembershipService>();
-builder.Services.AddScoped<AdminProgressPhotoService>();
-builder.Services.AddScoped<MemberProgressPhotoService>();
-builder.Services.AddScoped<TrainerProgressPhotoService>();
-builder.Services.AddScoped<AdminServiceRequestService>();
-builder.Services.AddScoped<TrainerServiceRequestService>();
-builder.Services.AddScoped<MemberServiceRequestService>();
-builder.Services.AddScoped<AdminTrainerAssignmentService>();
-builder.Services.AddScoped<MemberSelfTrainerAssignmentService>();
-builder.Services.AddScoped<TrainerSelfTrainerAssignmentService>();
-builder.Services.AddScoped<AdminWorkoutNoteService>();
-builder.Services.AddScoped<MemberSelfWorkoutNoteService>();
-builder.Services.AddScoped<TrainerSelfWorkoutNoteService>();
-builder.Services.AddScoped<AdminTrainingSessionService>();
-builder.Services.AddScoped<MemberTrainingSessionService>();
-builder.Services.AddScoped<TrainerTrainingSessionService>();
-builder.Services.AddScoped<MemberMessageService>();
-builder.Services.AddScoped<TrainerMessageService>();
-builder.Services.AddScoped<TrainerProfileService>();
-builder.Services.AddScoped<AdminTrainerService>();
-builder.Services.AddScoped<MemberTrainerService>();
-builder.Services.AddScoped<TrainerProfileService>();
-builder.Services.AddScoped<AdminMessageService>();
+    builder.Services.AddControllersWithViews();
+    builder.Services.AddDbContext<GymDbContext>(options =>
+        options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    builder.Services.AddHttpContextAccessor();
 
+    builder.Services.AddScoped<AdminEquipmentService>();
+    builder.Services.AddScoped<MemberEquipmentService>();
+    builder.Services.AddScoped<TrainerEquipmentService>();
+    builder.Services.AddScoped<AdminMemberService>();
+    builder.Services.AddScoped<MemberSelfService>();
+    builder.Services.AddScoped<TrainerMemberService>();
+    builder.Services.AddScoped<AdminMembershipTypeService>();
+    builder.Services.AddScoped<MemberMembershipTypeService>();
+    builder.Services.AddScoped<TrainerMembershipTypeService>();
+    builder.Services.AddScoped<AdminMembershipService>();
+    builder.Services.AddScoped<MemberSelfMembershipService>();
+    builder.Services.AddScoped<AdminProgressPhotoService>();
+    builder.Services.AddScoped<MemberProgressPhotoService>();
+    builder.Services.AddScoped<TrainerProgressPhotoService>();
+    builder.Services.AddScoped<AdminServiceRequestService>();
+    builder.Services.AddScoped<TrainerServiceRequestService>();
+    builder.Services.AddScoped<MemberServiceRequestService>();
+    builder.Services.AddScoped<AdminTrainerAssignmentService>();
+    builder.Services.AddScoped<MemberSelfTrainerAssignmentService>();
+    builder.Services.AddScoped<TrainerSelfTrainerAssignmentService>();
+    builder.Services.AddScoped<AdminWorkoutNoteService>();
+    builder.Services.AddScoped<MemberSelfWorkoutNoteService>();
+    builder.Services.AddScoped<TrainerSelfWorkoutNoteService>();
+    builder.Services.AddScoped<AdminTrainingSessionService>();
+    builder.Services.AddScoped<MemberTrainingSessionService>();
+    builder.Services.AddScoped<TrainerTrainingSessionService>();
+    builder.Services.AddScoped<MemberMessageService>();
+    builder.Services.AddScoped<TrainerMessageService>();
+    builder.Services.AddScoped<TrainerProfileService>();
+    builder.Services.AddScoped<AdminTrainerService>();
+    builder.Services.AddScoped<MemberTrainerService>();
+    builder.Services.AddScoped<TrainerProfileService>();
+    builder.Services.AddScoped<AdminMessageService>();
 
-builder.Services.AddScoped<AdminEquipmentMapper>();
-builder.Services.AddScoped<MemberEquipmentMapper>();
-builder.Services.AddScoped<TrainerEquipmentMapper>();
-builder.Services.AddScoped<AdminMemberMapper>();
-builder.Services.AddScoped<MemberSelfMapper>();
-builder.Services.AddScoped<TrainerMemberMapper>();
-builder.Services.AddScoped<AdminMembershipTypeMapper>();
-builder.Services.AddScoped<MemberMembershipTypeMapper>();
-builder.Services.AddScoped<TrainerMembershipTypeMapper>();
-builder.Services.AddScoped<AdminMembershipMapper>();
-builder.Services.AddScoped<MemberSelfMembershipMapper>();
-builder.Services.AddScoped<AdminServiceRequestMapper>();
-builder.Services.AddScoped<TrainerServiceRequestMapper>();
-builder.Services.AddScoped<MemberServiceRequestMapper>();
-builder.Services.AddScoped<AdminProgessPhotoMapper>();
-builder.Services.AddScoped<MemberProgressPhotoMapper>();
-builder.Services.AddScoped<TrainerProgressPhotoMapper>();
-builder.Services.AddScoped<AdminTrainerAssignmentMapper>();
-builder.Services.AddScoped<MemberSelfTrainerAssignmentMapper>();
-builder.Services.AddScoped<TrainerSelfTrainerAssignmentMapper>();
-builder.Services.AddScoped<AdminWorkoutNoteMapper>();
-builder.Services.AddScoped<MemberSelfWorkoutNoteMapper>();
-builder.Services.AddScoped<TrainerWorkoutNoteMapper>();
-builder.Services.AddScoped<AdminTrainingSessionMapper>();
-builder.Services.AddScoped<MemberTrainingSessionMapper>();
-builder.Services.AddScoped<TrainerTrainingSessionMapper>();
-builder.Services.AddScoped<MemberSelfMessageMapper>();
-builder.Services.AddScoped<TrainerSelfMessageMapper>();
-builder.Services.AddScoped<TrainerProfileMapper>();
-builder.Services.AddScoped<AdminTrainerMapper>();
-builder.Services.AddScoped<MemberTrainerMapper>();
-builder.Services.AddScoped<TrainerProfileMapper>();
-builder.Services.AddScoped<AdminMessageMapper>();
+    builder.Services.AddScoped<AdminEquipmentMapper>();
+    builder.Services.AddScoped<MemberEquipmentMapper>();
+    builder.Services.AddScoped<TrainerEquipmentMapper>();
+    builder.Services.AddScoped<AdminMemberMapper>();
+    builder.Services.AddScoped<MemberSelfMapper>();
+    builder.Services.AddScoped<TrainerMemberMapper>();
+    builder.Services.AddScoped<AdminMembershipTypeMapper>();
+    builder.Services.AddScoped<MemberMembershipTypeMapper>();
+    builder.Services.AddScoped<TrainerMembershipTypeMapper>();
+    builder.Services.AddScoped<AdminMembershipMapper>();
+    builder.Services.AddScoped<MemberSelfMembershipMapper>();
+    builder.Services.AddScoped<AdminServiceRequestMapper>();
+    builder.Services.AddScoped<TrainerServiceRequestMapper>();
+    builder.Services.AddScoped<MemberServiceRequestMapper>();
+    builder.Services.AddScoped<AdminProgessPhotoMapper>();
+    builder.Services.AddScoped<MemberProgressPhotoMapper>();
+    builder.Services.AddScoped<TrainerProgressPhotoMapper>();
+    builder.Services.AddScoped<AdminTrainerAssignmentMapper>();
+    builder.Services.AddScoped<MemberSelfTrainerAssignmentMapper>();
+    builder.Services.AddScoped<TrainerSelfTrainerAssignmentMapper>();
+    builder.Services.AddScoped<AdminWorkoutNoteMapper>();
+    builder.Services.AddScoped<MemberSelfWorkoutNoteMapper>();
+    builder.Services.AddScoped<TrainerWorkoutNoteMapper>();
+    builder.Services.AddScoped<AdminTrainingSessionMapper>();
+    builder.Services.AddScoped<MemberTrainingSessionMapper>();
+    builder.Services.AddScoped<TrainerTrainingSessionMapper>();
+    builder.Services.AddScoped<MemberSelfMessageMapper>();
+    builder.Services.AddScoped<TrainerSelfMessageMapper>();
+    builder.Services.AddScoped<TrainerProfileMapper>();
+    builder.Services.AddScoped<AdminTrainerMapper>();
+    builder.Services.AddScoped<MemberTrainerMapper>();
+    builder.Services.AddScoped<TrainerProfileMapper>();
+    builder.Services.AddScoped<AdminMessageMapper>();
 
+    builder.Services.AddScoped<JwtTokenGenerator>();
 
-builder.Services.AddScoped<JwtTokenGenerator>();
+    builder.Services.AddHttpContextAccessor();
+    builder.Services.AddControllers()
+        .AddJsonOptions(options =>
+        {
+            options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+            options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+        });
 
-builder.Services.AddHttpContextAccessor();
-builder.Services.AddControllers()
-    .AddJsonOptions(options =>
+    var jwtSetting = builder.Configuration.GetSection("JwtSettings");
+    var secretKey = jwtSetting.GetValue<string>("SecretKey");
+
+    builder.Services.AddAuthentication(options =>
     {
-        options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
-        options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultSignInScheme = JwtBearerDefaults.AuthenticationScheme;
+    }).AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = jwtSetting.GetValue<string>("Issuer"),
+            ValidAudience = jwtSetting.GetValue<string>("Audience"),
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey!)),
+        };
+
+        options.Events = new JwtBearerEvents
+        {
+            OnAuthenticationFailed = context =>
+            {
+                Console.WriteLine("JWT authentication failed: " + context.Exception.Message);
+                return Task.CompletedTask;
+            },
+            OnTokenValidated = context =>
+            {
+                Console.WriteLine("JWT token validated successfully.");
+                return Task.CompletedTask;
+            }
+        };
     });
 
-var jwtSetting = builder.Configuration.GetSection("JwtSettings");
-var secretKey = jwtSetting.GetValue<string>("SecretKey");
+    builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
+        .AddEntityFrameworkStores<GymDbContext>()
+        .AddDefaultTokenProviders();
 
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultSignInScheme = JwtBearerDefaults.AuthenticationScheme;
-}).AddJwtBearer(options =>
-{
-    options.TokenValidationParameters = new TokenValidationParameters
+    builder.Services.AddCors(options =>
     {
-        ValidateIssuer = true,
-        ValidateAudience = true,
-        ValidateLifetime = true,
-        ValidateIssuerSigningKey = true,
-        ValidIssuer = jwtSetting.GetValue<string>("Issuer"),
-        ValidAudience = jwtSetting.GetValue<string>("Audience"),
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey!)),
-    };
-    
-    options.Events = new JwtBearerEvents
-    {
-        OnAuthenticationFailed = context =>
+        options.AddDefaultPolicy(policy =>
         {
-            Console.WriteLine("JWT authentication failed: " + context.Exception.Message);
-            return Task.CompletedTask;
-        },
-        OnTokenValidated = context =>
-        {
-            Console.WriteLine("JWT token validated successfully.");
-            return Task.CompletedTask;
-        }
-    };
-});
-
-builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
-    .AddEntityFrameworkStores<GymDbContext>()
-    .AddDefaultTokenProviders();
-
-builder.Services.AddCors(options =>
-{
-    options.AddDefaultPolicy(policy =>
-    {
-        policy.WithOrigins("http://localhost:5012")
-            .AllowAnyMethod()
-            .AllowAnyHeader();
+            policy.WithOrigins("http://localhost:5012")
+                .AllowAnyMethod()
+                .AllowAnyHeader();
+        });
     });
-});
 
-var app = builder.Build();
+    var app = builder.Build();
 
-using (var scope = app.Services.CreateScope())
-{
-    var services = scope.ServiceProvider;
-    await IdentityDataInitializer.Initialize(services);
+    using (var scope = app.Services.CreateScope())
+    {
+        var services = scope.ServiceProvider;
+        await IdentityDataInitializer.Initialize(services);
+    }
+
+    if (!app.Environment.IsDevelopment())
+    {
+        app.UseExceptionHandler("/Home/Error");
+        app.UseHsts();
+    }
+
+    app.UseDeveloperExceptionPage();
+    app.UseHttpsRedirection();
+    app.UseStaticFiles();
+    app.UseRouting();
+    app.UseCors();
+    app.UseAuthentication();
+    app.UseAuthorization();
+    app.MapControllers();
+
+    app.MapControllerRoute(
+        name: "default",
+        pattern: "{controller=Home}/{action=Index}/{id?}");
+
+    app.Run();
 }
-
-// Configure the HTTP request pipeline.
-if (!app.Environment.IsDevelopment())
+catch (Exception ex)
 {
-    app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-    app.UseHsts();
+    logger.Error(ex, "Program stopped because of an exception");
+    throw;
 }
-
-app.UseDeveloperExceptionPage(); 
-app.UseHttpsRedirection();
-app.UseStaticFiles();
-
-app.UseRouting();
-
-app.UseCors();
-app.UseAuthentication(); 
-app.UseAuthorization();  
-app.MapControllers();  
-
-app.MapControllerRoute(
-    name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
-
-app.Run();
+finally
+{
+    NLog.LogManager.Shutdown();
+}

@@ -20,11 +20,15 @@
         <PrivateAssets>all</PrivateAssets>
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       </PackageReference>
+      <PackageReference Include="NLog.Web.AspNetCore" Version="5.5.0" />
       <PackageReference Include="Riok.Mapperly" Version="4.2.1" />
     </ItemGroup>
 
     <ItemGroup>
       <Folder Include="wwwroot\uploads\" />
+        <None Update="nlog.config">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
     </ItemGroup>
 
     <ItemGroup>
