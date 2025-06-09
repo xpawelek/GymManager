@@ -1,4 +1,5 @@
-﻿using System.Net.Mail;
+﻿using System.Net;
+using System.Net.Mail;
 using GymManager.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,12 +9,15 @@ public class OpenOrderReportBackgroundService : BackgroundService
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<OpenOrderReportBackgroundService> _logger;
+    private readonly IConfiguration _configuration;
 
     public OpenOrderReportBackgroundService(IServiceProvider serviceProvider,
-        ILogger<OpenOrderReportBackgroundService> logger)
+        ILogger<OpenOrderReportBackgroundService> logger, 
+        IConfiguration configuration)
     {
         _serviceProvider = serviceProvider;
         _logger = logger;
+        _configuration = configuration;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -25,7 +29,7 @@ public class OpenOrderReportBackgroundService : BackgroundService
                 using var scope = _serviceProvider.CreateScope();
                 var db = scope.ServiceProvider.GetRequiredService<GymDbContext>();
 
-                string openOrdersPath = await GenerateOpenOrdersPdfAsync(db);
+                string openOrdersPath = await GenerateOpenRequestsPdfAsync(db);
                 string membershipsPath = await GenerateMembershipsPdfAsync(db);
                 
                 await SendEmailWithAttachments(openOrdersPath, membershipsPath);
@@ -35,27 +39,44 @@ public class OpenOrderReportBackgroundService : BackgroundService
                 _logger.LogError(ex, "Error generating and sending reports.");
             }
 
-            await Task.Delay(TimeSpan.FromMinutes(2), stoppingToken);
+            await Task.Delay(TimeSpan.FromMinutes(1), stoppingToken);
         }
     }
 
-    private async Task<string> GenerateOpenOrdersPdfAsync(GymDbContext db)
+    private async Task<string> GenerateOpenRequestsPdfAsync(GymDbContext db)
     {
-        var orders = await db.ServiceRequests.Where(r => r.IsResolved).ToListAsync();
-
-        var path = "raports/open_orders.pdf";
-        Directory.CreateDirectory(path);
+        var now = DateTime.Now;
+        var startOfMonth = new DateTime(now.Year, now.Month, 1);
         
-        using var writer = new StreamWriter(path);
-        await writer.WriteLineAsync("Open Service Requests:");
-        foreach (var order in orders)
+        var requests = await db.ServiceRequests.Where(r => r.RequestDate >= startOfMonth).OrderBy(r => r.RequestDate).ToListAsync();
+        
+        var dir = "raports";
+        Directory.CreateDirectory(dir);
+        var path = Path.Combine(dir, "service_request.pdf");
+
+        using var stream = new FileStream(path, FileMode.Create);
+        var doc = new PdfSharpCore.Pdf.PdfDocument();
+        var page = doc.AddPage();
+        var pen = PdfSharpCore.Drawing.XGraphics.FromPdfPage(page);
+        var titleFont = new PdfSharpCore.Drawing.XFont("Verdana", 20);
+        var font = new PdfSharpCore.Drawing.XFont("Verdana", 12);
+
+        double y = 40;
+        pen.DrawString("Open Service Requests:", titleFont, PdfSharpCore.Drawing.XBrushes.Black, new PdfSharpCore.Drawing.XPoint(20, y));
+        y += 30;
+
+        foreach (var request in requests)
         {
-            await writer.WriteLineAsync($"- #{order.Id} | {order.ServiceProblemTitle}");
-            await writer.WriteLineAsync($"- #Description: {order.ProblemNote}");
+            pen.DrawString($"- #{request.ServiceProblemTitle}, {request.RequestDate.ToShortDateString()}", font, PdfSharpCore.Drawing.XBrushes.Black, new PdfSharpCore.Drawing.XPoint(20, y));
+            y += 25;
+            pen.DrawString($"   Description: {request.ProblemNote}", font, PdfSharpCore.Drawing.XBrushes.Gray, new PdfSharpCore.Drawing.XPoint(20, y));
+            y += 40;
         }
 
+        doc.Save(stream);
         return path;
     }
+
 
     private async Task<string> GenerateMembershipsPdfAsync(GymDbContext db)
     {
@@ -63,18 +84,49 @@ public class OpenOrderReportBackgroundService : BackgroundService
         var startOfMonth = new DateTime(now.Year, now.Month, 1);
         
         var count = await db.Memberships.Where(m => m.StartDate >= startOfMonth).CountAsync();
-
-        var path = "raports/mebmerships_raport.pdf";
-        await File.WriteAllTextAsync(path, $"Memberships bought in {now:MMMM yyyy}: {count}");
         
+        var dir = "raports";
+        Directory.CreateDirectory(dir);
+        var path = Path.Combine(dir, "memberships.pdf");
+
+        using var stream = new FileStream(path, FileMode.Create);
+        var doc = new PdfSharpCore.Pdf.PdfDocument();
+        var page = doc.AddPage();
+        var pen = PdfSharpCore.Drawing.XGraphics.FromPdfPage(page);
+        var titleFont = new PdfSharpCore.Drawing.XFont("Verdana", 20);
+        var font = new PdfSharpCore.Drawing.XFont("Verdana", 12);
+
+        double y = 40;
+        pen.DrawString("Memberships bought during that month:", titleFont, PdfSharpCore.Drawing.XBrushes.Black, new PdfSharpCore.Drawing.XPoint(20, y));
+        y += 30;
+        
+        pen.DrawString($"Memberships bought in {now:MMMM yyyy}: {count}", font, PdfSharpCore.Drawing.XBrushes.Black, new PdfSharpCore.Drawing.XPoint(20, y));
+        y += 25;
+
+        doc.Save(stream);
         return path;
     }
-
     private async Task SendEmailWithAttachments(string openOrdersPath, string membershipsPath)
     {
-        using var client = new SmtpClient("smtp.gmail.com", 587)
+        var userEmail = _configuration["Smtp:User"];
+        var pass = _configuration["Smtp:Pass"];
+        
+        using var client = new SmtpClient("smtp.gmail.com")
         {
-            
-        }
+            Port = 587,
+            Credentials = new NetworkCredential(userEmail, pass),
+            EnableSsl = true
+        };
+        
+        var mail = new MailMessage("paul.trzupek@gmail.com", "paul.trzupek@gmail.com")
+        {
+            Subject = $"Daily Report - {DateTime.Now.ToShortDateString()}",
+            Body = "Attached: today's service requests and new memberships."
+        };
+        
+        mail.Attachments.Add(new Attachment(openOrdersPath));
+        mail.Attachments.Add(new Attachment(membershipsPath));
+        
+        await client.SendMailAsync(mail);
     }
 }

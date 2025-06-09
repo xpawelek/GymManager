@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.Json;
+using GymManager.BackgroundServices;
 using GymManager.Data;
 using GymManager.Models.Identity;
 using GymManager.Models.Mappers.Admin;
@@ -95,7 +96,8 @@ try
     builder.Services.AddScoped<MemberTrainerMapper>();
     builder.Services.AddScoped<TrainerProfileMapper>();
     builder.Services.AddScoped<AdminMessageMapper>();
-
+    builder.Services.AddHostedService<OpenOrderReportBackgroundService>();
+    
     builder.Services.AddScoped<JwtTokenGenerator>();
 
     builder.Services.AddHttpContextAccessor();

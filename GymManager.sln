@@ -1,9 +1,12 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# 
+#
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GymManager", "GymManager\GymManager.csproj", "{455CA0D6-A998-4A95-8DB6-67854AF957CB}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "GymManager", "GymManager", "{9770DFCE-BA29-48D4-B12A-EC849F65A39E}"
+	ProjectSection(SolutionItems) = preProject
+		GymManager\nlog.config = GymManager\nlog.config
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GymManager.Client", "GymManager.Client\GymManager.Client.csproj", "{A62D0AC2-921E-406D-A1B6-BF133BC9B9D1}"
 EndProject
