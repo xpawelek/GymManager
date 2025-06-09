@@ -20,13 +20,16 @@ namespace GymManager.Controllers
     {
         private readonly AdminMembershipService _admin;
         private readonly MemberSelfMembershipService _member;
+        private readonly ILogger<MembershipController> _logger;
 
         public MembershipController(
             AdminMembershipService admin,
-            MemberSelfMembershipService member)
+            MemberSelfMembershipService member,
+            ILogger<MembershipController> logger)
         {
             _admin = admin;
             _member = member;
+            _logger = logger;
         }
 
         private string Role => User.FindFirstValue(ClaimTypes.Role)!;
@@ -34,17 +37,25 @@ namespace GymManager.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            switch (Role)
+            try
             {
-                case RoleConstants.Admin:
-                    return Ok(await _admin.GetAllAsync());
+                switch (Role)
+                {
+                    case RoleConstants.Admin:
+                        return Ok(await _admin.GetAllAsync());
 
-                case RoleConstants.Member:
-                    var own = await _member.GetOwnAsync();
-                    return own == null ? NotFound() : Ok(own);
+                    case RoleConstants.Member:
+                        var own = await _member.GetOwnAsync();
+                        return own == null ? NotFound() : Ok(own);
 
-                default:
-                    return Forbid();
+                    default:
+                        return Forbid();
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while retrieving memberships.");
+                return StatusCode(500, "An unexpected error occurred.");
             }
         }
 
@@ -52,45 +63,68 @@ namespace GymManager.Controllers
         [Authorize(Roles = RoleConstants.Admin)]
         public async Task<IActionResult> GetByMemberId(int memberId)
         {
-            var dto = await _admin.GetByMemberIdAsync(memberId);
-            return dto == null ? NotFound() : Ok(dto);
+            try
+            {
+                var dto = await _admin.GetByMemberIdAsync(memberId);
+                return dto == null ? NotFound() : Ok(dto);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while retrieving membership by member ID.");
+                return StatusCode(500, "An unexpected error occurred.");
+            }
         }
 
         [HttpGet("has-or-had")]
         [Authorize(Roles = RoleConstants.Member)]
         public async Task<IActionResult> HasOrHadAny()
         {
-            var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (userIdStr == null)
-                return Unauthorized();
+            try
+            {
+                var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (userIdStr == null)
+                    return Unauthorized();
 
-            var userId = Guid.Parse(userIdStr);
-            var has = await _member.HasOrHadAnyMembershipAsync();
-            return Ok(has);
+                var has = await _member.HasOrHadAnyMembershipAsync();
+                return Ok(has);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while checking membership history.");
+                return StatusCode(500, "An unexpected error occurred.");
+            }
         }
 
         [HttpPost]
         [Authorize(Roles = RoleConstants.Admin + "," + RoleConstants.Member)]
         public async Task<IActionResult> Create([FromBody] object raw)
         {
-            switch (Role)
+            try
             {
-                case RoleConstants.Admin:
-                    {
-                        var dto = JsonSerializer
-                            .Deserialize<AdminCreateDto>(raw.ToString()!)!;
-                        var r = await _admin.CreateAsync(dto);
-                        return CreatedAtAction(nameof(GetByMemberId), new { id = r.Id }, r);
-                    }
-                case RoleConstants.Member:
-                    {
-                        var dto = JsonSerializer
-                            .Deserialize<MemberCreateDto>(raw.ToString()!)!;
-                        var r = await _member.CreateSelfMembership(dto);
-                        return CreatedAtAction(nameof(GetAll), null, r);
-                    }
-                default:
-                    return Forbid();
+                switch (Role)
+                {
+                    case RoleConstants.Admin:
+                        {
+                            var dto = JsonSerializer
+                                .Deserialize<AdminCreateDto>(raw.ToString()!)!;
+                            var r = await _admin.CreateAsync(dto);
+                            return CreatedAtAction(nameof(GetByMemberId), new { id = r.Id }, r);
+                        }
+                    case RoleConstants.Member:
+                        {
+                            var dto = JsonSerializer
+                                .Deserialize<MemberCreateDto>(raw.ToString()!)!;
+                            var r = await _member.CreateSelfMembership(dto);
+                            return CreatedAtAction(nameof(GetAll), null, r);
+                        }
+                    default:
+                        return Forbid();
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while creating membership.");
+                return StatusCode(500, "An unexpected error occurred.");
             }
         }
 
@@ -98,23 +132,46 @@ namespace GymManager.Controllers
         [Authorize(Roles = RoleConstants.Admin)]
         public async Task<IActionResult> PatchAsAdmin(int id, [FromBody] GymManager.Shared.DTOs.Admin.UpdateMembershipDto dto)
         {
-            return await _admin.PatchAsync(id, dto) ? NoContent() : NotFound();
+            try
+            {
+                return await _admin.PatchAsync(id, dto) ? NoContent() : NotFound();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while updating membership as admin.");
+                return StatusCode(500, "An unexpected error occurred.");
+            }
         }
-        
-        
+
         [HttpPatch("self")]
         [Authorize(Roles = RoleConstants.Member)]
         public async Task<IActionResult> PatchOwn([FromBody] UpdateMembershipDto dto)
         {
-            return await _member.UpdateOwnAsync(dto) ? NoContent() : NotFound();
+            try
+            {
+                return await _member.UpdateOwnAsync(dto) ? NoContent() : NotFound();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while updating own membership.");
+                return StatusCode(500, "An unexpected error occurred.");
+            }
         }
 
         [HttpDelete("{id}")]
         [Authorize(Roles = RoleConstants.Admin)]
         public async Task<IActionResult> Delete(int id)
         {
-            return await _admin.DeleteAsync(id)
-                ? NoContent() : NotFound();
+            try
+            {
+                return await _admin.DeleteAsync(id)
+                    ? NoContent() : NotFound();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while deleting membership.");
+                return StatusCode(500, "An unexpected error occurred.");
+            }
         }
     }
 }

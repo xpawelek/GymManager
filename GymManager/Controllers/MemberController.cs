@@ -19,15 +19,18 @@ namespace GymManager.Controllers
         private readonly AdminMemberService _admin;
         private readonly MemberSelfService _self;
         private readonly TrainerMemberService _trainer;
+        private readonly ILogger<MemberController> _logger;
 
         public MemberController(
             AdminMemberService admin,
             MemberSelfService self,
-            TrainerMemberService trainer)
+            TrainerMemberService trainer,
+            ILogger<MemberController> logger)
         {
             _admin = admin;
             _self = self;
             _trainer = trainer;
+            _logger = logger;
         }
 
         private string Role => User.FindFirstValue(ClaimTypes.Role)!;
@@ -36,14 +39,32 @@ namespace GymManager.Controllers
         [HttpGet]
         [Authorize(Roles = RoleConstants.Admin)]
         public async Task<IActionResult> GetAllAdmin()
-            => Ok(await _admin.GetAllAsync());
+        {
+            try
+            {
+                return Ok(await _admin.GetAllAsync());
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while retrieving all members (Admin).");
+                return StatusCode(500, "An unexpected error occurred.");
+            }
+        }
 
         [HttpGet("{id}")]
         [Authorize(Roles = RoleConstants.Admin)]
         public async Task<IActionResult> GetByIdAdmin(int id)
         {
-            var dto = await _admin.GetByIdAsync(id);
-            return dto == null ? NotFound() : Ok(dto);
+            try
+            {
+                var dto = await _admin.GetByIdAsync(id);
+                return dto == null ? NotFound() : Ok(dto);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while retrieving member by ID (Admin).");
+                return StatusCode(500, "An unexpected error occurred.");
+            }
         }
 
         /*
@@ -51,47 +72,109 @@ namespace GymManager.Controllers
         [Authorize(Roles = $"{RoleConstants.Admin}, {RoleConstants.Receptionist}")]
         public async Task<IActionResult> CreateAdmin([FromBody] CreateMemberDto dto)
         {
-            var r = await _admin.CreateAsync(dto);
-            return CreatedAtAction(nameof(GetByIdAdmin), new { id = r.Id }, r);
+            try
+            {
+                var r = await _admin.CreateAsync(dto);
+                return CreatedAtAction(nameof(GetByIdAdmin), new { id = r.Id }, r);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while creating a member (Admin).");
+                return StatusCode(500, "An unexpected error occurred.");
+            }
         }
         */
 
         [HttpPatch("{id}")]
         [Authorize(Roles = RoleConstants.Admin)]
         public async Task<IActionResult> PatchAdmin(int id, [FromBody] UpdateMemberDto dto)
-            => (await _admin.PatchAsync(id, dto)) ? NoContent() : NotFound();
+        {
+            try
+            {
+                return (await _admin.PatchAsync(id, dto)) ? NoContent() : NotFound();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while updating member (Admin).");
+                return StatusCode(500, "An unexpected error occurred.");
+            }
+        }
 
         [HttpDelete("{id}")]
         [Authorize(Roles = RoleConstants.Admin)]
         public async Task<IActionResult> DeleteAdmin(int id)
-            => (await _admin.DeleteAsync(id)) ? NoContent() : NotFound();
-
+        {
+            try
+            {
+                return (await _admin.DeleteAsync(id)) ? NoContent() : NotFound();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while deleting member (Admin).");
+                return StatusCode(500, "An unexpected error occurred.");
+            }
+        }
 
         [HttpGet("self")]
         [Authorize(Roles = RoleConstants.Member)]
         public async Task<IActionResult> GetSelf()
         {
-            var dto = await _self.GetOwnAsync();
-            return dto == null ? NotFound() : Ok(dto);
+            try
+            {
+                var dto = await _self.GetOwnAsync();
+                return dto == null ? NotFound() : Ok(dto);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while retrieving self member profile.");
+                return StatusCode(500, "An unexpected error occurred.");
+            }
         }
 
         [HttpPatch("self")]
         [Authorize(Roles = RoleConstants.Member)]
         public async Task<IActionResult> UpdateSelf([FromBody] UpdateSelfMemberDto dto)
-            => (await _self.UpdateOwnAsync(dto)) ? NoContent() : NotFound();
-
+        {
+            try
+            {
+                return (await _self.UpdateOwnAsync(dto)) ? NoContent() : NotFound();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while updating self member profile.");
+                return StatusCode(500, "An unexpected error occurred.");
+            }
+        }
 
         [HttpGet("assigned")]
         [Authorize(Roles = RoleConstants.Trainer)]
         public async Task<IActionResult> GetAssigned()
-            => Ok(await _trainer.GetAllAsync());
+        {
+            try
+            {
+                return Ok(await _trainer.GetAllAsync());
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while retrieving assigned members.");
+                return StatusCode(500, "An unexpected error occurred.");
+            }
+        }
 
         [HttpGet("assigned/{id}")]
         [Authorize(Roles = RoleConstants.Trainer)]
         public async Task<IActionResult> GetAssignedById(int id)
         {
-            var dto = await _trainer.GetByIdAsync(id);
-            return dto == null ? NotFound() : Ok(dto);
+            try
+            {
+                var dto = await _trainer.GetByIdAsync(id);
+                return dto == null ? NotFound() : Ok(dto);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while retrieving assigned member by ID.");
+                return StatusCode(500, "An unexpected error occurred.");
+            }
         }
     }
 }

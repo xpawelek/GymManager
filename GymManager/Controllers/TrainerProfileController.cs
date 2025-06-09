@@ -13,26 +13,44 @@ namespace GymManager.Controllers
     public class TrainerProfileController : ControllerBase
     {
         private readonly TrainerProfileService _svc;
+        private readonly ILogger<TrainerProfileController> _logger;
 
-        public TrainerProfileController(TrainerProfileService svc)
+        public TrainerProfileController(TrainerProfileService svc, ILogger<TrainerProfileController> logger)
         {
             _svc = svc;
+            _logger = logger;
         }
 
         // GET /api/trainers/profile
         [HttpGet]
         public async Task<IActionResult> GetMyProfile()
         {
-            var dto = await _svc.GetMyProfileAsync();
-            return dto == null ? NotFound() : Ok(dto);
+            try
+            {
+                var dto = await _svc.GetMyProfileAsync();
+                return dto == null ? NotFound() : Ok(dto);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[{Time}] Error while retrieving trainer profile.", DateTime.Now);
+                return StatusCode(500, "An unexpected error occurred.");
+            }
         }
 
         // PATCH /api/trainers/profile
         [HttpPatch]
         public async Task<IActionResult> UpdateMyProfile([FromBody] UpdateSelfTrainerDto dto)
         {
-            var ok = await _svc.UpdateMyProfileAsync(dto);
-            return ok ? NoContent() : NotFound();
+            try
+            {
+                var ok = await _svc.UpdateMyProfileAsync(dto);
+                return ok ? NoContent() : NotFound();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[{Time}] Error while updating trainer profile.", DateTime.Now);
+                return StatusCode(500, "An unexpected error occurred.");
+            }
         }
     }
 }

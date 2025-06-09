@@ -4,6 +4,7 @@ using GymManager.Shared.DTOs.Admin;
 using GymManager.Models.Entities;
 using GymManager.Models.Mappers.Admin;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace GymManager.Services.Admin
 {
@@ -11,267 +12,274 @@ namespace GymManager.Services.Admin
     {
         private readonly GymDbContext _context;
         private readonly AdminTrainingSessionMapper _mapper;
+        private readonly ILogger<AdminTrainingSessionService> _logger;
 
         public AdminTrainingSessionService(
             GymDbContext context,
-            AdminTrainingSessionMapper mapper)
+            AdminTrainingSessionMapper mapper,
+            ILogger<AdminTrainingSessionService> logger)
         {
             _context = context;
             _mapper = mapper;
+            _logger = logger;
         }
 
         public async Task<List<ReadTrainingSessionDto>> GetAllAsync()
         {
-            var list = await _context.TrainingSessions.Include(t => t.Trainer).ToListAsync();
-            return _mapper.ToReadDtoList(list);
+            try
+            {
+                var list = await _context.TrainingSessions.Include(t => t.Trainer).ToListAsync();
+                return _mapper.ToReadDtoList(list);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while retrieving all training sessions.");
+                return new List<ReadTrainingSessionDto>();
+            }
         }
-        
+
         public async Task<List<ReadTrainingSessionDto>> GetByMemberIdAsync(int id)
         {
-            var sessions = await _context.TrainingSessions
-                .Include(s => s.Trainer)
-                .Where(s => s.MemberId == id && s.StartTime >= DateTime.Now)
-                .OrderBy(s => s.StartTime)
-                .ToListAsync();
+            try
+            {
+                var sessions = await _context.TrainingSessions
+                    .Include(s => s.Trainer)
+                    .Where(s => s.MemberId == id && s.StartTime >= DateTime.Now)
+                    .OrderBy(s => s.StartTime)
+                    .ToListAsync();
 
-            return _mapper.ToReadDtoList(sessions);
+                return _mapper.ToReadDtoList(sessions);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while retrieving training sessions for member ID {Id}.", id);
+                return new List<ReadTrainingSessionDto>();
+            }
         }
-        
+
         public async Task<List<ReadTrainingSessionDto>> GetByTrainerIdAsync(int id)
         {
-            var sessions = await _context.TrainingSessions
-                .Include(s => s.Trainer)
-                .Where(s => s.TrainerId == id && s.StartTime >= DateTime.Now)
-                .OrderBy(s => s.StartTime)
-                .ToListAsync();
+            try
+            {
+                var sessions = await _context.TrainingSessions
+                    .Include(s => s.Trainer)
+                    .Where(s => s.TrainerId == id && s.StartTime >= DateTime.Now)
+                    .OrderBy(s => s.StartTime)
+                    .ToListAsync();
 
-            return _mapper.ToReadDtoList(sessions);
+                return _mapper.ToReadDtoList(sessions);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while retrieving training sessions for trainer ID {Id}.", id);
+                return new List<ReadTrainingSessionDto>();
+            }
         }
+
         public async Task<ReadTrainingSessionDto?> GetByIdAsync(int id)
         {
-            var e = await _context.TrainingSessions.FindAsync(id);
-            return e is null ? null : _mapper.ToReadDto(e);
+            try
+            {
+                var e = await _context.TrainingSessions.FindAsync(id);
+                return e is null ? null : _mapper.ToReadDto(e);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while retrieving training session with ID {Id}.", id);
+                return null;
+            }
         }
 
-        public async Task<ReadTrainingSessionDto> CreateAsync(CreateTrainingSessionDto dto)
+        public async Task<ReadTrainingSessionDto?> CreateAsync(CreateTrainingSessionDto dto)
         {
-            var e = _mapper.ToEntity(dto);
+            try
+            {
+                var e = _mapper.ToEntity(dto);
 
-            if (e.StartTime < DateTime.Now)
-            {
-                throw new UserFacingException("You cannot create a training session in past");
-            }
-            
-            var trainerTimeConflict = await _context.TrainingSessions.AnyAsync(a =>
-                a.TrainerId == dto.TrainerId &&
-                dto.StartTime < a.StartTime.AddMinutes(a.DurationInMinutes) &&
-                dto.StartTime.AddMinutes(dto.DurationInMinutes) > a.StartTime);
+                if (e.StartTime < DateTime.Now)
+                    throw new UserFacingException("You cannot create a training session in the past");
 
-            if (trainerTimeConflict)
-            {
-                throw new UserFacingException("Trainer has other session during that time");
-            }
-            
-            if (e.IsGroupSession && e.MemberId != null)
-            {
-                throw new UserFacingException("You cannot create a group session");
-            }
+                var trainerConflict = await _context.TrainingSessions.AnyAsync(a =>
+                    a.TrainerId == dto.TrainerId &&
+                    dto.StartTime < a.StartTime.AddMinutes(a.DurationInMinutes) &&
+                    dto.StartTime.AddMinutes(dto.DurationInMinutes) > a.StartTime);
 
-            if (!e.IsGroupSession)
-            {
-                if (e.MemberId == null)
-                { 
-                    throw new UserFacingException("You have to choose a member for individual training session");
-                }
-                else
+                if (trainerConflict)
+                    throw new UserFacingException("Trainer has another session during that time");
+
+                if (e.IsGroupSession && e.MemberId != null)
+                    throw new UserFacingException("You cannot create a group session with a member");
+
+                if (!e.IsGroupSession)
                 {
-                    var assignment = await _context.TrainerAssignments.AnyAsync(a => a.MemberId == e.MemberId
-                        && a.TrainerId == e.TrainerId
-                        && (e.StartTime >= a.StartDate 
-                            && e.StartTime.AddMinutes(e.DurationInMinutes) <= a.EndDate));
+                    if (e.MemberId == null)
+                        throw new UserFacingException("You must choose a member for individual training");
+
+                    var assignment = await _context.TrainerAssignments.AnyAsync(a =>
+                        a.MemberId == e.MemberId && a.TrainerId == e.TrainerId &&
+                        e.StartTime >= a.StartDate && e.StartTime.AddMinutes(e.DurationInMinutes) <= a.EndDate);
 
                     if (!assignment)
-                    {
-                        throw new UserFacingException("Trainer and member does not have an active assignment.");
-                    }
-                    
-                    var getMembership = await _context.Memberships
+                        throw new UserFacingException("Trainer and member do not have an active assignment");
+
+                    var membership = await _context.Memberships
                         .FirstOrDefaultAsync(m => m.MemberId == e.MemberId && m.IsActive);
 
-                    if (getMembership == null)
-                        throw new UserFacingException("No active membership found.");
+                    if (membership == null)
+                        throw new UserFacingException("No active membership found");
 
-                    var getMembershipType = await _context.MembershipTypes
-                        .FindAsync(getMembership.MembershipTypeId);
+                    var type = await _context.MembershipTypes.FindAsync(membership.MembershipTypeId);
+                    if (type == null)
+                        throw new UserFacingException("Membership type not found");
 
-                    if (getMembershipType == null)
-                        throw new UserFacingException("Membership type not found.");
+                    var cycleLength = type.DurationInDays;
+                    var daysPassed = (DateTime.Now - membership.StartDate).Days;
+                    var cycle = Math.Max(1, (int)Math.Ceiling((double)daysPassed / cycleLength));
 
-                    var userMembershipStartDate = getMembership.StartDate;
-                    var daysDifference = (DateTime.Now - userMembershipStartDate).Days;
-                    int cycleLength = getMembershipType.DurationInDays;
+                    var cycleStart = membership.StartDate.AddDays((cycle - 1) * cycleLength);
+                    var cycleEnd = membership.StartDate.AddDays(cycle * cycleLength);
 
-                    int cycle = (int)Math.Ceiling((double)daysDifference / cycleLength);
-                    if (cycle == 0) cycle = 1; // Handle case where DateTime.Now == StartDate
+                    int count = await _context.TrainingSessions.CountAsync(a =>
+                        a.MemberId == e.MemberId &&
+                        !a.IsGroupSession &&
+                        a.StartTime >= cycleStart && a.StartTime < cycleEnd);
 
-                    var cycleStart = userMembershipStartDate.AddDays((cycle - 1) * cycleLength);
-                    var cycleEnd = userMembershipStartDate.AddDays(cycle * cycleLength);
-
-                    int countCurrent = await _context.TrainingSessions
-                        .CountAsync(a =>
-                            a.MemberId == e.MemberId &&
-                            !a.IsGroupSession &&
-                            a.StartTime >= cycleStart &&
-                            a.StartTime < cycleEnd);
-
-                    if (countCurrent >= getMembershipType.PersonalTrainingsPerMonth)
-                    {
-                        throw new UserFacingException("You have reached your personal training limit for this membership period.");
-                    }
+                    if (count >= type.PersonalTrainingsPerMonth)
+                        throw new UserFacingException("You have reached your personal training limit for this period.");
                 }
 
-            }
-
-            var transaction = await _context.Database.BeginTransactionAsync();
-            await _context.TrainingSessions.AddAsync(e);
-            await _context.SaveChangesAsync();
-            
-            if (!e.IsGroupSession)
-            {
-                var workoutNote = new WorkoutNote()
-                {
-                    TrainingSessionId = e.Id,
-                    MemberId = e.MemberId.Value,
-                    TrainerId = e.TrainerId,
-                    WorkoutInfo = String.Empty,
-                    WorkoutStartTime = e.StartTime,
-                    CurrentHeight = null,
-                    CurrentWeight = null
-                };
-                await _context.WorkoutNotes.AddAsync(workoutNote);
+                await using var transaction = await _context.Database.BeginTransactionAsync();
+                await _context.TrainingSessions.AddAsync(e);
                 await _context.SaveChangesAsync();
+
+                if (!e.IsGroupSession)
+                {
+                    var note = new WorkoutNote
+                    {
+                        TrainingSessionId = e.Id,
+                        MemberId = e.MemberId!.Value,
+                        TrainerId = e.TrainerId,
+                        WorkoutInfo = string.Empty,
+                        WorkoutStartTime = e.StartTime
+                    };
+                    await _context.WorkoutNotes.AddAsync(note);
+                    await _context.SaveChangesAsync();
+                }
+
+                await transaction.CommitAsync();
+                return _mapper.ToReadDto(e);
             }
-            
-            await transaction.CommitAsync();
-            
-            return _mapper.ToReadDto(e);
+            catch (UserFacingException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while creating training session.");
+                return null;
+            }
         }
 
         public async Task<bool> PatchAsync(int id, UpdateTrainingSessionDto dto)
         {
-            //not in past
-            var e = await _context.TrainingSessions.FindAsync(id);
-            if (e == null) return false;
-            
-            var newTrainerId = dto.TrainerId ?? e.TrainerId;
-            var newStartTime = dto.StartTime ?? e.StartTime;
-            var newDescription = dto.Description ?? e.Description;
-            var duration = e.DurationInMinutes; 
-            
-            dto.TrainerId = newTrainerId;
-            dto.StartTime = newStartTime;
-            dto.Description = newDescription;
-
-            var trainerTimeConflict = await _context.TrainingSessions.AnyAsync(a =>
-                a.Id != e.Id && 
-                a.TrainerId == newTrainerId &&
-                newStartTime < a.StartTime.AddMinutes(a.DurationInMinutes) &&
-                newStartTime.AddMinutes(duration) > a.StartTime
-            );
-
-            if (trainerTimeConflict)
+            try
             {
-                throw new Exception("Trainer has another session during that time");
-            }
+                var e = await _context.TrainingSessions.FindAsync(id);
+                if (e == null) return false;
 
-            if (!e.IsGroupSession)
-            {
-                if (e.MemberId == null)
-                { 
-                    throw new Exception("You have to choose a member for individual training session");
-                }
-                else
+                var newTrainerId = dto.TrainerId ?? e.TrainerId;
+                var newStartTime = dto.StartTime ?? e.StartTime;
+                var duration = e.DurationInMinutes;
+
+                var trainerConflict = await _context.TrainingSessions.AnyAsync(a =>
+                    a.Id != e.Id &&
+                    a.TrainerId == newTrainerId &&
+                    newStartTime < a.StartTime.AddMinutes(a.DurationInMinutes) &&
+                    newStartTime.AddMinutes(duration) > a.StartTime);
+
+                if (trainerConflict)
+                    throw new Exception("Trainer has another session during that time");
+
+                if (!e.IsGroupSession)
                 {
-                    var assignment = await _context.TrainerAssignments.AnyAsync(a => a.MemberId == e.MemberId
-                        && a.TrainerId == newTrainerId
-                        && (newStartTime >= a.StartDate && newStartTime.AddMinutes(duration) <= a.EndDate));
+                    if (e.MemberId == null)
+                        throw new Exception("You must choose a member for individual training");
+
+                    var assignment = await _context.TrainerAssignments.AnyAsync(a =>
+                        a.MemberId == e.MemberId &&
+                        a.TrainerId == newTrainerId &&
+                        newStartTime >= a.StartDate &&
+                        newStartTime.AddMinutes(duration) <= a.EndDate);
 
                     if (!assignment)
-                    {
-                        throw new Exception("Trainer and member does not have an active assignment.");
-                    }
-                    
-                    var getMembership = await _context.Memberships
+                        throw new Exception("Trainer and member do not have an active assignment");
+
+                    var membership = await _context.Memberships
                         .FirstOrDefaultAsync(m => m.MemberId == e.MemberId && m.IsActive);
 
-                    if (getMembership == null)
-                        throw new Exception("No active membership found.");
+                    if (membership == null)
+                        throw new Exception("No active membership found");
 
-                    var getMembershipType = await _context.MembershipTypes
-                        .FindAsync(getMembership.MembershipTypeId);
+                    var type = await _context.MembershipTypes.FindAsync(membership.MembershipTypeId);
+                    if (type == null)
+                        throw new Exception("Membership type not found");
 
-                    if (getMembershipType == null)
-                        throw new Exception("Membership type not found.");
+                    var days = (DateTime.Now - membership.StartDate).Days;
+                    var cycle = Math.Max(1, (int)Math.Ceiling((double)days / type.DurationInDays));
+                    var cycleStart = membership.StartDate.AddDays((cycle - 1) * type.DurationInDays);
+                    var cycleEnd = membership.StartDate.AddDays(cycle * type.DurationInDays);
 
-                    var userMembershipStartDate = getMembership.StartDate;
-                    var daysDifference = (DateTime.Now - userMembershipStartDate).Days;
-                    int cycleLength = getMembershipType.DurationInDays;
+                    var count = await _context.TrainingSessions.CountAsync(a =>
+                        a.Id != e.Id &&
+                        a.MemberId == e.MemberId &&
+                        !a.IsGroupSession &&
+                        a.StartTime >= cycleStart &&
+                        a.StartTime < cycleEnd);
 
-                    int cycle = (int)Math.Ceiling((double)daysDifference / cycleLength);
-                    if (cycle == 0) cycle = 1; // Handle case where DateTime.Now == StartDate
+                    if (count >= type.PersonalTrainingsPerMonth)
+                        throw new Exception("You have reached your personal training limit for this period.");
 
-                    var cycleStart = userMembershipStartDate.AddDays((cycle - 1) * cycleLength);
-                    var cycleEnd = userMembershipStartDate.AddDays(cycle * cycleLength);
+                    var note = await _context.WorkoutNotes.FirstOrDefaultAsync(w => w.TrainingSessionId == e.Id);
+                    if (note == null)
+                        throw new Exception("Workout note not found");
 
-                    int countCurrent = await _context.TrainingSessions
-                        .CountAsync(a =>
-                            a.Id != e.Id && 
-                            a.MemberId == e.MemberId &&
-                            !a.IsGroupSession &&
-                            a.StartTime >= cycleStart &&
-                            a.StartTime < cycleEnd);
-
-                    if (countCurrent >= getMembershipType.PersonalTrainingsPerMonth)
-                    {
-                        throw new Exception("You have reached your personal training limit for this membership period.");
-                    }
+                    note.TrainerId = newTrainerId;
+                    note.WorkoutStartTime = newStartTime;
                 }
-            }
 
-            if (!e.IsGroupSession)
+                _mapper.UpdateEntity(dto, e);
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            catch (Exception ex)
             {
-                var workoutNote = await _context.WorkoutNotes.FirstOrDefaultAsync(w => w.TrainingSessionId == e.Id);
-                if (workoutNote == null)
-                {
-                    throw new Exception("Some workout notes cannot be updated or assignment cannot be found.");
-                }
-                
-                workoutNote.TrainerId = newTrainerId;
-                workoutNote.WorkoutStartTime = newStartTime;
+                _logger.LogError(ex, "Error while updating training session with ID {Id}.", id);
+                return false;
             }
-            
-            _mapper.UpdateEntity(dto, e);
-            await _context.SaveChangesAsync();
-            return true;
         }
 
         public async Task<bool> DeleteAsync(int id)
         {
-            var e = await _context.TrainingSessions.FindAsync(id);
-            if (e == null) return false;
-
-            var workoutNote = await _context.WorkoutNotes
-                .FirstOrDefaultAsync(w => w.TrainingSessionId == id);
-
-            if (workoutNote != null)
+            try
             {
-                _context.WorkoutNotes.Remove(workoutNote);
+                var e = await _context.TrainingSessions.FindAsync(id);
+                if (e == null) return false;
+
+                var note = await _context.WorkoutNotes.FirstOrDefaultAsync(w => w.TrainingSessionId == id);
+                if (note != null)
+                {
+                    _context.WorkoutNotes.Remove(note);
+                }
+
+                _context.TrainingSessions.Remove(e);
+                await _context.SaveChangesAsync();
+                return true;
             }
-
-            _context.TrainingSessions.Remove(e);
-            await _context.SaveChangesAsync();
-            return true;
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while deleting training session with ID {Id}.", id);
+                return false;
+            }
         }
-
     }
 }

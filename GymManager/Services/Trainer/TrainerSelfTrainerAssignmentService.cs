@@ -4,6 +4,7 @@ using GymManager.Shared.DTOs.Trainer;
 using GymManager.Models.Mappers.Trainer;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace GymManager.Services.Trainer
 {
@@ -12,67 +13,100 @@ namespace GymManager.Services.Trainer
         private readonly GymDbContext _context;
         private readonly TrainerSelfTrainerAssignmentMapper _mapper;
         private readonly IHttpContextAccessor _httpContext;
+        private readonly ILogger<TrainerSelfTrainerAssignmentService> _logger;
 
         public TrainerSelfTrainerAssignmentService(
             GymDbContext context,
             TrainerSelfTrainerAssignmentMapper mapper,
-            IHttpContextAccessor httpContextAccessor)
+            IHttpContextAccessor httpContextAccessor,
+            ILogger<TrainerSelfTrainerAssignmentService> logger)
         {
             _context = context;
             _mapper = mapper;
             _httpContext = httpContextAccessor;
+            _logger = logger;
         }
 
         private async Task<int> GetCurrentTrainerIdAsync()
         {
-            var userIdStr = _httpContext.HttpContext?
-                .User.FindFirstValue(ClaimTypes.NameIdentifier);
+            try
+            {
+                var userIdStr = _httpContext.HttpContext?
+                    .User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            if (string.IsNullOrEmpty(userIdStr))
-                throw new InvalidOperationException("UserId not found in token");
+                if (string.IsNullOrEmpty(userIdStr))
+                    throw new InvalidOperationException("UserId not found in token");
 
-            var trainer = await _context.Trainers
-                .FirstOrDefaultAsync(t => t.UserId == userIdStr);
+                var trainer = await _context.Trainers
+                    .FirstOrDefaultAsync(t => t.UserId == userIdStr);
 
-            if (trainer == null)
-                throw new InvalidOperationException("Trainer not found");
+                if (trainer == null)
+                    throw new InvalidOperationException("Trainer not found");
 
-            return trainer.Id;
+                return trainer.Id;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to get current trainer ID");
+                throw;
+            }
         }
-
 
         public async Task<List<ReadSelfTrainerAssignmentDto>> GetAllAsync()
         {
-            var tid = await GetCurrentTrainerIdAsync();
+            try
+            {
+                var tid = await GetCurrentTrainerIdAsync();
 
-            var list = await _context.TrainerAssignments
-                .Where(a => a.TrainerId == tid)
-                .ToListAsync();
+                var list = await _context.TrainerAssignments
+                    .Where(a => a.TrainerId == tid)
+                    .ToListAsync();
 
-            return _mapper.ToReadDtoList(list);
+                return _mapper.ToReadDtoList(list);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to retrieve all trainer assignments");
+                throw;
+            }
         }
 
         public async Task<ReadSelfTrainerAssignmentDto?> GetByIdAsync(int id)
         {
-            var tid = await GetCurrentTrainerIdAsync();
+            try
+            {
+                var tid = await GetCurrentTrainerIdAsync();
 
-            var entity = await _context.TrainerAssignments.FindAsync(id);
-            if (entity == null || entity.TrainerId != tid)
-                return null;
+                var entity = await _context.TrainerAssignments.FindAsync(id);
+                if (entity == null || entity.TrainerId != tid)
+                    return null;
 
-            return _mapper.ToReadDto(entity);
+                return _mapper.ToReadDto(entity);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Failed to get assignment by ID: {id}");
+                throw;
+            }
         }
 
         public async Task<List<ReadSelfTrainerAssignmentDto>> GetAllForMemberAsync(int memberId)
         {
-            var trainerId = await GetCurrentTrainerIdAsync();
+            try
+            {
+                var trainerId = await GetCurrentTrainerIdAsync();
 
-            var assignments = await _context.TrainerAssignments
-                .Where(a => a.TrainerId == trainerId && a.MemberId == memberId)
-                .ToListAsync();
+                var assignments = await _context.TrainerAssignments
+                    .Where(a => a.TrainerId == trainerId && a.MemberId == memberId)
+                    .ToListAsync();
 
-            return _mapper.ToReadDtoList(assignments);
+                return _mapper.ToReadDtoList(assignments);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Failed to get assignments for member ID: {memberId}");
+                throw;
+            }
         }
-
     }
 }

@@ -3,6 +3,7 @@ using GymManager.Data;
 using GymManager.Shared.DTOs.Member;
 using GymManager.Models.Mappers.Member;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace GymManager.Services.Member
 {
@@ -11,49 +12,80 @@ namespace GymManager.Services.Member
         private readonly GymDbContext _context;
         private readonly MemberSelfWorkoutNoteMapper _mapper;
         private readonly IHttpContextAccessor _httpContext;
+        private readonly ILogger<MemberSelfWorkoutNoteService> _logger;
 
         public MemberSelfWorkoutNoteService(
             GymDbContext context,
             MemberSelfWorkoutNoteMapper mapper,
-            IHttpContextAccessor httpContextAccessor)
+            IHttpContextAccessor httpContextAccessor,
+            ILogger<MemberSelfWorkoutNoteService> logger)
         {
             _context = context;
             _mapper = mapper;
             _httpContext = httpContextAccessor;
+            _logger = logger;
         }
 
         private async Task<int> GetCurrentMemberId()
         {
-            var userIdStr = _httpContext.HttpContext!
-                .User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+            try
+            {
+                var userIdStr = _httpContext.HttpContext?
+                    .User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            var userId = Guid.Parse(userIdStr); 
+                if (string.IsNullOrEmpty(userIdStr))
+                    throw new Exception("User ID not found in token.");
 
-            var member = await _context.Members
-                .FirstOrDefaultAsync(t => t.UserId == userId.ToString());
+                var userId = Guid.Parse(userIdStr);
 
-            if (member == null)
-                throw new Exception("Member not found");
+                var member = await _context.Members
+                    .FirstOrDefaultAsync(t => t.UserId == userId.ToString());
 
-            return member.Id;
+                if (member == null)
+                    throw new Exception("Member not found.");
+
+                return member.Id;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while retrieving current member ID.");
+                throw;
+            }
         }
 
         public async Task<List<ReadSelfWorkoutNoteDto>> GetAllAsync()
         {
-            var mid = await GetCurrentMemberId();
-            var list = await _context.WorkoutNotes
-                .Where(n => n.MemberId == mid)
-                .ToListAsync();
-            return _mapper.ToReadDtoList(list);
+            try
+            {
+                var mid = await GetCurrentMemberId();
+                var list = await _context.WorkoutNotes
+                    .Where(n => n.MemberId == mid)
+                    .ToListAsync();
+
+                return _mapper.ToReadDtoList(list);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while retrieving workout notes for member.");
+                return new List<ReadSelfWorkoutNoteDto>();
+            }
         }
 
         public async Task<ReadSelfWorkoutNoteDto?> GetByIdAsync(int id)
         {
-            var mid = await GetCurrentMemberId();
-            var e = await _context.WorkoutNotes
-                .FirstOrDefaultAsync(w => w.TrainingSessionId == id && w.MemberId == mid);
-            if (e == null || e.MemberId != mid) return null;
-            return _mapper.ToReadDto(e);
+            try
+            {
+                var mid = await GetCurrentMemberId();
+                var e = await _context.WorkoutNotes
+                    .FirstOrDefaultAsync(w => w.TrainingSessionId == id && w.MemberId == mid);
+
+                return e != null ? _mapper.ToReadDto(e) : null;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while retrieving workout note with training session ID {Id}.", id);
+                return null;
+            }
         }
     }
 }
