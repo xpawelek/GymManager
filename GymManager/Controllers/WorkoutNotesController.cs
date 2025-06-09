@@ -17,54 +17,111 @@ namespace GymManager.Controllers
         private readonly AdminWorkoutNoteService _admin;
         private readonly MemberSelfWorkoutNoteService _member;
         private readonly TrainerSelfWorkoutNoteService _trainer;
+        private readonly ILogger<WorkoutNotesController> _logger;
 
         public WorkoutNotesController(
             AdminWorkoutNoteService admin,
             MemberSelfWorkoutNoteService member,
-            TrainerSelfWorkoutNoteService trainer)
+            TrainerSelfWorkoutNoteService trainer,
+            ILogger<WorkoutNotesController> logger)
         {
             _admin = admin;
             _member = member;
             _trainer = trainer;
+            _logger = logger;
         }
 
         [HttpGet]
         [Authorize(Roles = RoleConstants.Admin)]
         public async Task<IActionResult> GetAllAdmin()
-            => Ok(await _admin.GetAllAsync());
+        {
+            try
+            {
+                return Ok(await _admin.GetAllAsync());
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching all workout notes (admin).");
+                return StatusCode(500, "An unexpected error occurred.");
+            }
+        }
 
         [HttpGet("{id}")]
         [Authorize(Roles = RoleConstants.Admin)]
         public async Task<IActionResult> GetByIdAdmin(int id)
         {
-            var dto = await _admin.GetByIdAsync(id);
-            return dto == null ? NotFound() : Ok(dto);
+            try
+            {
+                var dto = await _admin.GetByIdAsync(id);
+                return dto == null ? NotFound() : Ok(dto);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching workout note by ID {Id} (admin).", id);
+                return StatusCode(500, "An unexpected error occurred.");
+            }
         }
 
         [HttpGet("self")]
         [Authorize(Roles = RoleConstants.Member)]
         public async Task<IActionResult> GetMyNotes()
-            => Ok(await _member.GetAllAsync());
+        {
+            try
+            {
+                return Ok(await _member.GetAllAsync());
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching workout notes (member).");
+                return StatusCode(500, "An unexpected error occurred.");
+            }
+        }
 
         [HttpGet("self/{id}")]
         [Authorize(Roles = RoleConstants.Member)]
         public async Task<IActionResult> GetMyById(int id)
         {
-            var dto = await _member.GetByIdAsync(id);
-            return dto == null ? NotFound() : Ok(dto);
+            try
+            {
+                var dto = await _member.GetByIdAsync(id);
+                return dto == null ? NotFound() : Ok(dto);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching workout note {Id} (member).", id);
+                return StatusCode(500, "An unexpected error occurred.");
+            }
         }
 
         [HttpGet("me")]
         [Authorize(Roles = RoleConstants.Trainer)]
         public async Task<IActionResult> GetMyAsTrainer()
-            => Ok(await _trainer.GetAllAsync());
+        {
+            try
+            {
+                return Ok(await _trainer.GetAllAsync());
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching trainer's workout notes.");
+                return StatusCode(500, "An unexpected error occurred.");
+            }
+        }
 
         [HttpGet("me/{id}")]
         [Authorize(Roles = RoleConstants.Trainer)]
         public async Task<IActionResult> GetMyByIdAsTrainer(int id)
         {
-            var dto = await _trainer.GetByIdAsync(id);
-            return dto == null ? NotFound() : Ok(dto);
+            try
+            {
+                var dto = await _trainer.GetByIdAsync(id);
+                return dto == null ? NotFound() : Ok(dto);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching workout note {Id} (trainer).", id);
+                return StatusCode(500, "An unexpected error occurred.");
+            }
         }
 
         /*
@@ -83,13 +140,24 @@ namespace GymManager.Controllers
         [HttpPatch("me/{id}")]
         [Authorize(Roles = RoleConstants.Trainer)]
         public async Task<IActionResult> PatchAsTrainer(int id, [FromBody] UpdateSelfWorkoutNoteDto dto)
-            => (await _trainer.PatchAsync(id, dto)) ? NoContent() : NotFound();
-        
+        {
+            try
+            {
+                var ok = await _trainer.PatchAsync(id, dto);
+                return ok ? NoContent() : NotFound();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error patching workout note {Id} (trainer).", id);
+                return StatusCode(500, "An unexpected error occurred.");
+            }
+        }
+
         /*
         [HttpDelete("me/{id}")]
         [Authorize(Roles = RoleConstants.Trainer)]
         public async Task<IActionResult> DeleteAsTrainer(int id)
             => (await _trainer.DeleteAsync(id)) ? NoContent() : NotFound();
-            */
+        */
     }
 }

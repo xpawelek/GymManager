@@ -22,75 +22,120 @@ public class ServiceRequestsController : ControllerBase
     private readonly AdminServiceRequestService _admin;
     private readonly MemberServiceRequestService _member;
     private readonly TrainerServiceRequestService _trainer;
+    private readonly ILogger<ServiceRequestsController> _logger;
 
     public ServiceRequestsController(
         AdminServiceRequestService admin,
         MemberServiceRequestService member,
-        TrainerServiceRequestService trainer)
+        TrainerServiceRequestService trainer,
+        ILogger<ServiceRequestsController> logger)
     {
         _admin = admin;
         _member = member;
         _trainer = trainer;
+        _logger = logger;
     }
 
     private string Role => User.FindFirstValue(ClaimTypes.Role)!;
-
-    // get - admin
 
     [HttpGet]
     [Authorize(Roles = RoleConstants.Admin)]
     public async Task<IActionResult> GetAll()
     {
-        var list = await _admin.GetAllAsync();
-        return Ok(list);
+        try
+        {
+            var list = await _admin.GetAllAsync();
+            return Ok(list);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "[{Time}] Error while retrieving all service requests.", DateTime.Now);
+            return StatusCode(500, "An unexpected error occurred.");
+        }
     }
 
     [HttpGet("{id}")]
     [Authorize(Roles = RoleConstants.Admin)]
     public async Task<IActionResult> GetById(int id)
     {
-        var dto = await _admin.GetByIdAsync(id);
-        return dto is null ? NotFound() : Ok(dto);
+        try
+        {
+            var dto = await _admin.GetByIdAsync(id);
+            return dto is null ? NotFound() : Ok(dto);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "[{Time}] Error while retrieving service request by ID {Id}.", DateTime.Now, id);
+            return StatusCode(500, "An unexpected error occurred.");
+        }
     }
-
-    // put/delete - admin
 
     [HttpPatch("{id}/toggle")]
     [Authorize(Roles = RoleConstants.Admin)]
     public async Task<IActionResult> ToggleResolved(int id)
     {
-        var ok = await _admin.ToggleResolvedAsync(id);
-        return ok ? NoContent() : NotFound();
+        try
+        {
+            var ok = await _admin.ToggleResolvedAsync(id);
+            return ok ? NoContent() : NotFound();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "[{Time}] Error while toggling service request status. ID: {Id}", DateTime.Now, id);
+            return StatusCode(500, "An unexpected error occurred.");
+        }
     }
 
     [HttpPatch("{id}")]
     [Authorize(Roles = RoleConstants.Admin)]
     public async Task<IActionResult> Patch(int id, [FromBody] AdminUpdateDto dto)
     {
-        var ok = await _admin.PatchAsync(id, dto);
-        return ok ? NoContent() : NotFound();
+        try
+        {
+            var ok = await _admin.PatchAsync(id, dto);
+            return ok ? NoContent() : NotFound();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "[{Time}] Error while updating service request. ID: {Id}", DateTime.Now, id);
+            return StatusCode(500, "An unexpected error occurred.");
+        }
     }
 
     [HttpDelete("{id}")]
     [Authorize(Roles = RoleConstants.Admin)]
     public async Task<IActionResult> Delete(int id)
     {
-        var ok = await _admin.DeleteAsync(id);
-        return ok ? NoContent() : NotFound();
+        try
+        {
+            var ok = await _admin.DeleteAsync(id);
+            return ok ? NoContent() : NotFound();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "[{Time}] Error while deleting service request. ID: {Id}", DateTime.Now, id);
+            return StatusCode(500, "An unexpected error occurred.");
+        }
     }
-
-    // post member/trainer
 
     [HttpPost("member")]
     [Authorize(Roles = $"{RoleConstants.Member},{RoleConstants.Trainer}")]
     public async Task<IActionResult> CreateAsMember([FromBody] MemberCreateDto dto)
     {
-        if (string.IsNullOrWhiteSpace(dto.ServiceProblemTitle) || string.IsNullOrWhiteSpace(dto.ProblemNote))
-            return BadRequest(new { message = "Missing required fields." });
+        try
+        {
+            if (string.IsNullOrWhiteSpace(dto.ServiceProblemTitle) || string.IsNullOrWhiteSpace(dto.ProblemNote))
+                return BadRequest(new { message = "Missing required fields." });
 
-        var ok = await _member.CreateAsync(dto);
-        return ok
-            ? Accepted(new { message = "Your request has been accepted." })
-            : BadRequest(new { message = "Something went wrong." });
+            var ok = await _member.CreateAsync(dto);
+            return ok
+                ? Accepted(new { message = "Your request has been accepted." })
+                : BadRequest(new { message = "Something went wrong." });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "[{Time}] Error while creating service request from member.", DateTime.Now);
+            return StatusCode(500, "An unexpected error occurred.");
+        }
     }
 }
