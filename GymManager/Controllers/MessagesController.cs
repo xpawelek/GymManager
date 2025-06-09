@@ -24,109 +24,137 @@ namespace GymManager.Controllers
         private readonly MemberMessageService _memberSvc;
         private readonly TrainerMessageService _trainerSvc;
         private readonly AdminMessageService _adminSvc;
+        private readonly ILogger<MessagesController> _logger;
 
         public MessagesController(
             MemberMessageService memberSvc,
             TrainerMessageService trainerSvc,
-            AdminMessageService adminSvc)
+            AdminMessageService adminSvc,
+            ILogger<MessagesController> logger)
         {
             _memberSvc = memberSvc;
             _trainerSvc = trainerSvc;
             _adminSvc = adminSvc;
+            _logger = logger;
         }
-        
 
         private string Role => User.FindFirstValue(ClaimTypes.Role)!;
 
-        // GET /api/messages
-        [Authorize]
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            if (User.IsInRole(RoleConstants.Member))
-                return Ok(await _memberSvc.GetAllAsync());
+            try
+            {
+                if (User.IsInRole(RoleConstants.Member))
+                    return Ok(await _memberSvc.GetAllAsync());
 
-            if (User.IsInRole(RoleConstants.Trainer))
-                return Ok(await _trainerSvc.GetAllAsync());
+                if (User.IsInRole(RoleConstants.Trainer))
+                    return Ok(await _trainerSvc.GetAllAsync());
 
-            if (User.IsInRole(RoleConstants.Admin))
-                return Ok(await _adminSvc.GetAllAsync());
+                if (User.IsInRole(RoleConstants.Admin))
+                    return Ok(await _adminSvc.GetAllAsync());
 
-            return Forbid();
+                return Forbid();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[{Time}] Error while fetching all messages.", DateTime.Now);
+                return StatusCode(500, "An unexpected error occurred.");
+            }
         }
 
-        // GET /api/messages/{id}
-        [Authorize]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
-            if (User.IsInRole(RoleConstants.Member))
+            try
             {
-                var result = await _memberSvc.GetByIdAsync(id);
-                return result is not null ? Ok(result) : NotFound();
-            }
+                if (User.IsInRole(RoleConstants.Member))
+                {
+                    var result = await _memberSvc.GetByIdAsync(id);
+                    return result is not null ? Ok(result) : NotFound();
+                }
 
-            if (User.IsInRole(RoleConstants.Trainer))
+                if (User.IsInRole(RoleConstants.Trainer))
+                {
+                    var result = await _trainerSvc.GetByIdAsync(id);
+                    return result is not null ? Ok(result) : NotFound();
+                }
+
+                if (User.IsInRole(RoleConstants.Admin))
+                {
+                    var result = await _adminSvc.GetByIdAsync(id);
+                    return result is not null ? Ok(result) : NotFound();
+                }
+
+                return Forbid();
+            }
+            catch (Exception ex)
             {
-                var result = await _trainerSvc.GetByIdAsync(id);
-                return result is not null ? Ok(result) : NotFound();
+                _logger.LogError(ex, "[{Time}] Error while fetching message by ID.", DateTime.Now);
+                return StatusCode(500, "An unexpected error occurred.");
             }
-
-            if (User.IsInRole(RoleConstants.Admin))
-            {
-                var result = await _adminSvc.GetByIdAsync(id);
-                return result is not null ? Ok(result) : NotFound();
-            }
-
-            return Forbid();
         }
 
-        // POST /api/messages
-        [Authorize(Roles = $"{RoleConstants.Trainer}, {RoleConstants.Member}")]
         [HttpPost]
+        [Authorize(Roles = $"{RoleConstants.Trainer}, {RoleConstants.Member}")]
         public async Task<IActionResult> Create([FromBody] object raw)
         {
-            if (Role == RoleConstants.Member)
+            try
             {
-                var dto = System.Text.Json.JsonSerializer
-                    .Deserialize<MCreateDto>(raw.ToString()!)!;
-                var result = await _memberSvc.CreateAsync(dto);
-                return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
-            }
+                if (Role == RoleConstants.Member)
+                {
+                    var dto = System.Text.Json.JsonSerializer
+                        .Deserialize<MCreateDto>(raw.ToString()!)!;
+                    var result = await _memberSvc.CreateAsync(dto);
+                    return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
+                }
 
-            if (Role == RoleConstants.Trainer)
+                if (Role == RoleConstants.Trainer)
+                {
+                    var dto = System.Text.Json.JsonSerializer
+                        .Deserialize<TCreateDto>(raw.ToString()!)!;
+                    var result = await _trainerSvc.CreateAsync(dto);
+                    return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
+                }
+
+                return Forbid();
+            }
+            catch (Exception ex)
             {
-                var dto = System.Text.Json.JsonSerializer
-                    .Deserialize<TCreateDto>(raw.ToString()!)!;
-                var result = await _trainerSvc.CreateAsync(dto);
-                return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
+                _logger.LogError(ex, "[{Time}] Error while creating message.", DateTime.Now);
+                return StatusCode(500, "An unexpected error occurred.");
             }
-
-            return Forbid();
         }
 
-        // PATCH /api/messages/{id}
-        [Authorize(Roles = $"{RoleConstants.Trainer}, {RoleConstants.Member}")]
         [HttpPatch("{id}")]
+        [Authorize(Roles = $"{RoleConstants.Trainer}, {RoleConstants.Member}")]
         public async Task<IActionResult> Patch(int id, [FromBody] object raw)
         {
-            if (Role == RoleConstants.Member)
+            try
             {
-                var dto = System.Text.Json.JsonSerializer
-                    .Deserialize<MUpdateDto>(raw.ToString()!)!;
-                return await _memberSvc.UpdateAsync(id, dto)
-                    ? NoContent() : NotFound();
-            }
+                if (Role == RoleConstants.Member)
+                {
+                    var dto = System.Text.Json.JsonSerializer
+                        .Deserialize<MUpdateDto>(raw.ToString()!)!;
+                    return await _memberSvc.UpdateAsync(id, dto)
+                        ? NoContent() : NotFound();
+                }
 
-            if (Role == RoleConstants.Trainer)
+                if (Role == RoleConstants.Trainer)
+                {
+                    var dto = System.Text.Json.JsonSerializer
+                        .Deserialize<TUpdateDto>(raw.ToString()!)!;
+                    return await _trainerSvc.UpdateAsync(id, dto)
+                        ? NoContent() : NotFound();
+                }
+
+                return Forbid();
+            }
+            catch (Exception ex)
             {
-                var dto = System.Text.Json.JsonSerializer
-                    .Deserialize<TUpdateDto>(raw.ToString()!)!;
-                return await _trainerSvc.UpdateAsync(id, dto)
-                    ? NoContent() : NotFound();
+                _logger.LogError(ex, "[{Time}] Error while updating message with ID {MessageId}.", DateTime.Now, id);
+                return StatusCode(500, "An unexpected error occurred.");
             }
-
-            return Forbid();
         }
     }
 }

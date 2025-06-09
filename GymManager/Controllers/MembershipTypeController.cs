@@ -20,15 +20,18 @@ namespace GymManager.Controllers
         private readonly AdminMembershipTypeService _admin;
         private readonly MemberMembershipTypeService _member;
         private readonly TrainerMembershipTypeService _trainer;
+        private readonly ILogger<MembershipTypesController> _logger;
 
         public MembershipTypesController(
             AdminMembershipTypeService admin,
             MemberMembershipTypeService member,
-            TrainerMembershipTypeService trainer)
+            TrainerMembershipTypeService trainer,
+            ILogger<MembershipTypesController> logger)
         {
             _admin = admin;
             _member = member;
             _trainer = trainer;
+            _logger = logger;
         }
 
         private string Role => User.FindFirstValue(ClaimTypes.Role)!;
@@ -36,41 +39,44 @@ namespace GymManager.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            switch (Role)
+            try
             {
-                case RoleConstants.Admin:
-                    return Ok(await _admin.GetAllAsync());
-                case RoleConstants.Member:
-                    return Ok(await _member.GetAllAsync());
-                case RoleConstants.Trainer:
-                    return Ok(await _trainer.GetAllAsync());
-                default:
-                    return Forbid();
+                object? result = Role switch
+                {
+                    RoleConstants.Admin => await _admin.GetAllAsync(),
+                    RoleConstants.Member => await _member.GetAllAsync(),
+                    RoleConstants.Trainer => await _trainer.GetAllAsync(),
+                    _ => null
+                };
+
+                return result == null ? Forbid() : Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[{Time}] Error while fetching all membership types.", DateTime.Now);
+                return StatusCode(500, "An unexpected error occurred.");
             }
         }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
-            switch (Role)
+            try
             {
-                case RoleConstants.Admin:
-                    {
-                        var dto = await _admin.GetByIdAsync(id);
-                        return dto == null ? NotFound() : Ok(dto);
-                    }
-                case RoleConstants.Member:
-                    {
-                        var dto = await _member.GetByIdAsync(id);
-                        return dto == null ? NotFound() : Ok(dto);
-                    }
-                case RoleConstants.Trainer:
-                    {
-                        var dto = await _trainer.GetByIdAsync(id);
-                        return dto == null ? NotFound() : Ok(dto);
-                    }
-                default:
-                    return Forbid();
+                object? dto = Role switch
+                {
+                    RoleConstants.Admin => await _admin.GetByIdAsync(id),
+                    RoleConstants.Member => await _member.GetByIdAsync(id),
+                    RoleConstants.Trainer => await _trainer.GetByIdAsync(id),
+                    _ => null
+                };
+
+                return dto == null ? Forbid() : Ok(dto);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[{Time}] Error while fetching membership type by ID.", DateTime.Now);
+                return StatusCode(500, "An unexpected error occurred.");
             }
         }
 
@@ -78,32 +84,64 @@ namespace GymManager.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> GetPublicMembershipType()
         {
-            var membershipTypeList = await _member.GetAllAsync();
-            return Ok(membershipTypeList);
+            try
+            {
+                var membershipTypeList = await _member.GetAllAsync();
+                return Ok(membershipTypeList);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[{Time}] Error while fetching public membership types.", DateTime.Now);
+                return StatusCode(500, "An unexpected error occurred.");
+            }
         }
 
         [HttpPost]
         [Authorize(Roles = RoleConstants.Admin)]
         public async Task<IActionResult> Create([FromBody] AdminCreateDto dto)
         {
-            var r = await _admin.CreateAsync(dto);
-            return CreatedAtAction(nameof(GetById), new { id = r.Id }, r);
+            try
+            {
+                var r = await _admin.CreateAsync(dto);
+                return CreatedAtAction(nameof(GetById), new { id = r.Id }, r);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[{Time}] Error while creating membership type.", DateTime.Now);
+                return StatusCode(500, "An unexpected error occurred.");
+            }
         }
 
         [HttpPatch("{id}")]
         [Authorize(Roles = RoleConstants.Admin)]
         public async Task<IActionResult> Patch(int id, [FromBody] AdminUpdateDto dto)
         {
-            var ok = await _admin.PatchAsync(id, dto);
-            return ok ? NoContent() : NotFound();
+            try
+            {
+                var ok = await _admin.PatchAsync(id, dto);
+                return ok ? NoContent() : NotFound();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[{Time}] Error while updating membership type.", DateTime.Now);
+                return StatusCode(500, "An unexpected error occurred.");
+            }
         }
 
         [HttpDelete("{id}")]
         [Authorize(Roles = RoleConstants.Admin)]
         public async Task<IActionResult> Delete(int id)
         {
-            var ok = await _admin.DeleteAsync(id);
-            return ok ? NoContent() : NotFound();
+            try
+            {
+                var ok = await _admin.DeleteAsync(id);
+                return ok ? NoContent() : NotFound();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[{Time}] Error while deleting membership type.", DateTime.Now);
+                return StatusCode(500, "An unexpected error occurred.");
+            }
         }
     }
 }

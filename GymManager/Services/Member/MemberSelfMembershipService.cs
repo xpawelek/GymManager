@@ -3,6 +3,7 @@ using GymManager.Data;
 using GymManager.Shared.DTOs.Member;
 using GymManager.Models.Mappers.Member;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace GymManager.Services.Member
 {
@@ -11,121 +12,181 @@ namespace GymManager.Services.Member
         private readonly GymDbContext _context;
         private readonly MemberSelfMembershipMapper _mapper;
         private readonly IHttpContextAccessor _httpContext;
+        private readonly ILogger<MemberSelfMembershipService> _logger;
 
         public MemberSelfMembershipService(
             GymDbContext context,
             MemberSelfMembershipMapper mapper,
-            IHttpContextAccessor httpContextAccessor)
+            IHttpContextAccessor httpContextAccessor,
+            ILogger<MemberSelfMembershipService> logger)
         {
             _context = context;
             _mapper = mapper;
             _httpContext = httpContextAccessor;
+            _logger = logger;
         }
 
         private async Task<int> GetCurrentMemberId()
         {
-            var userIdStr = _httpContext.HttpContext!
-                .User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+            try
+            {
+                var userIdStr = _httpContext.HttpContext?
+                    .User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            var userId = Guid.Parse(userIdStr); 
+                if (string.IsNullOrEmpty(userIdStr))
+                    throw new Exception("User ID not found in token.");
 
-            var member = await _context.Members
-                .FirstOrDefaultAsync(m => m.UserId == userId.ToString());
+                var userId = Guid.Parse(userIdStr);
 
-            if (member == null)
-                throw new Exception("Member not found");
+                var member = await _context.Members
+                    .FirstOrDefaultAsync(m => m.UserId == userId.ToString());
 
-            return member.Id;
+                if (member == null)
+                    throw new Exception("Member not found.");
+
+                return member.Id;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while retrieving current member ID.");
+                throw;
+            }
         }
 
         public async Task<int> GetMemberIdAsync(string userId)
         {
-            var member = await _context.Members
-                .FirstOrDefaultAsync(m => m.UserId == userId);
+            try
+            {
+                var member = await _context.Members
+                    .FirstOrDefaultAsync(m => m.UserId == userId);
 
-            if (member == null)
-                throw new Exception("Member not found");
+                if (member == null)
+                    throw new Exception("Member not found.");
 
-            return member.Id;
+                return member.Id;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while retrieving member ID for user ID {UserId}.", userId);
+                throw;
+            }
         }
 
         public async Task<bool> HasOrHadAnyMembershipAsync()
         {
-            var memberId = await GetCurrentMemberId();
-            return await _context.Memberships
-                .AnyAsync(m => m.MemberId == memberId);
+            try
+            {
+                var memberId = await GetCurrentMemberId();
+                return await _context.Memberships
+                    .AnyAsync(m => m.MemberId == memberId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while checking membership existence.");
+                return false;
+            }
         }
 
-        public async Task<ReadSelfMembershipDto> CreateSelfMembership(CreateSelfMembershipDto selfMembershipDto)
+        public async Task<ReadSelfMembershipDto?> CreateSelfMembership(CreateSelfMembershipDto selfMembershipDto)
         {
-            var memberId = await GetCurrentMemberId();
-            var entity = _mapper.ToEntity(selfMembershipDto);
-            entity.MemberId = memberId;
-
-            var entityInDb = await _context.Memberships.FirstOrDefaultAsync(m => m.MemberId == entity.MemberId && m.IsActive);
-
-            if (entityInDb != null)
+            try
             {
-                throw new Exception($"Active membership already exists");
+                var memberId = await GetCurrentMemberId();
+                var entity = _mapper.ToEntity(selfMembershipDto);
+                entity.MemberId = memberId;
+
+                var entityInDb = await _context.Memberships
+                    .FirstOrDefaultAsync(m => m.MemberId == entity.MemberId && m.IsActive);
+
+                if (entityInDb != null)
+                {
+                    _logger.LogWarning("Member ID {MemberId} already has an active membership.", memberId);
+                    return null;
+                }
+
+                var type = await _context.MembershipTypes
+                    .FirstOrDefaultAsync(t => t.Id == entity.MembershipTypeId);
+
+                if (type == null)
+                {
+                    _logger.LogWarning("Invalid membership type ID {TypeId}.", entity.MembershipTypeId);
+                    return null;
+                }
+
+                entity.StartDate = DateTime.Now;
+                entity.EndDate = DateTime.Now.AddDays(type.DurationInDays);
+                entity.IsActive = DateTime.Now >= entity.StartDate && DateTime.Now <= entity.EndDate;
+
+                await _context.Memberships.AddAsync(entity);
+                await _context.SaveChangesAsync();
+
+                var full = await _context.Memberships
+                    .Include(m => m.Member)
+                    .Include(m => m.MembershipType)
+                    .FirstOrDefaultAsync(m => m.Id == entity.Id);
+
+                return full != null ? _mapper.ToReadDto(full) : null;
             }
-
-            var type = await _context.MembershipTypes.FirstOrDefaultAsync(t => t.Id == entity.MembershipTypeId);
-            if(type == null)
-                throw new Exception("Invalid membership type");
-            
-            entity.StartDate = DateTime.Now;
-            entity.EndDate = DateTime.Now.AddDays(type.DurationInDays);
-            entity.IsActive = DateTime.Now >= entity.StartDate && DateTime.Now <= entity.EndDate;
-            
-            await _context.Memberships.AddAsync(entity);
-            await _context.SaveChangesAsync();
-
-            var full = await _context.Memberships
-                .Include(m => m.Member)
-                .Include(m => m.MembershipType)
-                .FirstOrDefaultAsync(m => m.Id == entity.Id);
-            
-            return _mapper.ToReadDto(full!);
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while creating self-membership.");
+                return null;
+            }
         }
 
-        public async Task<ReadSelfMembershipDto> GetOwnAsync()
+        public async Task<ReadSelfMembershipDto?> GetOwnAsync()
         {
-            var memberId = await GetCurrentMemberId();
-            var entity = await _context.Memberships
-                .Include(m => m.Member)
-                .Include(m => m.MembershipType)
-                .FirstOrDefaultAsync(m => m.MemberId == memberId && m.IsActive);
-
-            if (entity == null)
+            try
             {
-                throw new Exception("Active membership not found");
+                var memberId = await GetCurrentMemberId();
+                var entity = await _context.Memberships
+                    .Include(m => m.Member)
+                    .Include(m => m.MembershipType)
+                    .FirstOrDefaultAsync(m => m.MemberId == memberId && m.IsActive);
+
+                return entity != null ? _mapper.ToReadDto(entity) : null;
             }
-            
-            return _mapper.ToReadDto(entity!);
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while retrieving active membership for current member.");
+                return null;
+            }
         }
 
         public async Task<bool> UpdateOwnAsync(UpdateMembershipDto dto)
         {
-            var memberId = await GetCurrentMemberId();
-            var entity = await _context.Memberships
-                .FirstOrDefaultAsync(m => m.MemberId == memberId);
-            if (entity == null) return false;
-
-            if (dto.StartDate != null && dto.StartDate != entity.StartDate)
+            try
             {
-                var membershipType = await _context.MembershipTypes
-                    .FirstOrDefaultAsync(t => t.Id == entity.MembershipTypeId);
+                var memberId = await GetCurrentMemberId();
+                var entity = await _context.Memberships
+                    .FirstOrDefaultAsync(m => m.MemberId == memberId);
 
-                if (membershipType == null)
-                    throw new Exception("Invalid membership type");
+                if (entity == null) return false;
 
-                dto.EndDate = dto.StartDate.Value.AddDays(membershipType.DurationInDays);
-                dto.IsActive = DateTime.Now >= dto.StartDate && DateTime.Now <= dto.EndDate;
+                if (dto.StartDate != null && dto.StartDate != entity.StartDate)
+                {
+                    var membershipType = await _context.MembershipTypes
+                        .FirstOrDefaultAsync(t => t.Id == entity.MembershipTypeId);
+
+                    if (membershipType == null)
+                    {
+                        _logger.LogWarning("Invalid membership type ID {TypeId} for update.", entity.MembershipTypeId);
+                        return false;
+                    }
+
+                    dto.EndDate = dto.StartDate.Value.AddDays(membershipType.DurationInDays);
+                    dto.IsActive = DateTime.Now >= dto.StartDate && DateTime.Now <= dto.EndDate;
+                }
+
+                _mapper.UpdateEntity(dto, entity);
+                await _context.SaveChangesAsync();
+                return true;
             }
-
-            _mapper.UpdateEntity(dto, entity);
-            await _context.SaveChangesAsync();
-            return true;
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while updating own membership.");
+                return false;
+            }
         }
     }
 }
