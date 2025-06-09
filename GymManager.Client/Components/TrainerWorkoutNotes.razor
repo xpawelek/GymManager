@@ -1,0 +1,122 @@
+﻿@using GymManager.Client.Services
+@using NoteReadDto = GymManager.Shared.DTOs.Trainer.ReadSelfWorkoutNoteDto
+@using NoteUpdateDto = GymManager.Shared.DTOs.Trainer.UpdateSelfWorkoutNoteDto
+
+@inject WorkoutNoteService NoteSvc
+
+<h3 class="mb-3 text-danger">Workout Notes</h3>
+
+@if (isEditing && editDto != null)
+{
+    <div class="card p-3 bg-light mb-4">
+        <h5>Edit Workout Note (id: @editId)</h5>
+
+        <EditForm Model="editDto" OnValidSubmit="SaveNote">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <div class="mb-3">
+                <label class="form-label">Workout Info</label>
+                <InputTextArea class="form-control" rows="5" @bind-Value="editDto.WorkoutInfo" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Current Weight (kg)</label>
+                <InputNumber class="form-control" @bind-Value="editDto.CurrentWeight" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Current Height (cm)</label>
+                <InputNumber class="form-control" @bind-Value="editDto.CurrentHeight" />
+            </div>
+
+            <div class="d-flex justify-content-end">
+                <button class="btn btn-secondary me-2" @onclick="CancelEdit">Cancel</button>
+                <button class="btn btn-success">Save</button>
+            </div>
+        </EditForm>
+    </div>
+}
+
+@if (notes == null)
+{
+    <p><em>Loading workout notes…</em></p>
+}
+else if (!notes.Any())
+{
+    <p class="text-muted">No workout notes found.</p>
+}
+else
+{
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>Member ID</th>
+                <th>Date</th>
+                <th>Weight</th>
+                <th>Height</th>
+                <th>Description</th>
+                <th style="width: 100px;">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var n in notes.OrderByDescending(n => n.WorkoutStartTime))
+            {
+                <tr>
+                    <td>@n.MemberId</td>
+                    <td>@n.WorkoutStartTime.ToString("dd.MM.yyyy HH:mm")</td>
+                    <td>@(n.CurrentWeight?.ToString() ?? "-")</td>
+                    <td>@(n.CurrentHeight?.ToString() ?? "-")</td>
+                    <td>@(!string.IsNullOrWhiteSpace(n.WorkoutInfo) ? n.WorkoutInfo : "-")</td>
+                    <td>
+                        <button class="btn btn-sm btn-primary" @onclick="() => StartEdit(n)">
+                            Edit
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<NoteReadDto>? notes;
+
+    private bool isEditing = false;
+    private int editId;
+    private NoteUpdateDto? editDto;
+
+    protected override async Task OnInitializedAsync()
+    {
+        notes = await NoteSvc.GetAllTrainerAsync() ?? new();
+    }
+
+    private void StartEdit(NoteReadDto n)
+    {
+        editId = n.Id;
+        editDto = new NoteUpdateDto
+            {
+                WorkoutInfo = n.WorkoutInfo,
+                CurrentHeight = n.CurrentHeight,
+                CurrentWeight = n.CurrentWeight
+            };
+
+        isEditing = true;
+    }
+
+    private void CancelEdit()
+    {
+        isEditing = false;
+        editDto = null;
+    }
+
+    private async Task SaveNote()
+    {
+        if (editDto == null) return;
+
+        await NoteSvc.PatchTrainerAsync(editId, editDto);
+
+        notes = await NoteSvc.GetAllTrainerAsync() ?? new();
+        isEditing = false;
+    }
+}

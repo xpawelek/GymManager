@@ -120,5 +120,21 @@ namespace GymManager.Controllers
         [Authorize(Roles = RoleConstants.Trainer)]
         public async Task<IActionResult> UpdateMyProfile([FromBody] UpdateSelfTrainerDto dto)
             => (await _trainerSvc.UpdateMyProfileAsync(dto)) ? NoContent() : NotFound();
+
+        [HttpGet("assigned-trainer")]
+        [Authorize(Roles = RoleConstants.Member)]
+        public async Task<IActionResult> GetAssignedTrainer()
+        {
+            var trainer = await _memberSvc.GetAssignedTrainerAsync();
+            return trainer == null ? NotFound() : Ok(trainer);
+        }
+
+        [HttpGet("contacted")]
+        [Authorize(Roles = RoleConstants.Member)]
+        public async Task<IActionResult> GetContactedTrainers()
+        {
+            var list = await _memberSvc.GetAllContactedAsync();
+            return Ok(list);
+        }
     }
 }

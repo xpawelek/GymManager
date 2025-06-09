@@ -1,5 +1,173 @@
-﻿<h3>MessagesMember</h3>
+﻿@page "/messages-member"
+@inject MessageService MessageService
+@inject TrainerProfileService TrainerService
+
+@using GymManager.Client.Services
+@using GymManager.Shared.DTOs.Member
+@using TrainerDto = GymManager.Shared.DTOs.Trainer.ReadTrainerDto
+@using MReadDto = GymManager.Shared.DTOs.Member.ReadSelfMessageDto
+
+<section class="py-5 bg-light">
+    <div class="container">
+        <h2 class="text-center mb-4" style="font-size: 2.5rem;">Trainer Conversations</h2>
+
+        @if (trainers == null)
+        {
+            <p><em>Loading trainers...</em></p>
+        }
+        else if (!trainers.Any())
+        {
+            <p class="text-center">You have never been assigned to any trainer.</p>
+        }
+        else
+        {
+            <div class="row justify-content-center mb-4">
+                <div class="col-md-8">
+                    <ul class="list-group">
+                        @foreach (var t in trainers)
+                        {
+                            <li class="list-group-item list-group-item-action"
+                                style="cursor: pointer;"
+                                @onclick="() => SelectTrainer(t)">
+                                Trainer ID: <strong>@t.Id</strong> — @t.FirstName @t.LastName
+                                @if (assignedTrainer?.Id == t.Id)
+                                {
+                                    <span class="badge bg-success ms-2">Currently Assigned</span>
+                                }
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        }
+
+        @if (selectedTrainer != null)
+        {
+            <h3 class="text-center mb-4">
+                Messages with @selectedTrainer.FirstName @selectedTrainer.LastName
+            </h3>
+
+            @if (messages == null)
+            {
+                <p><em>Loading messages...</em></p>
+            }
+            else if (!messages.Any())
+            {
+                <p class="text-center">No messages yet.</p>
+            }
+            else
+            {
+                <div class="d-flex flex-column gap-3 mb-4">
+                    @foreach (var msg in messages.OrderBy(m => m.Date))
+                    {
+                        <div class="card p-3"
+                             style="
+                                max-width: 75%;
+                                @(msg.SentByMember
+                                    ? "align-self-end; background-color: #d8ecff; text-align: right;"
+                                    : "align-self-start; background-color: #ffffff; text-align: left;")">
+                            <p class="mb-2">@msg.MessageContent</p>
+                            <p class="text-muted mb-0"><small>@msg.Date.ToString("g")</small></p>
+
+                            @if (msg.SentByMember && editingMessage?.Id == msg.Id && CanWriteToSelectedTrainer)
+                            {
+                                <div class="mt-2">
+                                    <InputTextArea class="form-control mb-2" @bind-Value="editDto.MessageContent" />
+                                    <div class="d-flex justify-content-end">
+                                        <button class="btn btn-secondary me-2" @onclick="CancelEdit">Cancel</button>
+                                        <button class="btn btn-primary" @onclick="SubmitEdit">Save</button>
+                                    </div>
+                                </div>
+                            }
+                            else if (msg.SentByMember && editingMessage == null && CanWriteToSelectedTrainer)
+                            {
+                                <button class="btn btn-sm btn-outline-primary mt-2" @onclick="() => StartEdit(msg)">Edit</button>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+
+            @if (CanWriteToSelectedTrainer)
+            {
+                <div class="card border-danger p-4 rounded">
+                    <h5>Send Message</h5>
+                    <EditForm Model="@newMessage" OnValidSubmit="SendMessage">
+                        <DataAnnotationsValidator />
+                        <ValidationSummary />
+                        <div class="mb-3">
+                            <label>Message Content</label>
+                            <InputTextArea class="form-control" @bind-Value="newMessage.MessageContent" />
+                        </div>
+                        <button class="btn btn-danger" type="submit">Send</button>
+                    </EditForm>
+                </div>
+            }
+            else
+            {
+                <p class="text-center text-muted">You can no longer send messages to this trainer.</p>
+            }
+        }
+    </div>
+</section>
 
 @code {
+    private List<MReadDto>? messages;
+    private List<TrainerDto> trainers = new();
+    private TrainerDto? selectedTrainer;
+    private TrainerDto? assignedTrainer;
 
+    private MReadDto? editingMessage;
+    private CreateMessageDto newMessage = new();
+    private UpdateMessageDto editDto = new();
+
+    private bool CanWriteToSelectedTrainer => assignedTrainer?.Id == selectedTrainer?.Id;
+
+    protected override async Task OnInitializedAsync()
+    {
+        assignedTrainer = await TrainerService.GetAssignedTrainerAsync();
+        trainers = await TrainerService.GetAllContactedAsync() ?? new();
+
+        if (assignedTrainer != null && !trainers.Any(t => t.Id == assignedTrainer.Id))
+            trainers.Add(assignedTrainer);
+    }
+
+    private async Task SelectTrainer(TrainerDto trainer)
+    {
+        selectedTrainer = trainer;
+        newMessage = new CreateMessageDto { TrainerId = trainer.Id };
+
+        var all = await MessageService.GetAllAsMemberAsync() ?? new();
+        messages = all.Where(m => m.TrainerId == trainer.Id).ToList();
+    }
+
+    private void StartEdit(MReadDto msg)
+    {
+        editingMessage = msg;
+        editDto = new UpdateMessageDto { MessageContent = msg.MessageContent };
+    }
+
+    private void CancelEdit()
+    {
+        editingMessage = null;
+        editDto = new();
+    }
+
+    private async Task SubmitEdit()
+    {
+        if (editingMessage == null) return;
+
+        await MessageService.PatchAsMemberAsync(editingMessage.Id, editDto);
+        await SelectTrainer(selectedTrainer!);
+        editingMessage = null;
+    }
+
+    private async Task SendMessage()
+    {
+        if (string.IsNullOrWhiteSpace(newMessage.MessageContent)) return;
+
+        await MessageService.CreateAsMemberAsync(newMessage);
+        await SelectTrainer(selectedTrainer!);
+        newMessage = new CreateMessageDto { TrainerId = selectedTrainer!.Id };
+    }
 }

@@ -41,13 +41,18 @@ namespace GymManager.Services.Trainer
         public async Task<List<ReadMemberDto>> GetAllAsync()
         {
             var trainerId = await GetCurrentTrainerId()!;
-            var assignments = await _context.TrainerAssignments
-                .Where(ta => ta.TrainerId == trainerId && ta.IsActive)
-                .Include(ta => ta.Member)
-                .Select(ta => ta.Member)
+            var memberIds = await _context.TrainerAssignments
+                .Where(a => a.TrainerId == trainerId)
+                .Select(a => a.MemberId)
+                .Distinct()
                 .ToListAsync();
-            
-            return _mapper.ToReadDtoList(assignments);
+
+            var members = await _context.Members
+                .Where(m => memberIds.Contains(m.Id))
+                .Include(m => m.User)
+                .ToListAsync();
+
+            return _mapper.ToReadDtoList(members);
         }
 
         public async Task<ReadMemberDto> GetByIdAsync(int memberId)

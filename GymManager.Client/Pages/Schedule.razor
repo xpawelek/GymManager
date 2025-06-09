@@ -1,0 +1,66 @@
+﻿@page "/schedule"
+@using GymManager.Client.Services
+@using GymManager.Client.Components
+@using GymManager.Shared.DTOs.Member
+@inject NavigationManager NavigationManager
+@inject TrainingSessionService SessionSvc
+
+<Navbar />
+<Banner />
+<ClientInfo />
+
+<section class="py-5 bg-light text-dark">
+    <div class="container">
+        <h1 class="text-center mb-5" style="font-weight: 600; color: #dc3545">Training Schedule</h1>
+
+        @if (sessions == null)
+        {
+            <p class="text-center">Loading sessions...</p>
+        }
+        else if (!sessions.Any())
+        {
+            <p class="text-center text-muted">No public group sessions available.</p>
+        }
+        else
+        {
+            <div class="row g-4">
+                @foreach (var s in sessions.OrderByDescending(s => s.StartTime))
+                {
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card shadow-sm h-100 border border-danger">
+                            <div class="card-body">
+                                <h5 class="card-title text-primary">
+                                    @s.StartTime.ToString("dd.MM.yyyy HH:mm")
+                                </h5>
+                                <p class="card-text mb-1">
+                                    <strong>Trainer:</strong> @s.TrainerFirstName @s.TrainerSecondName
+                                </p>
+                                <p class="card-text mb-1">
+                                    <strong>Duration:</strong> @s.DurationInMinutes minutes
+                                </p>
+                                <p class="card-text mb-2">
+                                    <strong>Type:</strong> @(s.IsGroupSession ? "Group" : "Private")
+                                </p>
+                                @if (!string.IsNullOrWhiteSpace(s.Description))
+                                {
+                                    <p class="card-text text-muted fst-italic">@s.Description</p>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</section>
+
+<Footer />
+
+@code {
+    private List<ReadTrainingSessionDto>? sessions;
+
+    protected override async Task OnInitializedAsync()
+    {
+        sessions = await SessionSvc.GetAllPublicGroupAsync();
+    }
+}

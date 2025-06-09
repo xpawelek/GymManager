@@ -9,7 +9,7 @@ public partial class AdminMessageMapper
     // GET ONE
     [MapperIgnoreSource(nameof(Entities.Message.Member))]
     [MapperIgnoreSource(nameof(Entities.Message.Trainer))]
-    [MapperIgnoreSource(nameof(Entities.Message.SentByMember))]
+    //[MapperIgnoreSource(nameof(Entities.Message.SentByMember))]
     public partial ReadMessageDto ToReadDto(Entities.Message message);
     //GET ALL
     public partial List<ReadMessageDto> ToReadDtoList(List<Entities.Message> messages);

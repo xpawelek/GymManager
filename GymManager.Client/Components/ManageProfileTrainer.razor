@@ -1,0 +1,144 @@
+﻿@page "/manage-profile"
+@using System.ComponentModel.DataAnnotations
+@using GymManager.Client.Services
+@using TDto = GymManager.Shared.DTOs.Trainer
+@using ADto = GymManager.Shared.DTOs.Admin
+
+@inject TrainerProfileService TrainerSvc
+@inject MemberService MemberService
+@inject TrainingSessionService SessionSvc
+
+<div class="card shadow-sm p-4 mb-5">
+    <h3 class="mb-4 text-danger">Manage Your Profile</h3>
+
+    <EditForm Model="@_updateDto" OnValidSubmit="Save">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label class="form-label">First Name</label>
+                <input class="form-control" @bind="_updateDto.FirstName" />
+                <ValidationMessage For="@(() => _updateDto.FirstName)" />
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label">Last Name</label>
+                <input class="form-control" @bind="_updateDto.LastName" />
+                <ValidationMessage For="@(() => _updateDto.LastName)" />
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label">Phone Number</label>
+                <input class="form-control" @bind="_updateDto.PhoneNumber" />
+                <ValidationMessage For="@(() => _updateDto.PhoneNumber)" />
+            </div>
+
+            <div class="col-md-12">
+                <label class="form-label">Description</label>
+                <textarea class="form-control" rows="4" @bind="_updateDto.Description"></textarea>
+                <ValidationMessage For="@(() => _updateDto.Description)" />
+            </div>
+        </div>
+
+        <button class="btn btn-primary mt-3" type="submit">Save</button>
+    </EditForm>
+</div>
+
+<div class="mb-5">
+    <h3 class="mb-3 text-danger">My Assigned Members</h3>
+
+    @if (assignedMembers == null)
+    {
+        <p><em>Loading assigned members...</em></p>
+    }
+    else if (!assignedMembers.Any())
+    {
+        <p class="text-muted">You don’t have any assigned members.</p>
+    }
+    else
+    {
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Full Name</th>
+                    <th>Member ID</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var m in assignedMembers)
+                {
+                    <tr>
+                        <td>@m.FirstName @m.LastName</td>
+                        <td>@m.Id</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>
+
+<div class="mb-5">
+    <h3 class="mb-3 text-danger">My Training Sessions</h3>
+
+    @if (sessions == null)
+    {
+        <p><em>Loading sessions...</em></p>
+    }
+    else if (!sessions.Any())
+    {
+        <p class="text-muted">You have no sessions assigned.</p>
+    }
+    else
+    {
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Start</th>
+                    <th>Duration</th>
+                    <th>Member ID</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var session in sessions)
+                {
+                    <tr>
+                        <td>@session.StartTime.ToString("dd.MM.yyyy HH:mm")</td>
+                        <td>@session.DurationInMinutes min</td>
+                        <td>@(session.MemberId?.ToString() ?? "-")</td>
+                        <td>@session.Description</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>
+
+@code {
+    private TDto.ReadTrainerDto _me = new();
+    private TDto.UpdateSelfTrainerDto _updateDto = new();
+    private List<ADto.ReadMemberDto>? assignedMembers;
+    private List<TDto.ReadTrainingSessionDto>? sessions;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _me = await TrainerSvc.GetMyProfileAsync() ?? new();
+        _updateDto = new TDto.UpdateSelfTrainerDto
+            {
+                FirstName = _me.FirstName,
+                LastName = _me.LastName,
+                PhoneNumber = _me.PhoneNumber,
+                Description = _me.Description
+            };
+
+        assignedMembers = await MemberService.GetAssignedAsync() ?? new();
+        sessions = await SessionSvc.GetAllTrainerAsync<TDto.ReadTrainingSessionDto>() ?? new();
+    }
+
+    private async Task Save()
+    {
+        await TrainerSvc.UpdateMyProfileAsync(_updateDto);
+        _me = await TrainerSvc.GetMyProfileAsync() ?? new();
+    }
+}

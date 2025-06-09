@@ -49,7 +49,7 @@ namespace GymManager.Client.Services
         }
 
         // [POST] /api/trainers/{id}/upload-photo
-        // Admin
+        // Admin + trainer
         public async Task<string?> UploadPhotoAdminAsync(int trainerId, IBrowserFile file)
         {
             var content = new MultipartFormDataContent();
