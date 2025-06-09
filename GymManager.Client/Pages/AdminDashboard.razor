@@ -39,31 +39,35 @@
                     <li class="nav-item">
                         <button class="nav-link @GetTabClass("members")" @onclick='() => SelectTab("progress")'>Members progress</button>
                     </li>
+                    <li class="nav-item">
+                        <button class="nav-link @GetTabClass("members")" @onclick='() => SelectTab("service")'>Service</button>
+                    </li>
+                    
                 </ul>
 
-                @if (selectedTab == "equipment")
+                @switch (selectedTab)
                 {
-                    <ManageEquipment />
-                }
-                else if (selectedTab == "trainers")
-                {
-                    <ManageTrainers/>
-                }
-                else if (selectedTab == "members")
-                {   
-                    <ManageMembers/>
-                }
-                else if (selectedTab == "trainings")
-                {
-                    <ManageTrainingSessions/>
-                }
-                else if (selectedTab == "progress")
-                {
-                    <ManageProgressPhotos/>
-                }
-                else if (selectedTab == "offers")
-                {
-                    <ManageOffers/>
+                    case "service":
+                        Navigation.NavigateTo("/manage-requests");
+                        break;
+                    case "equipment":
+                        <ManageEquipment />
+                        break;
+                    case "trainers":
+                        <ManageTrainers/>
+                        break;
+                    case "members":
+                        <ManageMembers/>
+                        break;
+                    case "trainings":
+                        <ManageTrainingSessions/>
+                        break;
+                    case "progress":
+                        <ManageProgressPhotos/>
+                        break;
+                    case "offers":
+                        <ManageOffers/>
+                        break;
                 }
             </div>
         }
@@ -73,7 +77,7 @@
 </div>
 
 @code {
-    private string selectedTab = "equipment";
+    private string selectedTab = "members";
 
     private void SelectTab(string tab)
     {
