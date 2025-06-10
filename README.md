@@ -73,7 +73,6 @@ Serwisy logiki biznesowej (np. MemberSelfWorkoutNoteService, TrainerSelfMessageS
 
 Pokrycie scenariuszy pozytywnych i błędów
 
-
 🔄 CI/CD – GitHub Actions
 Zaprojektowano pipeline CI/CD w pliku .github/workflows/dotnet-ci.yml.
 
@@ -87,7 +86,6 @@ Test: dotnet test
 
 Dzięki temu każda zmiana w repozytorium automatycznie przechodzi przez proces budowania i testowania.
 
-📎 Opis działania: w pliku README.md
 📎 Workflow: dotnet-ci.yml
 
 🧱 Indeksy – optymalizacja zapytań SQL
