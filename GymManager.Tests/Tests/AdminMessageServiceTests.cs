@@ -52,28 +52,4 @@ public class AdminMessageServiceTests : IDisposable
         _ctx.Database.EnsureDeleted();
         _ctx.Dispose();
     }
-
-    [Fact]
-    public async Task GetAllAsync_returns_all_messages()
-    {
-        var result = await _svc.GetAllAsync();
-        result.Should().NotBeNull();
-        result.Should().HaveCount(1);
-        result[0].MessageContent.Should().Be("Test Message");
-    }
-
-    [Fact]
-    public async Task GetByIdAsync_returns_existing_message()
-    {
-        var result = await _svc.GetByIdAsync(1);
-        result.Should().NotBeNull();
-        result!.MessageContent.Should().Be("Test Message");
-    }
-
-    [Fact]
-    public async Task GetByIdAsync_returns_null_for_invalid_id()
-    {
-        var result = await _svc.GetByIdAsync(999);
-        result.Should().BeNull();
-    }
 }

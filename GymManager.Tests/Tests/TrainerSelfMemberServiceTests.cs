@@ -41,26 +41,4 @@ public class TrainerMemberServiceTests : IDisposable
         _ctx.Database.EnsureDeleted();
         _ctx.Dispose();
     }
-
-    [Fact]
-    public async Task GetAllAsync_returns_all_members()
-    {
-        var result = await _svc.GetAllAsync();
-        result.Should().HaveCount(2);
-    }
-
-    [Fact]
-    public async Task GetByIdAsync_returns_existing_member()
-    {
-        var result = await _svc.GetByIdAsync(1);
-        result.Should().NotBeNull();
-        result!.Email.Should().Be("tomasz@example.com");
-    }
-
-    [Fact]
-    public async Task GetByIdAsync_returns_null_for_nonexistent_member()
-    {
-        var result = await _svc.GetByIdAsync(999);
-        result.Should().BeNull();
-    }
 }

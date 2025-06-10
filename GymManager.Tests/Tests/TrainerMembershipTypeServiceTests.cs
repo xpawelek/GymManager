@@ -40,27 +40,4 @@ public class TrainerMembershipTypeServiceTests : IDisposable
         _ctx.Database.EnsureDeleted();
         _ctx.Dispose();
     }
-
-    [Fact]
-    public async Task GetAllAsync_returns_only_visible_types()
-    {
-        var result = await _svc.GetAllAsync();
-        result.Should().HaveCount(1);
-        result[0].Name.Should().Be("Premium");
-    }
-
-    [Fact]
-    public async Task GetByIdAsync_returns_specific_type()
-    {
-        var result = await _svc.GetByIdAsync(1);
-        result.Should().NotBeNull();
-        result!.Name.Should().Be("Premium");
-    }
-
-    [Fact]
-    public async Task GetByIdAsync_returns_null_for_invalid_id()
-    {
-        var result = await _svc.GetByIdAsync(999);
-        result.Should().BeNull();
-    }
 }

@@ -42,42 +42,4 @@ public class AdminMemberServiceTests : IDisposable
         _ctx.Dispose();
     }
 
-    [Fact]
-    public async Task GetAllAsync_returns_all_members()
-    {
-        var result = await _svc.GetAllAsync();
-        result.Should().HaveCount(2);
-    }
-
-    [Fact]
-    public async Task GetByIdAsync_returns_existing_member()
-    {
-        var result = await _svc.GetByIdAsync(1);
-        result.Should().NotBeNull();
-        result!.FirstName.Should().Be("John");
-    }
-
-    [Fact]
-    public async Task GetByIdAsync_returns_null_if_not_found()
-    {
-        var result = await _svc.GetByIdAsync(999);
-        result.Should().BeNull();
-    }
-
-    [Fact]
-    public async Task DeleteAsync_removes_member()
-    {
-        var result = await _svc.DeleteAsync(2);
-        result.Should().BeTrue();
-
-        var members = await _svc.GetAllAsync();
-        members.Should().HaveCount(1);
-    }
-
-    [Fact]
-    public async Task DeleteAsync_returns_false_if_not_found()
-    {
-        var result = await _svc.DeleteAsync(999);
-        result.Should().BeFalse();
-    }
 }

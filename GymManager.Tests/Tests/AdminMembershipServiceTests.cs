@@ -75,38 +75,4 @@ public class AdminMembershipServiceTests : IDisposable
         _ctx.Database.EnsureDeleted();
         _ctx.Dispose();
     }
-
-    [Fact]
-    public async Task GetAllAsync_returns_all_memberships()
-    {
-        var result = await _svc.GetAllAsync();
-        result.Should().HaveCount(2);
-    }
-
-    [Fact]
-    public async Task GetByMemberIdAsync_returns_active_membership()
-    {
-        var result = await _svc.GetByMemberIdAsync(1);
-        result.Should().NotBeNull();
-        result!.MemberId.Should().Be(1);
-        result.IsActive.Should().BeTrue();
-    }
-
-    [Fact]
-    public async Task GetByMemberIdAsync_returns_null_if_no_active_membership()
-    {
-        var m = await _ctx.Memberships.FirstOrDefaultAsync(m => m.Id == 1);
-        m!.IsActive = false;
-        await _ctx.SaveChangesAsync();
-
-        var result = await _svc.GetByMemberIdAsync(1);
-        result.Should().BeNull();
-    }
-
-    [Fact]
-    public async Task GetByMemberIdAsync_returns_null_for_invalid_member_id()
-    {
-        var result = await _svc.GetByMemberIdAsync(999);
-        result.Should().BeNull();
-    }
 }

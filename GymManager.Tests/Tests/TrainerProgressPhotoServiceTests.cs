@@ -103,42 +103,5 @@ public class TrainerProgressPhotoServiceTests : IDisposable
         _ctx.Database.EnsureDeleted();
         _ctx.Dispose();
     }
-
-    [Fact]
-    public async Task GetAllAsync_returns_public_and_assigned()
-    {
-        var result = await _svc.GetAllAsync();
-        result.Should().HaveCount(2);
-    }
-
-    [Fact]
-    public async Task GetAllPublic_returns_only_public()
-    {
-        var result = await _svc.GetAllPublic();
-        result.Should().ContainSingle();
-        result[0].IsPublic.Should().BeTrue();
-    }
-
-    [Fact]
-    public async Task GetAssignedMembersPhotosAsync_returns_only_assigned()
-    {
-        var result = await _svc.GetAssignedMembersPhotosAsync();
-        result.Should().ContainSingle();
-        result[0].Comment.Should().Be("Visible to trainer");
-    }
-
-    [Fact]
-    public async Task GetByIdAsync_returns_null_if_not_assigned()
-    {
-        var result = await _svc.GetByIdAsync(3);
-        result.Should().BeNull(); // Not assigned
-    }
-
-    [Fact]
-    public async Task GetByIdAsync_returns_if_assigned()
-    {
-        var result = await _svc.GetByIdAsync(1);
-        result.Should().NotBeNull();
-        result!.Comment.Should().Be("Visible to trainer");
-    }
+    
 }

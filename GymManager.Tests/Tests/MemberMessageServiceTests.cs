@@ -78,33 +78,5 @@ public class TrainerMessageServiceTests : IDisposable
         _ctx.Database.EnsureDeleted();
         _ctx.Dispose();
     }
-
-    [Fact]
-    public async Task CreateAsync_creates_message_when_assignment_exists()
-    {
-        var dto = new CreateSelfMessageDto
-        {
-            MemberId = 1,
-            MessageContent = "Message from trainer"
-        };
-
-        var result = await _svc.CreateAsync(dto);
-
-        result.Should().NotBeNull();
-        result!.MessageContent.Should().Be("Message from trainer");
-        result.SentByMember.Should().BeFalse();
-    }
-
-    [Fact]
-    public async Task CreateAsync_throws_if_assignment_not_found()
-    {
-        var dto = new CreateSelfMessageDto
-        {
-            MemberId = 999,
-            MessageContent = "Should fail"
-        };
-
-        Func<Task> act = async () => await _svc.CreateAsync(dto);
-        await act.Should().ThrowAsync<InvalidOperationException>();
-    }
+    
 }

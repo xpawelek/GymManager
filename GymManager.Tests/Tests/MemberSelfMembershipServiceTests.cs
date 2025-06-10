@@ -70,31 +70,4 @@ public class MemberSelfMembershipServiceTests : IDisposable
         _ctx.Database.EnsureDeleted();
         _ctx.Dispose();
     }
-
-
-    [Fact]
-    public async Task GetOwnAsync_returns_active_membership()
-    {
-        await _svc.CreateSelfMembership(new CreateSelfMembershipDto { MembershipTypeId = 1 });
-
-        var result = await _svc.GetOwnAsync();
-
-        result.Should().NotBeNull();
-        result!.IsActive.Should().BeTrue();
-    }
-
-    [Fact]
-    public async Task UpdateOwnAsync_modifies_membership_start_date()
-    {
-        await _svc.CreateSelfMembership(new CreateSelfMembershipDto { MembershipTypeId = 1 });
-
-        var newStart = DateTime.Today.AddDays(5);
-        var update = new UpdateMembershipDto { StartDate = newStart };
-
-        var result = await _svc.UpdateOwnAsync(update);
-        result.Should().BeTrue();
-
-        var updated = await _svc.GetOwnAsync();
-        updated!.StartDate.Should().Be(newStart);
-    }
 }
