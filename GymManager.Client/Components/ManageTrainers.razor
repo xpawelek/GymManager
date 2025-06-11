@@ -62,14 +62,14 @@
                 <td>
                     @if (!string.IsNullOrEmpty(trainer.PhotoPath))
                     {
-                        <button class="btn btn-sm btn-outline-primary" @onclick="() => ShowPhoto(trainer.PhotoPath)">
+                        <button class="btn btn-sm btn-outline-primary" @onclick="() => ShowPhoto(trainer.PhotoPath)" @onclick:stopPropagation="true">
                             <i class="fa-solid fa-eye"></i>
                         </button>
                     }
                 </td>
                 <td>
-                    <button class="btn btn-sm btn-outline-dark me-2" @onclick="() => StartEdit(trainer)">Edit</button>
-                    <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteTrainer(trainer.Id)">Delete</button>
+                    <button class="btn btn-sm btn-outline-dark me-2" @onclick="() => StartEdit(trainer)" @onclick:stopPropagation="true">Edit</button>
+                    <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteTrainer(trainer.Id)" @onclick:stopPropagation="true">Delete</button>
                 </td>
             </tr>
         }

@@ -52,28 +52,34 @@ public class OpenOrderReportBackgroundService : BackgroundService
         
         var dir = "raports";
         Directory.CreateDirectory(dir);
-        var path = Path.Combine(dir, "service_request.pdf");
 
-        using var stream = new FileStream(path, FileMode.Create);
-        var doc = new PdfSharpCore.Pdf.PdfDocument();
-        var page = doc.AddPage();
-        var pen = PdfSharpCore.Drawing.XGraphics.FromPdfPage(page);
-        var titleFont = new PdfSharpCore.Drawing.XFont("Verdana", 20);
-        var font = new PdfSharpCore.Drawing.XFont("Verdana", 12);
+        var path = Path.Combine(dir, $"service_request_{DateTime.Now:yyyy-MM-dd}.pdf");
 
-        double y = 40;
-        pen.DrawString("Open Service Requests:", titleFont, PdfSharpCore.Drawing.XBrushes.Black, new PdfSharpCore.Drawing.XPoint(20, y));
-        y += 30;
-
-        foreach (var request in requests)
+        if (!File.Exists(path))
         {
-            pen.DrawString($"- #{request.ServiceProblemTitle}, {request.RequestDate.ToShortDateString()}", font, PdfSharpCore.Drawing.XBrushes.Black, new PdfSharpCore.Drawing.XPoint(20, y));
-            y += 25;
-            pen.DrawString($"   Description: {request.ProblemNote}", font, PdfSharpCore.Drawing.XBrushes.Gray, new PdfSharpCore.Drawing.XPoint(20, y));
-            y += 40;
+            using var stream = new FileStream(path, FileMode.CreateNew);
+    
+            var doc = new PdfSharpCore.Pdf.PdfDocument();
+            var page = doc.AddPage();
+            var pen = PdfSharpCore.Drawing.XGraphics.FromPdfPage(page);
+            var titleFont = new PdfSharpCore.Drawing.XFont("Verdana", 20);
+            var font = new PdfSharpCore.Drawing.XFont("Verdana", 12);
+
+            double y = 40;
+            pen.DrawString("Open Service Requests:", titleFont, PdfSharpCore.Drawing.XBrushes.Black, new PdfSharpCore.Drawing.XPoint(20, y));
+            y += 30;
+
+            foreach (var request in requests)
+            {
+                pen.DrawString($"- #{request.ServiceProblemTitle}, {request.RequestDate.ToShortDateString()}", font, PdfSharpCore.Drawing.XBrushes.Black, new PdfSharpCore.Drawing.XPoint(20, y));
+                y += 25;
+                pen.DrawString($"   Description: {request.ProblemNote}", font, PdfSharpCore.Drawing.XBrushes.Gray, new PdfSharpCore.Drawing.XPoint(20, y));
+                y += 40;
+            }
+
+            doc.Save(stream);
         }
 
-        doc.Save(stream);
         return path;
     }
 
@@ -87,24 +93,31 @@ public class OpenOrderReportBackgroundService : BackgroundService
         
         var dir = "raports";
         Directory.CreateDirectory(dir);
-        var path = Path.Combine(dir, "memberships.pdf");
 
-        using var stream = new FileStream(path, FileMode.Create);
-        var doc = new PdfSharpCore.Pdf.PdfDocument();
-        var page = doc.AddPage();
-        var pen = PdfSharpCore.Drawing.XGraphics.FromPdfPage(page);
-        var titleFont = new PdfSharpCore.Drawing.XFont("Verdana", 20);
-        var font = new PdfSharpCore.Drawing.XFont("Verdana", 12);
+        var path = Path.Combine(dir, $"memberships_{DateTime.Now:yyyy-MM-dd}.pdf");
 
-        double y = 40;
-        pen.DrawString("Memberships bought during that month:", titleFont, PdfSharpCore.Drawing.XBrushes.Black, new PdfSharpCore.Drawing.XPoint(20, y));
-        y += 30;
-        
-        pen.DrawString($"Memberships bought in {now:MMMM yyyy}: {count}", font, PdfSharpCore.Drawing.XBrushes.Black, new PdfSharpCore.Drawing.XPoint(20, y));
-        y += 25;
+        if (!File.Exists(path))
+        {
+            using var stream = new FileStream(path, FileMode.CreateNew);
+    
+            var doc = new PdfSharpCore.Pdf.PdfDocument();
+            var page = doc.AddPage();
+            var pen = PdfSharpCore.Drawing.XGraphics.FromPdfPage(page);
+            var titleFont = new PdfSharpCore.Drawing.XFont("Verdana", 20);
+            var font = new PdfSharpCore.Drawing.XFont("Verdana", 12);
 
-        doc.Save(stream);
+            double y = 40;
+            pen.DrawString("Memberships bought during that month:", titleFont, PdfSharpCore.Drawing.XBrushes.Black, new PdfSharpCore.Drawing.XPoint(20, y));
+            y += 30;
+    
+            pen.DrawString($"Memberships bought in {DateTime.Now:MMMM yyyy}: {count}", font, PdfSharpCore.Drawing.XBrushes.Black, new PdfSharpCore.Drawing.XPoint(20, y));
+            y += 25;
+
+            doc.Save(stream);
+        }
+
         return path;
+
     }
     private async Task SendEmailWithAttachments(string openOrdersPath, string membershipsPath)
     {

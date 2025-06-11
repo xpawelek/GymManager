@@ -29,7 +29,7 @@ namespace GymManager.Controllers
             TrainerSelfTrainerAssignmentService trainer,
             ILogger<TrainerAssignmentsController> logger)
         {
-            _admin = admin;
+            _admin = admin ?? throw new ArgumentNullException(nameof(admin));
             _member = member;
             _trainer = trainer;
             _logger = logger;
