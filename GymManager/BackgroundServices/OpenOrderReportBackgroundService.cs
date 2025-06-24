@@ -39,7 +39,7 @@ public class OpenOrderReportBackgroundService : BackgroundService
                 _logger.LogError(ex, "Error generating and sending reports.");
             }
 
-            await Task.Delay(TimeSpan.FromMinutes(1), stoppingToken);
+            await Task.Delay(TimeSpan.FromDays(31), stoppingToken);
         }
     }
 

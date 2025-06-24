@@ -4,6 +4,7 @@
 @using GymManager.Shared.DTOs.Member
 @using GymManager.Shared.DTOs.Admin
 @using GymManager.Shared.DTOs.Auth
+@using CreateTrainerAssignmentDto = GymManager.Shared.DTOs.Member.CreateTrainerAssignmentDto
 @inject MemberService MemberService
 @inject TrainerAssignmentService TrainerAssignmentService
 @inject TrainerService TrainerService
@@ -119,8 +120,8 @@
                     <DataAnnotationsValidator />
                     <div class="mb-3 mt-3">
                         <label class="form-label">Trainer</label>
-                        <select class="form-select" @bind="_newAssignment.TrainerId">
-                            <option value="">-- Select Trainer --</option>
+                        <select class="form-select w-50" @bind="_newAssignment.TrainerId">
+                            <option value="" selected disabled>-- Select Trainer --</option>
                             @foreach (var trainer in _trainers)
                             {
                                 <option value="@trainer.Id">@trainer.FirstName @trainer.LastName</option>
@@ -128,7 +129,7 @@
                         </select>
                         <ValidationMessage class="text-danger" For="@(() => _newAssignment.TrainerId)" />
                     </div>
-                    <button class="btn btn-primary btn-sm" type="submit"></button>
+                    <button class="btn btn-danger" type="submit">Choose trainer!</button>
                 </EditForm>
             }
         }
@@ -188,9 +189,11 @@
 
     private async Task AssignTrainer()
     {
+        Console.WriteLine("AssignTrainer called!");
         await TrainerAssignmentService.CreateSelfAsync(_newAssignment);
         _memberTrainerAssignemnt = await TryGet(() => TrainerAssignmentService.GetMemberSelfAsync());
         _showAssignmentForm = false;
+        StateHasChanged();
     }
     
     

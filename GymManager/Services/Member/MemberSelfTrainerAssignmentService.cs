@@ -78,6 +78,7 @@ namespace GymManager.Services.Member
             {
                 var e = _mapper.ToEntity(dto);
                 e.MemberId = await GetMemberIdAsync();
+                e.IsActive = true;
 
                 await _context.TrainerAssignments.AddAsync(e);
                 await _context.SaveChangesAsync();
