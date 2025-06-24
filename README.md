@@ -53,43 +53,60 @@ Below are some key views from the GymManager application:
 ![image](https://github.com/user-attachments/assets/7dffffbe-ef71-41b0-8820-44f2868f35f7)
 ![image](https://github.com/user-attachments/assets/0cf8e05b-d6ff-4f58-bfe9-96f67c409e11)
 
+
 ### "Progress" Tab
 
 ![image](https://github.com/user-attachments/assets/3356cdc6-91ca-460b-a9e5-4f353e51952b)
+
 
 ### "Offers" Tab
 
 ![image](https://github.com/user-attachments/assets/fe816624-fbb5-4ecb-ada0-2357d22b4329)
 
+
 ### "Trainers" Tab
 
 ![image](https://github.com/user-attachments/assets/fecb7b06-8bf7-46ac-9a98-9d4c360c7e6d)
+
 
 ### Login Panel
 
 ![image](https://github.com/user-attachments/assets/a33194c8-7a30-4031-9b25-c634ec4a8da1)
 
+
 ### Selected components from the admin management panel
 
 ![image](https://github.com/user-attachments/assets/0fab499a-353e-4323-b8f3-60a4fd70733d)
+
 ![image](https://github.com/user-attachments/assets/6b9f2156-da76-4cf1-aa56-4b7f9ddaf7e4)
+
 ![image](https://github.com/user-attachments/assets/1cd03d44-c90a-47a0-8de8-a32d41cb1756)
+
 ![image](https://github.com/user-attachments/assets/8d120d9c-41b0-4c13-8694-73d31d3e10ec)
+
 
 ### Selected components from the user management panel
 
 ![image](https://github.com/user-attachments/assets/1a3bb8be-be6d-40bc-923f-e3d943abaf0f)
+
 ![image](https://github.com/user-attachments/assets/8f549d91-374e-428a-a482-5e409fa3045b)
+
 ![image](https://github.com/user-attachments/assets/00599cf7-8318-4fea-9a41-f7a28afbaad8)
+
 ![image](https://github.com/user-attachments/assets/745c9c68-8e12-4e18-9d90-46ee1c842f12)
+
 
 
 ### Selected components from the trainer management panel
 
 ![image](https://github.com/user-attachments/assets/6d92b78b-7a73-4aa2-9286-3df4946989d8)
+
 ![image](https://github.com/user-attachments/assets/f6e75b7f-e460-4478-91e5-e172efaf98bb)
+
 ![image](https://github.com/user-attachments/assets/0090503f-924f-47a8-956e-6a043a8f72ab)
+
 ![image](https://github.com/user-attachments/assets/8298fd74-b100-4bf5-b55e-8d4a20a88a1a)
+
 
 
 ## 🚀 How to Run the Project Locally
